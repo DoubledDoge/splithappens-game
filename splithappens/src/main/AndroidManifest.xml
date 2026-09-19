@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SplitHappens">
         <activity
-            android:name=".MainActivity"
+            android:name="io.github.doubleddoge.splithappens.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.SplitHappens"
             android:windowSoftInputMode="adjustResize">

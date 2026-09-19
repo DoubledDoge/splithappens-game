@@ -1,10 +1,10 @@
-package com.example.splithappens
+package io.github.doubleddoge.splithappens
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.splithappens.ui.theme.SplitHappensTheme
+import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {

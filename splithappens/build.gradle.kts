@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-	namespace = "com.example.splithappens"
+	namespace = "io.github.doubleddoge.splithappens"
 	compileSdk {
 		version = release(37)
 	}
 
 	defaultConfig {
-		applicationId = "com.example.splithappens"
+		applicationId = "io.github.doubleddoge.splithappens"
 		minSdk = 29
 		targetSdk = 37
 		versionCode = 1

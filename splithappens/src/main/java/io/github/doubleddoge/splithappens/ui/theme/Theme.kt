@@ -1,4 +1,4 @@
-package com.example.splithappens.ui.theme
+package io.github.doubleddoge.splithappens.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
