@@ -4,7 +4,7 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
-import io.github.doubleddoge.splithappens.data.model.SessionStatus
+import io.github.doubleddoge.splithappens.data.enums.SessionStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao

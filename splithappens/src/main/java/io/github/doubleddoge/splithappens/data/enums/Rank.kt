@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.data.model
+package io.github.doubleddoge.splithappens.data.enums
 
 enum class Rank {
 	ACE,

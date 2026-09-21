@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.data.model
+package io.github.doubleddoge.splithappens.data.enums
 
 // Has a multiplier to enable different payouts decided by game logic
 enum class HandResult(val multiplier: Int) {
