@@ -7,7 +7,7 @@ import androidx.room3.Transaction
 import io.github.doubleddoge.splithappens.data.entity.GameEntity
 import io.github.doubleddoge.splithappens.data.entity.HandCardEntity
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
-
+import io.github.doubleddoge.splithappens.data.enums.HandOwner
 
 // Everything that happened in one finished round, as it comes out of the game logic.
 data class RoundRecord(
@@ -33,8 +33,8 @@ abstract class RoundDao {
 	@Insert
 	abstract suspend fun insertHandCards(cards: List<HandCardEntity>)
 
-	@Query("UPDATE Users SET chipsOwned = :chips WHERE userId = :userId")
-	abstract suspend fun setChips(userId: String, chips: Long)
+	@Query("UPDATE Users SET chipsOwned = chipsOwned + :delta WHERE userId = :userId")
+	abstract suspend fun addChips(userId: String, delta: Long)
 
 	/*
 		End-of-round operations done here
@@ -57,7 +57,12 @@ abstract class RoundDao {
 			insertHandCards(record.cards.map { it.copy(handId = handId) })
 		}
 
-		setChips(userId, newChipsOwned)
+		// playerNet = sum(hand.payout - hand.betAmount)
+		val playerNet = round.hands
+			.filter { it.hand.owner == HandOwner.PLAYER }
+			.sumOf { it.hand.payout - it.hand.betAmount }
+
+		addChips(userId, playerNet + round.game.insurancePayout - round.game.insuranceBet)
 
 		return gameId
 	}
