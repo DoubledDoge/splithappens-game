@@ -1,10 +1,9 @@
 package io.github.doubleddoge.splithappens.data.enums
 
+// Split can instead be determined if another hand points at it through parentHandId
 enum class HandStatus {
-	ACTIVE, // Might never reach database, rounds written at the end
 	STOOD,
 	BUSTED,
 	BLACKJACK,
 	SURRENDERED,
-	SPLIT // Could overlap with child hands
 }
