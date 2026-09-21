@@ -22,7 +22,7 @@ import androidx.room3.DatabaseView
 			   g.gameNum AS gameNum,
 			   g.dealerTotal AS dealerTotal,
 			   COUNT(h.handId) AS playerHands,
-			   COALESCE(SUM(h.payout), 0) + g.insurancePayout AS netChips
+			   COALESCE(SUM(h.payout - h.betAmount), 0) + g.insurancePayout - g.insuranceBet AS netChips
 		FROM Games g
 		JOIN Sessions s ON s.sessionId = g.sessionId
 		LEFT JOIN Hands h ON h.gameId = g.gameId AND h.owner = 'PLAYER'
