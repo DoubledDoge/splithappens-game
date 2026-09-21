@@ -34,6 +34,39 @@ data class HandEntity(
 	val owner: HandOwner,
 	val betAmount: Long,
 	val handStatus: HandStatus,
-	val result: HandResult?,
-	val payout: Long = 0 // Can now survive rule changes if need be
-)
+	val result: HandResult?, // Could be null for dealer hands
+	val payout: Long = 0 // Deterministic based on HandResult
+) {
+	companion object {
+		// IDs intentionally kept as placeholders (0/null) where RoundDao.saveRound fills them in
+		fun player(betAmount: Long, handStatus: HandStatus, result: HandResult): HandEntity {
+			require(handStatus != HandStatus.BUSTED || result == HandResult.LOSS) {
+				"A busted hand always loses"
+			}
+			require((handStatus == HandStatus.SURRENDERED) == (result == HandResult.SURRENDER)) {
+				"SURRENDERED status and SURRENDER result must go together"
+			}
+			return HandEntity(
+				gameId = 0,
+				owner = HandOwner.PLAYER,
+				betAmount = betAmount,
+				handStatus = handStatus,
+				result = result,
+				payout = result.payoutFor(betAmount)
+			)
+		}
+
+		// Stats queries must filter on owner (or result IS NOT NULL)
+		fun dealer(handStatus: HandStatus): HandEntity {
+			require(handStatus != HandStatus.SURRENDERED) { "The dealer cannot surrender" }
+			return HandEntity(
+				gameId = 0,
+				owner = HandOwner.DEALER,
+				betAmount = 0,
+				handStatus = handStatus,
+				result = null,
+				payout = 0
+			)
+		}
+	}
+}
