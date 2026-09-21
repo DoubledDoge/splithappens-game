@@ -4,9 +4,9 @@ import androidx.room3.Entity
 import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
-import io.github.doubleddoge.splithappens.data.model.HandOwner
-import io.github.doubleddoge.splithappens.data.model.HandResult
-import io.github.doubleddoge.splithappens.data.model.HandStatus
+import io.github.doubleddoge.splithappens.data.enums.HandOwner
+import io.github.doubleddoge.splithappens.data.enums.HandResult
+import io.github.doubleddoge.splithappens.data.enums.HandStatus
 
 // Net profit can't be derived from bet x result
 @Entity(

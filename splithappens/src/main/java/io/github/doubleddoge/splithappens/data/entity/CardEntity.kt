@@ -3,8 +3,8 @@ package io.github.doubleddoge.splithappens.data.entity
 import androidx.room3.Entity
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
-import io.github.doubleddoge.splithappens.data.model.Rank
-import io.github.doubleddoge.splithappens.data.model.Suit
+import io.github.doubleddoge.splithappens.data.enums.Rank
+import io.github.doubleddoge.splithappens.data.enums.Suit
 
 @Entity(
 	tableName = "Cards",
