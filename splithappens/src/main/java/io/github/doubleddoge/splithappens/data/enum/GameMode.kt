@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.data.enums
+package io.github.doubleddoge.splithappens.data.enum
 
 // Simply helps the backend determine if we could use our special payouts for queenjack, etc or not
 enum class GameMode(
