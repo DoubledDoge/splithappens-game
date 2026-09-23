@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "9c6f8bda58fc53b6de7f5f48a96f9fe2",
+    "identityHash": "00c8501634870fd917c67a1a4713488f",
     "entities": [
       {
         "tableName": "Users",
@@ -79,7 +79,7 @@
       },
       {
         "tableName": "Sessions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sessionId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` TEXT NOT NULL, `stakes` INTEGER NOT NULL, `status` TEXT NOT NULL, `startedAt` INTEGER NOT NULL, `endedAt` INTEGER, FOREIGN KEY(`userId`) REFERENCES `Users`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sessionId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` TEXT NOT NULL, `stakes` INTEGER NOT NULL, `mode` TEXT NOT NULL, `status` TEXT NOT NULL, `startedAt` INTEGER NOT NULL, `endedAt` INTEGER, FOREIGN KEY(`userId`) REFERENCES `Users`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "sessionId",
@@ -97,6 +97,12 @@
             "fieldPath": "stakes",
             "columnName": "stakes",
             "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mode",
+            "columnName": "mode",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -447,12 +453,12 @@
     "views": [
       {
         "viewName": "GameHistory",
-        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT g.gameId AS gameId,\n\t\t\t   s.userId AS userId,\n\t\t\t   s.sessionId AS sessionId,\n\t\t\t   s.startedAt AS sessionStartedAt,\n\t\t\t   g.gameNum AS gameNum,\n\t\t\t   g.dealerTotal AS dealerTotal,\n\t\t\t   COUNT(h.handId) AS playerHands,\n\t\t\t   COALESCE(SUM(h.payout - h.betAmount), 0) + g.insurancePayout - g.insuranceBet AS netChips\n\t\tFROM Games g\n\t\tJOIN Sessions s ON s.sessionId = g.sessionId\n\t\tLEFT JOIN Hands h ON h.gameId = g.gameId AND h.owner = 'PLAYER'\n\t\tGROUP BY g.gameId"
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT g.gameId AS gameId,\n\t\t\t   s.userId AS userId,\n\t\t\t   s.sessionId AS sessionId,\n\t\t\t   s.startedAt AS sessionStartedAt,\n\t\t\t   s.mode AS mode,\n\t\t\t   g.gameNum AS gameNum,\n\t\t\t   g.dealerTotal AS dealerTotal,\n\t\t\t   COUNT(h.handId) AS playerHands,\n\t\t\t   COALESCE(SUM(h.payout - h.betAmount), 0) + g.insurancePayout - g.insuranceBet AS netChips\n\t\tFROM Games g\n\t\tJOIN Sessions s ON s.sessionId = g.sessionId\n\t\tLEFT JOIN Hands h ON h.gameId = g.gameId AND h.owner = 'PLAYER'\n\t\tGROUP BY g.gameId"
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9c6f8bda58fc53b6de7f5f48a96f9fe2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '00c8501634870fd917c67a1a4713488f')"
     ]
   }
 }
