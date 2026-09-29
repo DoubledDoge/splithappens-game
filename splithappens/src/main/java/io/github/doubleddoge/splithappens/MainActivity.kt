@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,6 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +48,20 @@ class MainActivity : ComponentActivity() {
 		enableEdgeToEdge()
 		setContent {
 			SplitHappensTheme {
-				SplashScreen()
+				var currentScreen by remember { mutableStateOf("splash") }
+
+				when(currentScreen) {
+					"splash" -> SplashScreen(
+						onTimeout = { currentScreen = "home" }
+					)
+
+					"home" -> HomeScreen(
+						onPlayClick = {/* table screen*/}
+
+
+					)
+				}
+
 			}
 		}
 	}
