@@ -1,8 +1,5 @@
 package io.github.doubleddoge.splithappens
 
-import android.R
-import android.text.Layout
-import android.widget.GridLayout
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,13 +17,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,14 +38,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
-val DarkBackgroun = Color(0xFF0B1B15)
+// Color Palette
+val DarkBackground = Color(0xFF0B1B15)
 val CardBackground = Color(0xFF0F3A2E)
 val BorderGold = Color(0xFFD4A311)
 val ButtonBackground = Color(0xFFD8D8D8)
@@ -61,210 +64,327 @@ fun HomeScreen(
         onPlayClick = onPlayClick
     )
 }
+
 @Composable
 fun HomeScreenContent(
     uiState: HomeUiState,
-    onPlayClick: () -> Unit ={}
-
-){
-
-    var showStatsDialog by remember{ mutableStateOf(false) }
+    onPlayClick: () -> Unit = {}
+) {
+    var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBackgroun)
-            .padding(16.dp)
-
-    ){
-        if (uiState.isLoading){
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = BorderGold
-            )
-        }else{
-            Column(modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-
-            ) {
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Surface(modifier = Modifier
+    var selectedIndex by remember { mutableStateOf(0) }
+    Scaffold(
+        containerColor = DarkBackground,
+        bottomBar = {
+            // Anchored Bottom Navigation Bar
+            Surface(
+                modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = CardBackground,
-                    border = BorderStroke(1.dp, Color(0xFF1A5243))
+                    .padding(16.dp)
+                    .height(60.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = CardBackground
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
+                    // 1. Home Icon
+                    IconButton(onClick = { selectedIndex = 0 }) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (selectedIndex == 0) R.drawable.ic_home else R.drawable.ic_home
+                            ),
+                            contentDescription = "Home",
+                            tint = if (selectedIndex == 0) BorderGold else Color.White.copy(alpha = 0.6f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Text(text = "|", color = BorderGold.copy(alpha = 0.3f), fontSize = 18.sp)
+
+                    // 2. Games / Cards Icon
+                    IconButton(onClick = { selectedIndex = 1 }) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (selectedIndex == 1) R.drawable.ic_blackjackicon else R.drawable.ic_blackjackicon
+                            ),
+                            contentDescription = "Games",
+                            tint = if (selectedIndex == 1) BorderGold else Color.White.copy(alpha = 0.6f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Text(text = "|", color = BorderGold.copy(alpha = 0.3f), fontSize = 18.sp)
+
+                    // 3. Settings Icon
+                    IconButton(onClick = { selectedIndex = 2 }) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (selectedIndex == 2) R.drawable.ic_settings else R.drawable.ic_settings
+                            ),
+                            contentDescription = "Settings",
+                            tint = if (selectedIndex == 2) BorderGold else Color.White.copy(alpha = 0.6f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = BorderGold
+                )
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // 1. User Header Banner
+                    Surface(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-
+                            .fillMaxWidth()
+                            .height(80.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = CardBackground,
+                        border = BorderStroke(1.dp, Color(0xFF1A5243))
                     ) {
-                        //Avatar Initial
-                        Box(
+                        Row(
                             modifier = Modifier
-                                .size(48.dp)
-                                .background(Color.Transparent, CircleShape)
-                                .border(2.dp, BorderGold, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ){
-                            Text(
-                                text = uiState.displayName.take(1).uppercase(),
-                                color = BorderGold,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                                )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Column(verticalArrangement = Arrangement.Center) {
-                            Text(
-                                text = uiState.displayName,
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Box(
                                 modifier = Modifier
-                                    .background(Color(0xFF08261E), RoundedCornerShape(12.dp))
-                                    .padding(horizontal = 10.dp, vertical = 2.dp)
-                            ){
+                                    .size(48.dp)
+                                    .background(Color.Transparent, CircleShape)
+                                    .border(2.dp, BorderGold, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
-                                    text = "\uD83E\uDE99 R${uiState.chipsOwned}",
+                                    text = uiState.displayName.take(1).uppercase(),
                                     color = BorderGold,
-                                    fontSize = 12.sp,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Column(verticalArrangement = Arrangement.Center) {
+                                Text(
+                                    text = uiState.displayName,
+                                    color = Color.White,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .background(Color(0xFF08261E), RoundedCornerShape(12.dp))
+                                        .padding(horizontal = 10.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "🪙 R${uiState.chipsOwned}",
+                                        color = BorderGold,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // 2. STATS & RULES Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                                .clickable { showStatsDialog = true },
+                            shape = RoundedCornerShape(8.dp),
+                            color = CardBackground,
+                            border = BorderStroke(1.dp, Color(0xFF1A5243))
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = "📊", fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "STATS",
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                                .clickable { showRulesDialog = true },
+                            shape = RoundedCornerShape(8.dp),
+                            color = CardBackground,
+                            border = BorderStroke(1.dp, Color(0xFF1A5243))
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = "📖", fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "RULES",
+                                    color = Color.White,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                     }
 
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                //Action Buttons(STATS & RULES)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    //STATS Button
-                    Surface(
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // 3. Classic Table Card
+                    Card(
                         modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp)
-                            .clickable{ showStatsDialog = true},
-                        shape = RoundedCornerShape(8.dp),
-                        color = CardBackground,
-                        border = BorderStroke(1.dp, Color(0xFF1A5243))
+                            .fillMaxWidth()
+                            .border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardBackground)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "\uD83D\uDCCA",fontSize = 16.sp)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "STATS",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp)
-                            .clickable{ showRulesDialog = true},
-                        shape = RoundedCornerShape(8.dp),
-                        color = CardBackground,
-                        border = BorderStroke(1.dp, Color(0xFF1A5243))
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-
-                        ){
-                            Text(text = "📖", fontSize = 16.sp)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "RULES",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
-
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(contentColor = CardBackground)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(20.dp)
-
-                    ) {
-                        Text(
-                            text = "Classic Table",
-                            color = BorderGold,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text="Standard Rules • Minimum Bet R100 ",
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 12.sp
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = onPlayClick,
+                        Column(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .height(48.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = ButtonBackground,
-                                contentColor = ButtonTextColor
-                            )
-
-                        ){
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                        ) {
                             Text(
-                                text = "PLAY NOW",
-                                fontSize = 15.sp,
+                                text = "Classic Table",
+                                color = BorderGold,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Standard Rules • Minimum Bet R100",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 12.sp
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Button(
+                                onClick = onPlayClick,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = ButtonBackground,
+                                    contentColor = ButtonTextColor
+                                )
+                            ) {
+                                Text(
+                                    text = "PLAY NOW",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
-
-
                     }
+                }
+
+                if (showStatsDialog) {
+                    StatsDialog(onDismiss = { showStatsDialog = false })
+                }
+
+                if (showRulesDialog) {
+                    RulesDialog(onDismiss = { showRulesDialog = false })
                 }
             }
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .height(60.dp)
-
-            ) { }
         }
     }
-
 }
+
+@Composable
+fun StatsDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = CardBackground,
+        title = {
+            Text(
+                text = "📊 Player Statistics",
+                color = BorderGold,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "Games Played: 42", color = Color.White)
+                Text(text = "Hands Won: 24", color = Color.White)
+                Text(text = "Blackjacks: 6", color = Color.White)
+                Text(text = "Win Rate: 57%", color = Color.White)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("CLOSE", color = BorderGold, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
+}
+
+@Composable
+fun RulesDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = CardBackground,
+        title = {
+            Text(
+                text = "📖 Blackjack Rules",
+                color = BorderGold,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "• Goal: Get closer to 21 than the dealer without going over.", color = Color.White)
+                Text(text = "• Face cards count as 10; Aces count as 1 or 11.", color = Color.White)
+                Text(text = "• Stand to keep your hand, or Hit to take another card.", color = Color.White)
+                Text(text = "• Dealer must hit on 16 and stand on soft 17.", color = Color.White)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("GOT IT", color = BorderGold, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
