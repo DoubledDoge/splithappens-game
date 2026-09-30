@@ -73,6 +73,7 @@ fun HomeScreenContent(
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
     var selectedIndex by remember { mutableStateOf(0) }
+
     Scaffold(
         containerColor = DarkBackground,
         bottomBar = {
@@ -93,9 +94,7 @@ fun HomeScreenContent(
                     // 1. Home Icon
                     IconButton(onClick = { selectedIndex = 0 }) {
                         Icon(
-                            painter = painterResource(
-                                id = if (selectedIndex == 0) R.drawable.ic_home else R.drawable.ic_home
-                            ),
+                            painter = painterResource(id = R.drawable.ic_home),
                             contentDescription = "Home",
                             tint = if (selectedIndex == 0) BorderGold else Color.White.copy(alpha = 0.6f),
                             modifier = Modifier.size(24.dp)
@@ -107,9 +106,7 @@ fun HomeScreenContent(
                     // 2. Games / Cards Icon
                     IconButton(onClick = { selectedIndex = 1 }) {
                         Icon(
-                            painter = painterResource(
-                                id = if (selectedIndex == 1) R.drawable.ic_blackjackicon else R.drawable.ic_blackjackicon
-                            ),
+                            painter = painterResource(id = R.drawable.ic_blackjackicon),
                             contentDescription = "Games",
                             tint = if (selectedIndex == 1) BorderGold else Color.White.copy(alpha = 0.6f),
                             modifier = Modifier.size(24.dp)
@@ -121,9 +118,7 @@ fun HomeScreenContent(
                     // 3. Settings Icon
                     IconButton(onClick = { selectedIndex = 2 }) {
                         Icon(
-                            painter = painterResource(
-                                id = if (selectedIndex == 2) R.drawable.ic_settings else R.drawable.ic_settings
-                            ),
+                            painter = painterResource(id = R.drawable.ic_settings),
                             contentDescription = "Settings",
                             tint = if (selectedIndex == 2) BorderGold else Color.White.copy(alpha = 0.6f),
                             modifier = Modifier.size(24.dp)
@@ -318,7 +313,10 @@ fun HomeScreenContent(
                 }
 
                 if (showStatsDialog) {
-                    StatsDialog(onDismiss = { showStatsDialog = false })
+                    StatsDialog(
+                        uiState = uiState,
+                        onDismiss = { showStatsDialog = false }
+                    )
                 }
 
                 if (showRulesDialog) {
@@ -330,7 +328,22 @@ fun HomeScreenContent(
 }
 
 @Composable
-fun StatsDialog(onDismiss: () -> Unit) {
+fun StatsDialog(
+    uiState: HomeUiState,
+    onDismiss: () -> Unit
+) {
+    val winRate = if (uiState.totalGamesPlayed > 0) {
+        (uiState.totalWins.toDouble() / uiState.totalGamesPlayed * 100).toInt()
+    } else {
+        0
+    }
+
+    val netChipsFormatted = if (uiState.netChipsEarned >= 0) {
+        "+R${uiState.netChipsEarned}"
+    } else {
+        "-R${Math.abs(uiState.netChipsEarned)}"
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = CardBackground,
@@ -343,10 +356,10 @@ fun StatsDialog(onDismiss: () -> Unit) {
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = "Games Played: 42", color = Color.White)
-                Text(text = "Hands Won: 24", color = Color.White)
-                Text(text = "Blackjacks: 6", color = Color.White)
-                Text(text = "Win Rate: 57%", color = Color.White)
+                Text(text = "Games Played: ${uiState.totalGamesPlayed}", color = Color.White)
+                Text(text = "Games Won: ${uiState.totalWins}", color = Color.White)
+                Text(text = "Win Rate: $winRate%", color = Color.White)
+                Text(text = "Net Chips: $netChipsFormatted", color = Color.White)
             }
         },
         confirmButton = {
@@ -393,6 +406,9 @@ fun HomeScreenPreview() {
             uiState = HomeUiState(
                 displayName = "Player 1",
                 chipsOwned = 2500L,
+                totalGamesPlayed = 12,
+                totalWins = 7,
+                netChipsEarned = 1400L,
                 isLoading = false
             )
         )

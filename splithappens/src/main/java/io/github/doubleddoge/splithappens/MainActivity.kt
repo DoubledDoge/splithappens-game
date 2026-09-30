@@ -53,7 +53,10 @@ class MainActivity : ComponentActivity() {
 	}
 
 	private val homeViewModel: HomeViewModel by viewModels {
-		HomeViewModelFactory(database.userDao())
+		HomeViewModelFactory(
+			userDao = database.userDao(),
+			gameHistoryDao = database.gameHistoryDao()
+		)
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +73,7 @@ class MainActivity : ComponentActivity() {
 					"home" -> HomeScreen(
 						viewModel = homeViewModel,
 						onPlayClick = {
-							// TODO: Add navigation to Game screen when ready
+							// TODO: Add navigation to Game screen
 						}
 					)
 				}
