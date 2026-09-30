@@ -1,5 +1,6 @@
 package io.github.doubleddoge.splithappens
 
+import android.R
 import android.text.Layout
 import android.widget.GridLayout
 import androidx.compose.foundation.BorderStroke
@@ -106,7 +107,11 @@ fun HomeScreenContent(
                         ){
                             Text(
                                 text = uiState.displayName.take(1).uppercase(),
+                                color = BorderGold,
+                                fontSize = 20.sp,
+                                )
                                 }
+
                     }
 
                 }
