@@ -23,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -37,12 +38,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
 // Color Palette
@@ -344,58 +347,387 @@ fun StatsDialog(
         "-R${Math.abs(uiState.netChipsEarned)}"
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = CardBackground,
-        title = {
-            Text(
-                text = "📊 Player Statistics",
-                color = BorderGold,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = "Games Played: ${uiState.totalGamesPlayed}", color = Color.White)
-                Text(text = "Games Won: ${uiState.totalWins}", color = Color.White)
-                Text(text = "Win Rate: $winRate%", color = Color.White)
-                Text(text = "Net Chips: $netChipsFormatted", color = Color.White)
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("CLOSE", color = BorderGold, fontWeight = FontWeight.Bold)
+    Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = CardBackground,
+            border = BorderStroke(1.dp, BorderGold),
+            tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+
+                // HEADER
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
+                    Text(
+                        text = "♠  PLAYER STATS  ♠",
+                        color = BorderGold,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "YOUR BLACKJACK PERFORMANCE",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 1.5.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                HorizontalDivider(
+                    color = BorderGold.copy(alpha = 0.45f),
+                    thickness = 1.dp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // STATISTICS GRID
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+
+                    StatCard(
+                        title = "GAMES",
+                        value = uiState.totalGamesPlayed.toString(),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    StatCard(
+                        title = "WINS",
+                        value = uiState.totalWins.toString(),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+
+                    StatCard(
+                        title = "WIN RATE",
+                        value = "$winRate%",
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    StatCard(
+                        title = "NET CHIPS",
+                        value = netChipsFormatted,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // PERFORMANCE SECTION
+                Text(
+                    text = "PERFORMANCE",
+                    color = BorderGold,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.04f))
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text = if (winRate >= 50) "♛" else "♟",
+                        fontSize = 28.sp,
+                        color = BorderGold
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column {
+                        Text(
+                            text = when {
+                                uiState.totalGamesPlayed == 0 -> "NO GAMES YET"
+                                winRate >= 50 -> "STRONG PERFORMANCE"
+                                else -> "KEEP PLAYING"
+                            },
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.height(3.dp))
+
+                        Text(
+                            text = when {
+                                uiState.totalGamesPlayed == 0 ->
+                                    "Play your first game to see your stats."
+                                else ->
+                                    "Your current win rate is $winRate%."
+                            },
+                            color = Color.White.copy(alpha = 0.65f),
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // CLOSE BUTTON
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BorderGold,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = "CLOSE",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
             }
         }
-    )
+    }
 }
 
 @Composable
-fun RulesDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = CardBackground,
-        title = {
-            Text(
-                text = "📖 Blackjack Rules",
-                color = BorderGold,
-                fontWeight = FontWeight.Bold
+private fun StatCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White.copy(alpha = 0.04f))
+            .border(
+                width = 1.dp,
+                color = BorderGold.copy(alpha = 0.18f),
+                shape = RoundedCornerShape(12.dp)
             )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = "• Goal: Get closer to 21 than the dealer without going over.", color = Color.White)
-                Text(text = "• Face cards count as 10; Aces count as 1 or 11.", color = Color.White)
-                Text(text = "• Stand to keep your hand, or Hit to take another card.", color = Color.White)
-                Text(text = "• Dealer must hit on 16 and stand on soft 17.", color = Color.White)
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("GOT IT", color = BorderGold, fontWeight = FontWeight.Bold)
+            .padding(vertical = 14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Text(
+            text = title,
+            color = Color.White.copy(alpha = 0.55f),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Text(
+            text = value,
+            color = BorderGold,
+            fontSize = 21.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+@Composable
+fun RulesDialog(
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = CardBackground,
+            border = BorderStroke(1.dp, BorderGold),
+            tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+
+                // HEADER
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
+                    Text(
+                        text = "♠  BLACKJACK  ♠",
+                        color = BorderGold,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "HOW TO PLAY",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 2.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // GOLD DIVIDER
+                HorizontalDivider(
+                    color = BorderGold.copy(alpha = 0.45f),
+                    thickness = 1.dp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // RULE 1
+                RuleItem(
+                    icon = "🎯",
+                    title = "OBJECTIVE",
+                    description = "Get closer to 21 than the dealer without going over."
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // RULE 2
+                RuleItem(
+                    icon = "🃏",
+                    title = "CARD VALUES",
+                    description = "Face cards are worth 10. Aces count as 1 or 11."
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // RULE 3
+                RuleItem(
+                    icon = "✋",
+                    title = "YOUR TURN",
+                    description = "Hit to take another card or Stand to keep your current hand."
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // RULE 4
+                RuleItem(
+                    icon = "♣",
+                    title = "DEALER RULES",
+                    description = "The dealer must Hit on 16 or below and Stand on 17 or higher."
+                )
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // GOT IT BUTTON
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BorderGold,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = "GOT IT",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
             }
         }
-    )
+    }
+}
+@Composable
+private fun RuleItem(
+    icon: String,
+    title: String,
+    description: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White.copy(alpha = 0.04f))
+            .padding(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+
+        // ICON
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(BorderGold.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = icon,
+                fontSize = 17.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // TEXT
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+
+            Text(
+                text = title,
+                color = BorderGold,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+
+            Spacer(modifier = Modifier.height(3.dp))
+
+            Text(
+                text = description,
+                color = Color.White.copy(alpha = 0.82f),
+                fontSize = 13.sp,
+                lineHeight = 18.sp
+            )
+        }
+    }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
