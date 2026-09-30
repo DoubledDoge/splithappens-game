@@ -1,101 +1,92 @@
 package io.github.doubleddoge.splithappens
 
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import io.github.doubleddoge.splithappens.data.dao.GameHistoryDao
-import io.github.doubleddoge.splithappens.data.dao.UserDao
-import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val currentUserId: String = "",
-    val displayName: String = "Player 1",
-    val chipsOwned: Long = 2500L,
-    val totalHands: Int = 0,
-    val handsWon: Int = 0,
-    val bestStreak: Int = 0,
-    val netEarnings: Long = 0L,
-    val isLoading: Boolean = true
+    val isDarkMode: Boolean = true,
+    val showCardTotals: Boolean = true,
+    val showDealerBanner: Boolean = true,
+    val soundEnabled: Boolean = true,
+    val hapticsEnabled: Boolean = true,
+    val fastDealEnabled: Boolean = false,
+    val autoStandOn21: Boolean = true
 )
 
-class SettingsViewModel(
-    private val userDao: UserDao,
-    private val gameHistoryDao: GameHistoryDao
-) : ViewModel() {
+class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
+    private val prefs = application.getSharedPreferences("SplitHappensSettings", Context.MODE_PRIVATE)
+
+    private val _uiState = MutableStateFlow(
+        SettingsUiState(
+            isDarkMode = prefs.getBoolean(KEY_DARK_MODE, true),
+            showCardTotals = prefs.getBoolean(KEY_SHOW_CARD_TOTALS, true),
+            showDealerBanner = prefs.getBoolean(KEY_SHOW_DEALER_BANNER, true),
+            soundEnabled = prefs.getBoolean(KEY_SOUND_EFFECTS, true),
+            hapticsEnabled = prefs.getBoolean(KEY_HAPTICS_ENABLED, true),
+            fastDealEnabled = prefs.getBoolean(KEY_FAST_DEAL, false),
+            autoStandOn21 = prefs.getBoolean(KEY_AUTO_STAND_21, true)
+        )
+    )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    init {
-        observeUserData()
+    fun toggleDarkMode(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_DARK_MODE, enabled).apply()
+        _uiState.value = _uiState.value.copy(isDarkMode = enabled)
     }
 
-    private fun observeUserData() {
-        viewModelScope.launch {
-            userDao.observeAll().collect { users ->
-                val user = users.firstOrNull()
-                if (user != null) {
-                    combine(
-                        gameHistoryDao.observeForUser(user.userId),
-                        gameHistoryDao.observeNetChips(user.userId)
-                    ) { historyList, netChips ->
-                        val totalHands = historyList.size
-                        val handsWon = historyList.count { it.netChips > 0 }
-
-                        var currentStreak = 0
-                        var maxStreak = 0
-                        historyList.asReversed().forEach { round ->
-                            if (round.netChips > 0) {
-                                currentStreak++
-                                if (currentStreak > maxStreak) maxStreak = currentStreak
-                            } else if (round.netChips < 0) {
-                                currentStreak = 0
-                            }
-                        }
-
-                        SettingsUiState(
-                            currentUserId = user.userId,
-                            displayName = user.displayName,
-                            chipsOwned = user.chipsOwned,
-                            totalHands = totalHands,
-                            handsWon = handsWon,
-                            bestStreak = maxStreak,
-                            netEarnings = netChips,
-                            isLoading = false
-                        )
-                    }.collect { state ->
-                        _uiState.value = state
-                    }
-                } else {
-                    _uiState.value = SettingsUiState(isLoading = false)
-                }
-            }
-        }
+    fun toggleShowCardTotals(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_CARD_TOTALS, enabled).apply()
+        _uiState.value = _uiState.value.copy(showCardTotals = enabled)
     }
 
-    fun resetBankroll(amount: Long = 2500L) {
-        val userId = _uiState.value.currentUserId
-        if (userId.isNotEmpty()) {
-            viewModelScope.launch {
-                userDao.setChips(userId, amount)
-            }
-        }
+    fun toggleShowDealerBanner(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SHOW_DEALER_BANNER, enabled).apply()
+        _uiState.value = _uiState.value.copy(showDealerBanner = enabled)
+    }
+
+    fun toggleSound(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SOUND_EFFECTS, enabled).apply()
+        _uiState.value = _uiState.value.copy(soundEnabled = enabled)
+    }
+
+    fun toggleHaptics(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_HAPTICS_ENABLED, enabled).apply()
+        _uiState.value = _uiState.value.copy(hapticsEnabled = enabled)
+    }
+
+    fun toggleFastDeal(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_FAST_DEAL, enabled).apply()
+        _uiState.value = _uiState.value.copy(fastDealEnabled = enabled)
+    }
+
+    fun toggleAutoStandOn21(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_AUTO_STAND_21, enabled).apply()
+        _uiState.value = _uiState.value.copy(autoStandOn21 = enabled)
+    }
+
+    companion object {
+        const val KEY_DARK_MODE = "dark_mode"
+        const val KEY_SHOW_CARD_TOTALS = "show_card_totals"
+        const val KEY_SHOW_DEALER_BANNER = "show_dealer_banner"
+        const val KEY_SOUND_EFFECTS = "sound_effects"
+        const val KEY_HAPTICS_ENABLED = "haptics_enabled"
+        const val KEY_FAST_DEAL = "fast_deal"
+        const val KEY_AUTO_STAND_21 = "auto_stand_21"
     }
 }
 
-class SettingsViewModelFactory(
-    private val userDao: UserDao,
-    private val gameHistoryDao: GameHistoryDao
-) : ViewModelProvider.Factory {
+class SettingsViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return SettingsViewModel(userDao, gameHistoryDao) as T
+            return SettingsViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
