@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
     paths:
       - 'splithappens/**'
       - 'build.gradle.kts'
@@ -12,15 +12,58 @@ on:
       - 'gradle/wrapper/gradle-wrapper.properties'
       - '.github/workflows/ci-cd.yml'
   pull_request:
-    branches: [main]
+    branches: [ main ]
+    paths:
+      - 'splithappens/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/libs.versions.toml'
+      - 'gradle/wrapper/gradle-wrapper.properties'
+      - '.github/workflows/ci-cd.yml'
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: enhanced
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build project
+        run: ./gradlew assemble
+
+      - name: Run unit tests
+        run: ./gradlew test
+
+  validate-package:
+    name: Validate Package
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -36,48 +79,27 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
-          cache-provider: basic
+          cache-provider: enhanced
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build
-        run: ./gradlew assemble
+      - name: Decode signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SPLITHAPPENS_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/splithappens-release.jks"
 
-      # TODO: Add later when tests are being conducted.
-      # - name: Run unit tests
-      #   run: ./gradlew test
+      - name: Assemble signed release APK
+        env:
+          SIGNING_KEYSTORE_PATH: ${{ runner.temp }}/splithappens-release.jks
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SPLITHAPPENS_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SPLITHAPPENS_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SPLITHAPPENS_KEY_PASSWORD }}
+        run: ./gradlew :splithappens:assembleRelease
 
-#  validate-package:
-#    name: Validate Package
-#    runs-on: ubuntu-latest
-#    needs: build
-#    permissions:
-#      contents: read
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v7
-#
-#      - name: Set up JDK
-#        uses: actions/setup-java@v5
-#        with:
-#          distribution: temurin
-#          java-version: '25'
-#
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v6
-#        with:
-#          cache-provider: basic
-#
-#      - name: Grant execute permission for gradlew
-#        run: chmod +x gradlew
-#
-#      - name: Assemble release AAR
-#        run: ./gradlew :pulsemonitor:assembleRelease
-#
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v7
-#        with:
-#          name: pulsemonitor-aar-${{ github.sha }}
-#          path: pulsemonitor/build/outputs/aar/*.aar
-#          retention-days: 7
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: splithappens-apk-${{ github.sha }}
+          path: splithappens/build/outputs/apk/release/*.apk
+          retention-days: 7
