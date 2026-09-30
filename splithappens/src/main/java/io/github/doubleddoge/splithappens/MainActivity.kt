@@ -55,11 +55,7 @@ class MainActivity : ComponentActivity() {
 						onTimeout = { currentScreen = "home" }
 					)
 
-					"home" -> HomeScreen(
-						onPlayClick = {/* table screen*/}
 
-
-					)
 				}
 
 			}
