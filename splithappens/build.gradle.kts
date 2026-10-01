@@ -58,10 +58,6 @@ room3 {
     schemaDirectory("$projectDir/schemas")
 }
 
-room3{
-	schemaDirectory("$projectDir/schemas")
-}
-
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(platform(libs.androidx.compose.bom))
