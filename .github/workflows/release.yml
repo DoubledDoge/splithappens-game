@@ -1,0 +1,133 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  validate-tag:
+    name: Validate Release Tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+      version-code: ${{ steps.extract.outputs.version-code }}
+      is-prerelease: ${{ steps.extract.outputs.is-prerelease }}
+    steps:
+      - name: Extract version from tag
+        id: extract
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid version format: $VERSION"
+            exit 1
+          fi
+
+          if [[ $VERSION =~ - ]]; then
+            echo "is-prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+          BASE_VERSION=${VERSION%%-*}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+          VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+          echo "version-code=$VERSION_CODE" >> $GITHUB_OUTPUT
+
+  build-and-package:
+    name: Build & Sign Release APK
+    runs-on: ubuntu-latest
+    needs: validate-tag
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: enhanced
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Decode signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SPLITHAPPENS_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/splithappens-release.jks"
+
+      - name: Build signed release APK
+        env:
+          SIGNING_KEYSTORE_PATH: ${{ runner.temp }}/splithappens-release.jks
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SPLITHAPPENS_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SPLITHAPPENS_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SPLITHAPPENS_KEY_PASSWORD }}
+        run: |
+          ./gradlew :splithappens:assembleRelease \
+            -PversionName=${{ needs.validate-tag.outputs.version }} \
+            -PversionCode=${{ needs.validate-tag.outputs.version-code }}
+
+      - name: Stage APK for release
+        run: |
+          mkdir -p ./artifacts
+          cp splithappens/build/outputs/apk/release/*.apk \
+            ./artifacts/SplitHappens-${{ needs.validate-tag.outputs.version }}.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: splithappens-apk-${{ github.sha }}
+          path: ./artifacts/*.apk
+          retention-days: 1
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [ validate-tag, build-and-package ]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: splithappens-apk-${{ github.sha }}
+          path: ./artifacts
+
+      - name: Generate changelog
+        id: cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: .github/cliff.toml
+          args: --verbose --latest --strip header
+        env:
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.cliff.outputs.content }}
+          draft: false
+          prerelease: ${{ needs.validate-tag.outputs.is-prerelease == 'true' }}
+          files: ./artifacts/*.apk
