@@ -1,16 +1,34 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
+# Build outputs
+.gradle/
 build/
-/captures
-.externalNativeBuild
-.cxx
+*/build/
+
+# Local machine config
 local.properties
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android Studio
+.idea/
+*.iml
+captures/
+.cxx/
+.externalNativeBuild/
+
+# Logs & crash dumps
+*.log
+*.hprof
+
+# Packaged artifacts
+*.apk
+*.aab
+*.aar
+*.dex
+*.class
+
+# Signing material
+*.jks
+*.keystore
+
+# OS cruft
+.DS_Store
+Thumbs.db
