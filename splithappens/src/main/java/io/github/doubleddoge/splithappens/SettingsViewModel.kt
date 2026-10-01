@@ -2,6 +2,7 @@ package io.github.doubleddoge.splithappens
 
 import android.app.Application
 import android.content.Context
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -37,37 +38,37 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     fun toggleDarkMode(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_DARK_MODE, enabled).apply()
+        prefs.edit { putBoolean(KEY_DARK_MODE, enabled) }
         _uiState.value = _uiState.value.copy(isDarkMode = enabled)
     }
 
     fun toggleShowCardTotals(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_SHOW_CARD_TOTALS, enabled).apply()
+        prefs.edit { putBoolean(KEY_SHOW_CARD_TOTALS, enabled) }
         _uiState.value = _uiState.value.copy(showCardTotals = enabled)
     }
 
     fun toggleShowDealerBanner(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_SHOW_DEALER_BANNER, enabled).apply()
+        prefs.edit { putBoolean(KEY_SHOW_DEALER_BANNER, enabled) }
         _uiState.value = _uiState.value.copy(showDealerBanner = enabled)
     }
 
     fun toggleSound(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_SOUND_EFFECTS, enabled).apply()
+        prefs.edit { putBoolean(KEY_SOUND_EFFECTS, enabled) }
         _uiState.value = _uiState.value.copy(soundEnabled = enabled)
     }
 
     fun toggleHaptics(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_HAPTICS_ENABLED, enabled).apply()
+        prefs.edit { putBoolean(KEY_HAPTICS_ENABLED, enabled) }
         _uiState.value = _uiState.value.copy(hapticsEnabled = enabled)
     }
 
     fun toggleFastDeal(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_FAST_DEAL, enabled).apply()
+        prefs.edit { putBoolean(KEY_FAST_DEAL, enabled) }
         _uiState.value = _uiState.value.copy(fastDealEnabled = enabled)
     }
 
     fun toggleAutoStandOn21(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_AUTO_STAND_21, enabled).apply()
+        prefs.edit { putBoolean(KEY_AUTO_STAND_21, enabled) }
         _uiState.value = _uiState.value.copy(autoStandOn21 = enabled)
     }
 

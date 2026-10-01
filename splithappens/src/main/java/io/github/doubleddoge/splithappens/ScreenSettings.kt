@@ -33,10 +33,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,7 +64,9 @@ fun triggerDeviceVibration(context: Context, durationMs: Long = 40) {
         } else {
             @Suppress("DEPRECATION")
             val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-            vibrator?.vibrate(durationMs)
+            vibrator?.vibrate(
+                VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
+            )
         }
     } catch (_: Exception) {}
 }
@@ -82,31 +80,23 @@ fun triggerClickSound() {
 
 @Composable
 fun SettingsScreen(
+    uiState: SettingsUiState = SettingsUiState(),
+    onToggleDarkMode: (Boolean) -> Unit = {},
+    onToggleShowCardTotals: (Boolean) -> Unit = {},
+    onToggleDealerBanner: (Boolean) -> Unit = {},
+    onToggleSound: (Boolean) -> Unit = {},
+    onToggleHaptics: (Boolean) -> Unit = {},
+    onToggleFastDeal: (Boolean) -> Unit = {},
+    onToggleAutoStandOn21: (Boolean) -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
     val isPreview = LocalInspectionMode.current
     val context = LocalContext.current
-    val prefs = remember(isPreview) {
-        if (!isPreview) context.getSharedPreferences("SplitHappensSettings", Context.MODE_PRIVATE) else null
-    }
-
-    // Appearance & Display
-    var isDarkMode by remember { mutableStateOf(prefs?.getBoolean("dark_mode", true) ?: true) }
-    var showCardTotals by remember { mutableStateOf(prefs?.getBoolean("show_card_totals", true) ?: true) }
-    var showDealerRulesBanner by remember { mutableStateOf(prefs?.getBoolean("show_dealer_banner", true) ?: true) }
-
-    // Audio & Feedback
-    var soundEnabled by remember { mutableStateOf(prefs?.getBoolean("sound_effects", true) ?: true) }
-    var hapticsEnabled by remember { mutableStateOf(prefs?.getBoolean("haptics_enabled", true) ?: true) }
-
-    // Gameplay Convenience
-    var fastDealEnabled by remember { mutableStateOf(prefs?.getBoolean("fast_deal", false) ?: false) }
-    var autoStandOn21 by remember { mutableStateOf(prefs?.getBoolean("auto_stand_21", true) ?: true) }
 
     val runFeedback: (Boolean) -> Unit = { isClick ->
         if (!isPreview) {
-            if (hapticsEnabled) triggerDeviceVibration(context, if (isClick) 35 else 60)
-            if (soundEnabled) triggerClickSound()
+            if (uiState.hapticsEnabled) triggerDeviceVibration(context, if (isClick) 35 else 60)
+            if (uiState.soundEnabled) triggerClickSound()
         }
     }
 
@@ -115,7 +105,7 @@ fun SettingsScreen(
             .fillMaxSize()
             .background(
                 brush = Brush.radialGradient(
-                    colors = if (isDarkMode) {
+                    colors = if (uiState.isDarkMode) {
                         listOf(CasinoGlowCenter, CasinoBackgroundDark)
                     } else {
                         listOf(Color(0xFF144D35), Color(0xFF0A291C))
@@ -190,10 +180,9 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         title = "Dark Theme",
                         subtitle = "Deep casino midnight table tone",
-                        checked = isDarkMode,
+                        checked = uiState.isDarkMode,
                         onCheckedChange = {
-                            isDarkMode = it
-                            prefs?.edit()?.putBoolean("dark_mode", it)?.apply()
+                            onToggleDarkMode(it)
                             runFeedback(true)
                         }
                     )
@@ -203,10 +192,9 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         title = "Show Card Total",
                         subtitle = "Displays current numerical hand sum over cards",
-                        checked = showCardTotals,
+                        checked = uiState.showCardTotals,
                         onCheckedChange = {
-                            showCardTotals = it
-                            prefs?.edit()?.putBoolean("show_card_totals", it)?.apply()
+                            onToggleShowCardTotals(it)
                             runFeedback(true)
                         }
                     )
@@ -216,10 +204,9 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         title = "Dealer Rule Banner",
                         subtitle = "Display table rules ('Dealer stands on 17') on felt",
-                        checked = showDealerRulesBanner,
+                        checked = uiState.showDealerBanner,
                         onCheckedChange = {
-                            showDealerRulesBanner = it
-                            prefs?.edit()?.putBoolean("show_dealer_banner", it)?.apply()
+                            onToggleDealerBanner(it)
                             runFeedback(true)
                         }
                     )
@@ -249,10 +236,9 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         title = "Sound Effects",
                         subtitle = "Card deals, chip stacks, and win fanfare",
-                        checked = soundEnabled,
+                        checked = uiState.soundEnabled,
                         onCheckedChange = {
-                            soundEnabled = it
-                            prefs?.edit()?.putBoolean("sound_effects", it)?.apply()
+                            onToggleSound(it)
                             if (it) runFeedback(true)
                         }
                     )
@@ -262,10 +248,9 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         title = "Haptic Vibration",
                         subtitle = "Physical pulses on hit, stand, double, and bust",
-                        checked = hapticsEnabled,
+                        checked = uiState.hapticsEnabled,
                         onCheckedChange = {
-                            hapticsEnabled = it
-                            prefs?.edit()?.putBoolean("haptics_enabled", it)?.apply()
+                            onToggleHaptics(it)
                             if (it) triggerDeviceVibration(context, 50)
                         }
                     )
@@ -274,7 +259,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 3. GAMEPLAY
+            // 3. GAMEPLAY & CONTROLS
             Text(
                 text = "GAMEPLAY & CONTROLS",
                 color = CasinoMutedText,
@@ -295,10 +280,9 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         title = "Fast Deal",
                         subtitle = "Accelerates card sliding and flip animations",
-                        checked = fastDealEnabled,
+                        checked = uiState.fastDealEnabled,
                         onCheckedChange = {
-                            fastDealEnabled = it
-                            prefs?.edit()?.putBoolean("fast_deal", it)?.apply()
+                            onToggleFastDeal(it)
                             runFeedback(true)
                         }
                     )
@@ -308,10 +292,9 @@ fun SettingsScreen(
                     SettingsSwitchRow(
                         title = "Auto-Stand on 21",
                         subtitle = "Automatically pass turn when hand reaches 21",
-                        checked = autoStandOn21,
+                        checked = uiState.autoStandOn21,
                         onCheckedChange = {
-                            autoStandOn21 = it
-                            prefs?.edit()?.putBoolean("auto_stand_21", it)?.apply()
+                            onToggleAutoStandOn21(it)
                             runFeedback(true)
                         }
                     )
