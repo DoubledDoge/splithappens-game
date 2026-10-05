@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.Navigation
+package io.github.doubleddoge.splithappens.navigation
 
 sealed class Screen(val route: String){
     //Where your screens must go
