@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 // Figma Color Palette
 val CasinoBackgroundDark = Color(0xFF071B12)
@@ -56,9 +57,8 @@ fun SplashScreen(
     )
 
     LaunchedEffect(Unit) {
-        progressTarget = 1.0f // Animate progress bar to 100%
-        delay(2800L)          // Total splash duration
-        onTimeout()
+        progressTarget = 1.0f // Animate progress bar to 100%[cite: 4]
+        delay(2800.milliseconds) // Total splash duration
     }
 
     // Outer background with subtle gradient glow in center
@@ -154,7 +154,7 @@ fun SplashScreen(
     }
 }
 
-// Notice this is now OUTSIDE the SplashScreen function:
+
 @Preview(showBackground = true)
 @Composable
 fun SplashScreenPreview() {
