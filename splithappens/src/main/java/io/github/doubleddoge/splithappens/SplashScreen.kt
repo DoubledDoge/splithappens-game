@@ -59,6 +59,7 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         progressTarget = 1.0f // Animate progress bar to 100%[cite: 4]
         delay(2800.milliseconds) // Total splash duration
+        onTimeout()
     }
 
     // Outer background with subtle gradient glow in center
