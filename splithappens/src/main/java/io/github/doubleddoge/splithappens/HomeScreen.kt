@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -29,10 +28,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import kotlin.math.abs
 
 // Color Palette
 val DarkBackground = Color(0xFF0B1B15)
@@ -75,7 +75,7 @@ fun HomeScreenContent(
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
-    var selectedIndex by remember { mutableStateOf(0) }
+    var selectedIndex by remember { mutableIntStateOf(0) }
 
     Scaffold(
         containerColor = DarkBackground,
@@ -344,7 +344,7 @@ fun StatsDialog(
     val netChipsFormatted = if (uiState.netChipsEarned >= 0) {
         "+R${uiState.netChipsEarned}"
     } else {
-        "-R${Math.abs(uiState.netChipsEarned)}"
+        "-R${abs(uiState.netChipsEarned)}"
     }
 
     Dialog(
