@@ -2,6 +2,7 @@ package io.github.doubleddoge.splithappens
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -9,86 +10,92 @@ import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
-data class SettingsUiState(
-    val isDarkMode: Boolean = true,
-    val showCardTotals: Boolean = true,
-    val showDealerBanner: Boolean = true,
-    val soundEnabled: Boolean = true,
-    val hapticsEnabled: Boolean = true,
-    val fastDealEnabled: Boolean = false,
+data class SettingUiState(
+    val darkTheme: Boolean = false,
+    val showCardTotal: Boolean = true,
+    val dealerRuleBanner: Boolean = true,
+    val soundEffects: Boolean = true,
+    val hapticVibration: Boolean = true,
+    val fastDeal: Boolean = false,
     val autoStandOn21: Boolean = true
 )
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+@Suppress("unused")
+class SettingViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val prefs = application.getSharedPreferences("SplitHappensSettings", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences =
+        application.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
 
     private val _uiState = MutableStateFlow(
-        SettingsUiState(
-            isDarkMode = prefs.getBoolean(KEY_DARK_MODE, true),
-            showCardTotals = prefs.getBoolean(KEY_SHOW_CARD_TOTALS, true),
-            showDealerBanner = prefs.getBoolean(KEY_SHOW_DEALER_BANNER, true),
-            soundEnabled = prefs.getBoolean(KEY_SOUND_EFFECTS, true),
-            hapticsEnabled = prefs.getBoolean(KEY_HAPTICS_ENABLED, true),
-            fastDealEnabled = prefs.getBoolean(KEY_FAST_DEAL, false),
-            autoStandOn21 = prefs.getBoolean(KEY_AUTO_STAND_21, true)
+        SettingUiState(
+            darkTheme = prefs.getBoolean("pref_dark_theme", false),
+            showCardTotal = prefs.getBoolean("pref_show_card_total", true),
+            dealerRuleBanner = prefs.getBoolean("pref_dealer_rule_banner", true),
+            soundEffects = prefs.getBoolean("pref_sound_effects", true),
+            hapticVibration = prefs.getBoolean("pref_haptic_vibration", true),
+            fastDeal = prefs.getBoolean("pref_fast_deal", false),
+            autoStandOn21 = prefs.getBoolean("pref_auto_stand_21", true)
         )
     )
-    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<SettingUiState> = _uiState.asStateFlow()
 
-    fun toggleDarkMode(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_DARK_MODE, enabled) }
-        _uiState.value = _uiState.value.copy(isDarkMode = enabled)
+    fun toggleDarkTheme(enabled: Boolean) {
+        prefs.edit { putBoolean("pref_dark_theme", enabled) }
+        _uiState.update { it.copy(darkTheme = enabled) }
+        triggerHaptic()
     }
 
-    fun toggleShowCardTotals(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_SHOW_CARD_TOTALS, enabled) }
-        _uiState.value = _uiState.value.copy(showCardTotals = enabled)
+    fun toggleShowCardTotal(enabled: Boolean) {
+        prefs.edit { putBoolean("pref_show_card_total", enabled) }
+        _uiState.update { it.copy(showCardTotal = enabled) }
+        triggerHaptic()
     }
 
-    fun toggleShowDealerBanner(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_SHOW_DEALER_BANNER, enabled) }
-        _uiState.value = _uiState.value.copy(showDealerBanner = enabled)
+    fun toggleDealerRuleBanner(enabled: Boolean) {
+        prefs.edit { putBoolean("pref_dealer_rule_banner", enabled) }
+        _uiState.update { it.copy(dealerRuleBanner = enabled) }
+        triggerHaptic()
     }
 
-    fun toggleSound(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_SOUND_EFFECTS, enabled) }
-        _uiState.value = _uiState.value.copy(soundEnabled = enabled)
+    fun toggleSoundEffects(enabled: Boolean) {
+        prefs.edit { putBoolean("pref_sound_effects", enabled) }
+        _uiState.update { it.copy(soundEffects = enabled) }
+        triggerHaptic()
     }
 
-    fun toggleHaptics(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_HAPTICS_ENABLED, enabled) }
-        _uiState.value = _uiState.value.copy(hapticsEnabled = enabled)
+    fun toggleHapticVibration(enabled: Boolean) {
+        prefs.edit { putBoolean("pref_haptic_vibration", enabled) }
+        _uiState.update { it.copy(hapticVibration = enabled) }
+        if (enabled) triggerHaptic(force = true)
     }
 
     fun toggleFastDeal(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_FAST_DEAL, enabled) }
-        _uiState.value = _uiState.value.copy(fastDealEnabled = enabled)
+        prefs.edit { putBoolean("pref_fast_deal", enabled) }
+        _uiState.update { it.copy(fastDeal = enabled) }
+        triggerHaptic()
     }
 
     fun toggleAutoStandOn21(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_AUTO_STAND_21, enabled) }
-        _uiState.value = _uiState.value.copy(autoStandOn21 = enabled)
+        prefs.edit { putBoolean("pref_auto_stand_21", enabled) }
+        _uiState.update { it.copy(autoStandOn21 = enabled) }
+        triggerHaptic()
     }
 
-    companion object {
-        const val KEY_DARK_MODE = "dark_mode"
-        const val KEY_SHOW_CARD_TOTALS = "show_card_totals"
-        const val KEY_SHOW_DEALER_BANNER = "show_dealer_banner"
-        const val KEY_SOUND_EFFECTS = "sound_effects"
-        const val KEY_HAPTICS_ENABLED = "haptics_enabled"
-        const val KEY_FAST_DEAL = "fast_deal"
-        const val KEY_AUTO_STAND_21 = "auto_stand_21"
+    private fun triggerHaptic(force: Boolean = false) {
+        if (!force && !_uiState.value.hapticVibration) return
+        triggerDeviceVibration(getApplication(), 30)
     }
 }
 
-class SettingsViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+@Suppress("unused")
+class SettingViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(SettingViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return SettingsViewModel(application) as T
+            return SettingViewModel(application) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

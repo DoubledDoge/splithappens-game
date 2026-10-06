@@ -1,13 +1,5 @@
 package io.github.doubleddoge.splithappens
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.media.AudioManager
-import android.media.ToneGenerator
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -36,114 +27,69 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
-// Casino Palette
-private val CasinoBackgroundDark = Color(0xFF071B12)
-private val CasinoGlowCenter = Color(0xFF0F3022)
-private val CasinoGoldAccent = Color(0xFFE5B036)
-private val CasinoGreenSurface = Color(0xFF133827)
-private val CasinoMutedText = Color(0xFF9EBAAA)
+private val ScreenBackground = Color(0xFF072417)
+private val CardBackground = Color(0xFF0C2F20)
+private val CardBorderColor = Color(0xFF134530)
+private val GoldAccent = Color(0xFFF3B438)
+private val SubtitleColor = Color(0xFF8BA697)
+private val CategoryTitleColor = Color(0xFF789D8B)
+private val DividerColor = Color(0xFF133B29)
 
-@SuppressLint("MissingPermission")
-fun triggerDeviceVibration(context: Context, durationMs: Long = 40) {
-    try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-            vibratorManager?.defaultVibrator?.vibrate(
-                VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-            vibrator?.vibrate(
-                VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
-            )
-        }
-    } catch (_: Exception) {}
-}
-
-fun triggerClickSound() {
-    try {
-        val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 70)
-        toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 35)
-    } catch (_: Exception) {}
-}
+private val SwitchOnTrack = Color(0xFFF3B438)
+private val SwitchOnThumb = Color(0xFF0C2419)
+private val SwitchOffTrack = Color(0xFF435A50)
+private val SwitchOffThumb = Color(0xFFFFFFFF)
 
 @Composable
-fun SettingsScreen(
-    uiState: SettingsUiState = SettingsUiState(),
-    onToggleDarkMode: (Boolean) -> Unit = {},
-    onToggleShowCardTotals: (Boolean) -> Unit = {},
-    onToggleDealerBanner: (Boolean) -> Unit = {},
-    onToggleSound: (Boolean) -> Unit = {},
-    onToggleHaptics: (Boolean) -> Unit = {},
+fun ScreenSettings(
+    uiState: SettingUiState = SettingUiState(),
+    onToggleDarkTheme: (Boolean) -> Unit = {},
+    onToggleShowCardTotal: (Boolean) -> Unit = {},
+    onToggleDealerRuleBanner: (Boolean) -> Unit = {},
+    onToggleSoundEffects: (Boolean) -> Unit = {},
+    onToggleHapticVibration: (Boolean) -> Unit = {},
     onToggleFastDeal: (Boolean) -> Unit = {},
     onToggleAutoStandOn21: (Boolean) -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
-    val isPreview = LocalInspectionMode.current
-    val context = LocalContext.current
-
-    val runFeedback: (Boolean) -> Unit = { isClick ->
-        if (!isPreview) {
-            if (uiState.hapticsEnabled) triggerDeviceVibration(context, if (isClick) 35 else 60)
-            if (uiState.soundEnabled) triggerClickSound()
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.radialGradient(
-                    colors = if (uiState.isDarkMode) {
-                        listOf(CasinoGlowCenter, CasinoBackgroundDark)
-                    } else {
-                        listOf(Color(0xFF144D35), Color(0xFF0A291C))
-                    },
-                    radius = 1200f
-                )
-            )
+            .background(ScreenBackground)
             .padding(horizontal = 20.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(vertical = 32.dp)
+                .padding(top = 28.dp, bottom = 24.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 24.dp),
+                    .padding(bottom = 28.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(42.dp)
                         .clip(CircleShape)
-                        .background(CasinoGreenSurface)
-                        .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape)
-                        .clickable {
-                            runFeedback(true)
-                            onNavigateBack()
-                        },
+                        .background(CardBackground)
+                        .border(1.dp, CardBorderColor, CircleShape)
+                        .clickable { onNavigateBack() },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "←",
                         color = Color.White,
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -152,169 +98,118 @@ fun SettingsScreen(
 
                 Text(
                     text = "SETTINGS",
-                    color = CasinoGoldAccent,
+                    color = GoldAccent,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 2.sp
                 )
             }
 
-            // 1. APPEARANCE & DISPLAY
-            Text(
-                text = "APPEARANCE & DISPLAY",
-                color = CasinoMutedText,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp,
-                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
-            )
-
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CasinoGreenSurface),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    SettingsSwitchRow(
-                        title = "Dark Theme",
-                        subtitle = "Deep casino midnight table tone",
-                        checked = uiState.isDarkMode,
-                        onCheckedChange = {
-                            onToggleDarkMode(it)
-                            runFeedback(true)
-                        }
-                    )
-
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
-
-                    SettingsSwitchRow(
-                        title = "Show Card Total",
-                        subtitle = "Displays current numerical hand sum over cards",
-                        checked = uiState.showCardTotals,
-                        onCheckedChange = {
-                            onToggleShowCardTotals(it)
-                            runFeedback(true)
-                        }
-                    )
-
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
-
-                    SettingsSwitchRow(
-                        title = "Dealer Rule Banner",
-                        subtitle = "Display table rules ('Dealer stands on 17') on felt",
-                        checked = uiState.showDealerBanner,
-                        onCheckedChange = {
-                            onToggleDealerBanner(it)
-                            runFeedback(true)
-                        }
-                    )
-                }
+            SectionLabel(text = "APPEARANCE & DISPLAY")
+            SettingsSectionCard {
+                SettingItemRow(
+                    title = "Dark Theme",
+                    subtitle = "Deep casino midnight table tone",
+                    checked = uiState.darkTheme,
+                    onCheckedChange = onToggleDarkTheme
+                )
+                SettingItemDivider()
+                SettingItemRow(
+                    title = "Show Card Total",
+                    subtitle = "Displays current numerical hand sum over cards",
+                    checked = uiState.showCardTotal,
+                    onCheckedChange = onToggleShowCardTotal
+                )
+                SettingItemDivider()
+                SettingItemRow(
+                    title = "Dealer Rule Banner",
+                    subtitle = "Display table rules ('Dealer stands on 17') on felt",
+                    checked = uiState.dealerRuleBanner,
+                    onCheckedChange = onToggleDealerRuleBanner
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2. AUDIO & FEEDBACK
-            Text(
-                text = "AUDIO & FEEDBACK",
-                color = CasinoMutedText,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp,
-                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
-            )
-
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CasinoGreenSurface),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    SettingsSwitchRow(
-                        title = "Sound Effects",
-                        subtitle = "Card deals, chip stacks, and win fanfare",
-                        checked = uiState.soundEnabled,
-                        onCheckedChange = {
-                            onToggleSound(it)
-                            if (it) runFeedback(true)
-                        }
-                    )
-
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
-
-                    SettingsSwitchRow(
-                        title = "Haptic Vibration",
-                        subtitle = "Physical pulses on hit, stand, double, and bust",
-                        checked = uiState.hapticsEnabled,
-                        onCheckedChange = {
-                            onToggleHaptics(it)
-                            if (it) triggerDeviceVibration(context, 50)
-                        }
-                    )
-                }
+            SectionLabel(text = "AUDIO & FEEDBACK")
+            SettingsSectionCard {
+                SettingItemRow(
+                    title = "Sound Effects",
+                    subtitle = "Card deals, chip stacks, and win fanfare",
+                    checked = uiState.soundEffects,
+                    onCheckedChange = onToggleSoundEffects
+                )
+                SettingItemDivider()
+                SettingItemRow(
+                    title = "Haptic Vibration",
+                    subtitle = "Physical pulses on hit, stand, double, and bust",
+                    checked = uiState.hapticVibration,
+                    onCheckedChange = onToggleHapticVibration
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 3. GAMEPLAY & CONTROLS
-            Text(
-                text = "GAMEPLAY & CONTROLS",
-                color = CasinoMutedText,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp,
-                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
-            )
-
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CasinoGreenSurface),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    SettingsSwitchRow(
-                        title = "Fast Deal",
-                        subtitle = "Accelerates card sliding and flip animations",
-                        checked = uiState.fastDealEnabled,
-                        onCheckedChange = {
-                            onToggleFastDeal(it)
-                            runFeedback(true)
-                        }
-                    )
-
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
-
-                    SettingsSwitchRow(
-                        title = "Auto-Stand on 21",
-                        subtitle = "Automatically pass turn when hand reaches 21",
-                        checked = uiState.autoStandOn21,
-                        onCheckedChange = {
-                            onToggleAutoStandOn21(it)
-                            runFeedback(true)
-                        }
-                    )
-                }
+            SectionLabel(text = "GAMEPLAY & CONTROLS")
+            SettingsSectionCard {
+                SettingItemRow(
+                    title = "Fast Deal",
+                    subtitle = "Accelerates card sliding and flip animations",
+                    checked = uiState.fastDeal,
+                    onCheckedChange = onToggleFastDeal
+                )
+                SettingItemDivider()
+                SettingItemRow(
+                    title = "Auto-Stand on 21",
+                    subtitle = "Automatically pass turn when hand reaches 21",
+                    checked = uiState.autoStandOn21,
+                    onCheckedChange = onToggleAutoStandOn21
+                )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
             Text(
                 text = "Split Happens v1.0.0 • Double Doge",
-                color = Color.White.copy(alpha = 0.3f),
-                fontSize = 11.sp,
+                color = SubtitleColor.copy(alpha = 0.5f),
+                fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-private fun SettingsSwitchRow(
+private fun SectionLabel(text: String) {
+    Text(
+        text = text,
+        color = CategoryTitleColor,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.2.sp,
+        modifier = Modifier.padding(start = 4.dp, bottom = 10.dp)
+    )
+}
+
+@Composable
+private fun SettingsSectionCard(content: @Composable () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBackground),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun SettingItemRow(
     title: String,
     subtitle: String,
     checked: Boolean,
@@ -324,41 +219,56 @@ private fun SettingsSwitchRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 color = Color.White,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = subtitle,
-                color = CasinoMutedText,
-                fontSize = 12.sp
+                color = SubtitleColor,
+                fontSize = 12.sp,
+                lineHeight = 16.sp
             )
         }
-        Spacer(modifier = Modifier.width(12.dp))
+
+        Spacer(modifier = Modifier.width(16.dp))
+
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = CasinoBackgroundDark,
-                checkedTrackColor = CasinoGoldAccent,
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color.White.copy(alpha = 0.2f)
+                checkedThumbColor = SwitchOnThumb,
+                checkedTrackColor = SwitchOnTrack,
+                checkedBorderColor = Color.Transparent,
+                uncheckedThumbColor = SwitchOffThumb,
+                uncheckedTrackColor = SwitchOffTrack,
+                uncheckedBorderColor = Color.Transparent
             )
         )
     }
 }
 
+@Composable
+private fun SettingItemDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(DividerColor)
+    )
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun SettingsScreenPreview() {
+fun ScreenSettingsPreview() {
     SplitHappensTheme {
-        SettingsScreen()
+        ScreenSettings()
     }
 }
