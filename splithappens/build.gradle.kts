@@ -77,4 +77,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(kotlin("test"))
+    implementation(libs.androidx.navigation.compose)
+
 }
