@@ -9,7 +9,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.room3.Database
 import io.github.doubleddoge.splithappens.HomeScreen
 import io.github.doubleddoge.splithappens.HomeViewModel
 import io.github.doubleddoge.splithappens.HomeViewModelFactory

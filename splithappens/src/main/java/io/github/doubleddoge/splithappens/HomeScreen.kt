@@ -21,10 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,12 +36,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import io.github.doubleddoge.splithappens.components.AppBottomBar
+import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlin.math.abs
 
@@ -58,274 +56,171 @@ val ButtonTextColor = Color(0xFF1E1E1E)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onPlayClick: () -> Unit = {}
+    onPlayClick: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {},
+    onNavigateStats: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     HomeScreenContent(
         uiState = uiState,
-        onPlayClick = onPlayClick
+        onPlayClick = onPlayClick,
+        onNavigateProfile = onNavigateProfile,
+        onNavigateStats = onNavigateStats
     )
 }
 
 @Composable
 fun HomeScreenContent(
     uiState: HomeUiState,
-    onPlayClick: () -> Unit = {}
+    onPlayClick: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {},
+    onNavigateStats: () -> Unit = {}
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
-    var selectedIndex by remember { mutableIntStateOf(0) }
 
     Scaffold(
-        containerColor = DarkBackground,
+        topBar = {
+            UserHeaderCard(
+                displayName = uiState.displayName,
+                chipsOwned = uiState.chipsOwned
+            )
+        },
         bottomBar = {
-            // Anchored Bottom Navigation Bar
-            Surface(
+            AppBottomBar(
+                currentRoute = "home",
+                onNavigateHome = { /* Currently on Home */ },
+                onNavigateStats = onNavigateStats,
+                onNavigateProfile = onNavigateProfile
+            )
+        },
+        containerColor = DarkBackground
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // STATS & RULES Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(44.dp)
+                        .clickable { showStatsDialog = true },
+                    shape = RoundedCornerShape(8.dp),
+                    color = CardBackground,
+                    border = BorderStroke(1.dp, Color(0xFF1A5243))
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "📊", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "STATS",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(44.dp)
+                        .clickable { showRulesDialog = true },
+                    shape = RoundedCornerShape(8.dp),
+                    color = CardBackground,
+                    border = BorderStroke(1.dp, Color(0xFF1A5243))
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "📖", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "RULES",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Classic Table Card
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(60.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = CardBackground
+                    .border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = CardBackground)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
                 ) {
-                    // 1. Home Icon
-                    IconButton(onClick = { selectedIndex = 0 }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_home),
-                            contentDescription = "Home",
-                            tint = if (selectedIndex == 0) BorderGold else Color.White.copy(alpha = 0.6f),
-                            modifier = Modifier.size(24.dp)
+                    Text(
+                        text = "Classic Table",
+                        color = BorderGold,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Standard Rules • Minimum Bet R100",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 12.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = onPlayClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ButtonBackground,
+                            contentColor = ButtonTextColor
                         )
-                    }
-
-                    Text(text = "|", color = BorderGold.copy(alpha = 0.3f), fontSize = 18.sp)
-
-                    // 2. Games / Cards Icon
-                    IconButton(onClick = { selectedIndex = 1 }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_blackjackicon),
-                            contentDescription = "Games",
-                            tint = if (selectedIndex == 1) BorderGold else Color.White.copy(alpha = 0.6f),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    Text(text = "|", color = BorderGold.copy(alpha = 0.3f), fontSize = 18.sp)
-
-                    // 3. Settings Icon
-                    IconButton(onClick = { selectedIndex = 2 }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_settings),
-                            contentDescription = "Settings",
-                            tint = if (selectedIndex == 2) BorderGold else Color.White.copy(alpha = 0.6f),
-                            modifier = Modifier.size(24.dp)
+                    ) {
+                        Text(
+                            text = "PLAY NOW",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
         }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = BorderGold
-                )
-            } else {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Top,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // 1. User Header Banner
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = CardBackground,
-                        border = BorderStroke(1.dp, Color(0xFF1A5243))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(Color.Transparent, CircleShape)
-                                    .border(2.dp, BorderGold, CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = uiState.displayName.take(1).uppercase(),
-                                    color = BorderGold,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+        if (showStatsDialog) {
+            StatsDialog(
+                uiState = uiState,
+                onDismiss = { showStatsDialog = false }
+            )
+        }
 
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Column(verticalArrangement = Arrangement.Center) {
-                                Text(
-                                    text = uiState.displayName,
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .background(Color(0xFF08261E), RoundedCornerShape(12.dp))
-                                        .padding(horizontal = 10.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = "🪙 R${uiState.chipsOwned}",
-                                        color = BorderGold,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // 2. STATS & RULES Buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(44.dp)
-                                .clickable { showStatsDialog = true },
-                            shape = RoundedCornerShape(8.dp),
-                            color = CardBackground,
-                            border = BorderStroke(1.dp, Color(0xFF1A5243))
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(text = "📊", fontSize = 16.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "STATS",
-                                    color = Color.White,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(44.dp)
-                                .clickable { showRulesDialog = true },
-                            shape = RoundedCornerShape(8.dp),
-                            color = CardBackground,
-                            border = BorderStroke(1.dp, Color(0xFF1A5243))
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(text = "📖", fontSize = 16.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "RULES",
-                                    color = Color.White,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // 3. Classic Table Card
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = CardBackground)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp)
-                        ) {
-                            Text(
-                                text = "Classic Table",
-                                color = BorderGold,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Standard Rules • Minimum Bet R100",
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 12.sp
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Button(
-                                onClick = onPlayClick,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = ButtonBackground,
-                                    contentColor = ButtonTextColor
-                                )
-                            ) {
-                                Text(
-                                    text = "PLAY NOW",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                }
-
-                if (showStatsDialog) {
-                    StatsDialog(
-                        uiState = uiState,
-                        onDismiss = { showStatsDialog = false }
-                    )
-                }
-
-                if (showRulesDialog) {
-                    RulesDialog(onDismiss = { showRulesDialog = false })
-                }
-            }
+        if (showRulesDialog) {
+            RulesDialog(onDismiss = { showRulesDialog = false })
         }
     }
 }
@@ -347,9 +242,7 @@ fun StatsDialog(
         "-R${abs(uiState.netChipsEarned)}"
     }
 
-    Dialog(
-        onDismissRequest = onDismiss
-    ) {
+    Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -364,13 +257,10 @@ fun StatsDialog(
                     .fillMaxWidth()
                     .padding(20.dp)
             ) {
-
-                // HEADER
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-
                     Text(
                         text = "♠  PLAYER STATS  ♠",
                         color = BorderGold,
@@ -399,12 +289,10 @@ fun StatsDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // STATISTICS GRID
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-
                     StatCard(
                         title = "GAMES",
                         value = uiState.totalGamesPlayed.toString(),
@@ -424,7 +312,6 @@ fun StatsDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-
                     StatCard(
                         title = "WIN RATE",
                         value = "$winRate%",
@@ -440,7 +327,6 @@ fun StatsDialog(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // PERFORMANCE SECTION
                 Text(
                     text = "PERFORMANCE",
                     color = BorderGold,
@@ -459,7 +345,6 @@ fun StatsDialog(
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     Text(
                         text = if (winRate >= 50) "♛" else "♟",
                         fontSize = 28.sp,
@@ -497,7 +382,6 @@ fun StatsDialog(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // CLOSE BUTTON
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
@@ -539,7 +423,6 @@ private fun StatCard(
             .padding(vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text(
             text = title,
             color = Color.White.copy(alpha = 0.55f),
@@ -558,13 +441,12 @@ private fun StatCard(
         )
     }
 }
+
 @Composable
 fun RulesDialog(
     onDismiss: () -> Unit
 ) {
-    Dialog(
-        onDismissRequest = onDismiss
-    ) {
+    Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -579,13 +461,10 @@ fun RulesDialog(
                     .fillMaxWidth()
                     .padding(20.dp)
             ) {
-
-                // HEADER
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-
                     Text(
                         text = "♠  BLACKJACK  ♠",
                         color = BorderGold,
@@ -607,7 +486,6 @@ fun RulesDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // GOLD DIVIDER
                 HorizontalDivider(
                     color = BorderGold.copy(alpha = 0.45f),
                     thickness = 1.dp
@@ -615,7 +493,6 @@ fun RulesDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // RULE 1
                 RuleItem(
                     icon = "🎯",
                     title = "OBJECTIVE",
@@ -624,7 +501,6 @@ fun RulesDialog(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // RULE 2
                 RuleItem(
                     icon = "🃏",
                     title = "CARD VALUES",
@@ -633,7 +509,6 @@ fun RulesDialog(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // RULE 3
                 RuleItem(
                     icon = "✋",
                     title = "YOUR TURN",
@@ -642,7 +517,6 @@ fun RulesDialog(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // RULE 4
                 RuleItem(
                     icon = "♣",
                     title = "DEALER RULES",
@@ -651,7 +525,6 @@ fun RulesDialog(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // GOT IT BUTTON
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
@@ -674,6 +547,7 @@ fun RulesDialog(
         }
     }
 }
+
 @Composable
 private fun RuleItem(
     icon: String,
@@ -688,8 +562,6 @@ private fun RuleItem(
             .padding(12.dp),
         verticalAlignment = Alignment.Top
     ) {
-
-        // ICON
         Box(
             modifier = Modifier
                 .size(38.dp)
@@ -705,11 +577,9 @@ private fun RuleItem(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // TEXT
         Column(
             modifier = Modifier.weight(1f)
         ) {
-
             Text(
                 text = title,
                 color = BorderGold,
