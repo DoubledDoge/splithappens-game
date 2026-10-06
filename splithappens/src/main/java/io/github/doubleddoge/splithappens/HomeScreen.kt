@@ -89,21 +89,20 @@ fun AdBannerPlaceholder(
         }
     }
 }
-
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     onPlayClick: () -> Unit = {},
-    onNavigateSettings: () -> Unit = {},
-    onNavigateGame: () -> Unit = {}
+    onNavigateProfile: () -> Unit = {},
+    onNavigateStats: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     HomeScreenContent(
         uiState = uiState,
         onPlayClick = onPlayClick,
-        onNavigateSettings = onNavigateSettings,
-        onNavigateGame = onNavigateGame
+        onNavigateProfile = onNavigateProfile,
+        onNavigateStats = onNavigateStats
     )
 }
 
@@ -111,34 +110,32 @@ fun HomeScreen(
 fun HomeScreenContent(
     uiState: HomeUiState,
     onPlayClick: () -> Unit = {},
-    onNavigateSettings: () -> Unit = {},
-    onNavigateGame: () -> Unit = {}
+    onNavigateProfile: () -> Unit = {},
+    onNavigateStats: () -> Unit = {}
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
 
+    Spacer(modifier = Modifier.height(10.dp))
+    AdBannerPlaceholder()
+    Spacer(modifier = Modifier.height(10.dp))
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(horizontal = 12.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                AdBannerPlaceholder()
-                Spacer(modifier = Modifier.height(12.dp))
-                UserHeaderCard(
-                    displayName = uiState.displayName,
-                    chipsOwned = uiState.chipsOwned
-                )
-            }
+            UserHeaderCard(
+                displayName = uiState.displayName,
+                chipsOwned = uiState.chipsOwned,
+
+            )
         },
         bottomBar = {
             AppBottomBar(
                 currentRoute = "home",
                 onNavigateHome = { /* Currently on Home */ },
-                onNavigateGame = onNavigateGame,
-                onNavigateSettings = onNavigateSettings
+                onNavigateStats = onNavigateStats,
+                onNavigateProfile = onNavigateProfile,
+
+
+
             )
         },
         containerColor = DarkBackground
@@ -149,7 +146,7 @@ fun HomeScreenContent(
                 .fillMaxSize()
                 .padding(horizontal = 12.dp)
         ) {
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // STATS & RULES Buttons
             Row(
@@ -207,7 +204,7 @@ fun HomeScreenContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Classic Table Card
             Card(
@@ -258,17 +255,17 @@ fun HomeScreenContent(
                 }
             }
         }
-    }
 
-    if (showStatsDialog) {
-        StatsDialog(
-            uiState = uiState,
-            onDismiss = { showStatsDialog = false }
-        )
-    }
+        if (showStatsDialog) {
+            StatsDialog(
+                uiState = uiState,
+                onDismiss = { showStatsDialog = false }
+            )
+        }
 
-    if (showRulesDialog) {
-        RulesDialog(onDismiss = { showRulesDialog = false })
+        if (showRulesDialog) {
+            RulesDialog(onDismiss = { showRulesDialog = false })
+        }
     }
 }
 
