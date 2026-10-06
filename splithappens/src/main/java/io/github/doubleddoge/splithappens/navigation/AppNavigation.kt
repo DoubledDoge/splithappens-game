@@ -69,5 +69,6 @@ fun AppNavigation(
         }
         composable(Screen.Profile.route) { Text("Profile Screen Placeholder") }
 
+
     }
 }

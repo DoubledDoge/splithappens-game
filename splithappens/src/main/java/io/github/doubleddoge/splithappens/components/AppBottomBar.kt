@@ -26,8 +26,8 @@ import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 fun AppBottomBar(
     currentRoute: String,
     onNavigateHome: () -> Unit,
-    onNavigateStats: () -> Unit,
-    onNavigateProfile: () -> Unit,
+    onNavigateGame: () -> Unit,
+    onNavigateSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -53,7 +53,7 @@ fun AppBottomBar(
             )
         }
 
-        IconButton(onClick = onNavigateStats) {
+        IconButton(onClick = onNavigateGame) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_blackjackicon),
                 contentDescription = "Game",
@@ -61,7 +61,7 @@ fun AppBottomBar(
             )
         }
 
-        IconButton(onClick = onNavigateProfile) {
+        IconButton(onClick = onNavigateSettings) {
             Icon(
               painter = painterResource(id = R.drawable.ic_settings),
                 contentDescription = "Settings",
@@ -83,8 +83,8 @@ fun AppBottomBarPreview() {
             AppBottomBar(
                 currentRoute = "home",
                 onNavigateHome = {},
-                onNavigateStats = {},
-                onNavigateProfile = {}
+                onNavigateGame = {},
+                onNavigateSettings = {}
             )
         }
     }
