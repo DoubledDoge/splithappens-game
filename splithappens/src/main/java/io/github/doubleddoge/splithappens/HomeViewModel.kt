@@ -25,6 +25,7 @@ data class HomeUiState(
     val isLoading: Boolean = true
 )
 
+
 class HomeViewModel(
     private val userDao: UserDao,
     private val gameHistoryDao: GameHistoryDao
