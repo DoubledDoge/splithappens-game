@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,7 +54,41 @@ val CardBackground = Color(0xFF0F3A2E)
 val BorderGold = Color(0xFFD4A311)
 val ButtonBackground = Color(0xFFD8D8D8)
 val ButtonTextColor = Color(0xFF1E1E1E)
+@Composable
+fun AdBannerPlaceholder(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                Color(0xFF08251D)
+            )
+            .border(
+                width = 1.dp,
+                color = BorderGold.copy(alpha = 0.25f),
+                shape = RoundedCornerShape(8.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
 
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+
+            Text(
+                text = "ADVERTISEMENT",
+                color = Color.White.copy(alpha = 0.45f),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 1.2.sp
+            )
+        }
+    }
+}
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
@@ -80,11 +116,15 @@ fun HomeScreenContent(
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
 
+    Spacer(modifier = Modifier.height(10.dp))
+    AdBannerPlaceholder()
+    Spacer(modifier = Modifier.height(10.dp))
     Scaffold(
         topBar = {
             UserHeaderCard(
                 displayName = uiState.displayName,
-                chipsOwned = uiState.chipsOwned
+                chipsOwned = uiState.chipsOwned,
+
             )
         },
         bottomBar = {
@@ -92,7 +132,10 @@ fun HomeScreenContent(
                 currentRoute = "home",
                 onNavigateHome = { /* Currently on Home */ },
                 onNavigateStats = onNavigateStats,
-                onNavigateProfile = onNavigateProfile
+                onNavigateProfile = onNavigateProfile,
+
+
+
             )
         },
         containerColor = DarkBackground
@@ -101,19 +144,19 @@ fun HomeScreenContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 12.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // STATS & RULES Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Surface(
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .height(40.dp)
                         .clickable { showStatsDialog = true },
                     shape = RoundedCornerShape(8.dp),
                     color = CardBackground,
@@ -124,12 +167,12 @@ fun HomeScreenContent(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "📊", fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "📊", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "STATS",
                             color = Color.White,
-                            fontSize = 14.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -138,7 +181,7 @@ fun HomeScreenContent(
                 Surface(
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .height(40.dp)
                         .clickable { showRulesDialog = true },
                     shape = RoundedCornerShape(8.dp),
                     color = CardBackground,
@@ -149,19 +192,19 @@ fun HomeScreenContent(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "📖", fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "📖", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "RULES",
                             color = Color.White,
-                            fontSize = 14.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Classic Table Card
             Card(
@@ -174,28 +217,28 @@ fun HomeScreenContent(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp)
+                        .padding(14.dp)
                 ) {
                     Text(
                         text = "Classic Table",
                         color = BorderGold,
-                        fontSize = 20.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Standard Rules • Minimum Bet R100",
                         color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 12.sp
+                        fontSize = 11.sp
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Button(
                         onClick = onPlayClick,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
+                            .height(44.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = ButtonBackground,
@@ -204,8 +247,9 @@ fun HomeScreenContent(
                     ) {
                         Text(
                             text = "PLAY NOW",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
                         )
                     }
                 }

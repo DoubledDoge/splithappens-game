@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,8 +34,9 @@ fun UserHeaderCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .border(1.dp, BorderGold, RoundedCornerShape(16.dp))
+            .border(2.dp, BorderGold, RoundedCornerShape(16.dp))
             .background(
                 color = Color(0xFF072C1E), // Dark green background
                 shape = RoundedCornerShape(16.dp)
