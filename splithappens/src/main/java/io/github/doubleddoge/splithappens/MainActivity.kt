@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
 								menuViewModel.logout(onLoggedOut = { finish() })
 							},
 							onResumeGame = { finish() },
-							onNavigateToProfile = { /* Ready for ProfileScreen */ },
+							onNavigateToProfile = { /* Hook for Profile screen */ },
 							onNavigateToSettings = { currentDestination = AppDestination.SETTINGS }
 						)
 					}

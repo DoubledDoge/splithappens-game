@@ -33,8 +33,8 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
     fun loadPreferences() {
         _uiState.update {
             it.copy(
-                soundEnabled = prefs.getBoolean("pref_sound_enabled", true),
-                hapticsEnabled = prefs.getBoolean("pref_haptics_enabled", true)
+                soundEnabled = prefs.getBoolean("pref_sound_effects", true),
+                hapticsEnabled = prefs.getBoolean("pref_haptic_vibration", true)
             )
         }
     }
