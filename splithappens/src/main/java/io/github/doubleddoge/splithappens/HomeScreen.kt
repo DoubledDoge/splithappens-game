@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -30,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,6 +52,7 @@ val CardBackground = Color(0xFF0F3A2E)
 val BorderGold = Color(0xFFD4A311)
 val ButtonBackground = Color(0xFFD8D8D8)
 val ButtonTextColor = Color(0xFF1E1E1E)
+
 @Composable
 fun AdBannerPlaceholder(
     modifier: Modifier = Modifier
@@ -63,9 +62,7 @@ fun AdBannerPlaceholder(
             .fillMaxWidth()
             .height(50.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(
-                Color(0xFF08251D)
-            )
+            .background(Color(0xFF08251D))
             .border(
                 width = 1.dp,
                 color = BorderGold.copy(alpha = 0.25f),
@@ -73,12 +70,10 @@ fun AdBannerPlaceholder(
             ),
         contentAlignment = Alignment.Center
     ) {
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-
             Text(
                 text = "ADVERTISEMENT",
                 color = Color.White.copy(alpha = 0.45f),
@@ -89,20 +84,21 @@ fun AdBannerPlaceholder(
         }
     }
 }
+
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     onPlayClick: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
-    onNavigateStats: () -> Unit = {}
+    onNavigateSettings: () -> Unit = {},
+    onNavigateGame: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     HomeScreenContent(
         uiState = uiState,
         onPlayClick = onPlayClick,
-        onNavigateProfile = onNavigateProfile,
-        onNavigateStats = onNavigateStats
+        onNavigateSettings = onNavigateSettings,
+        onNavigateGame = onNavigateGame
     )
 }
 
@@ -110,32 +106,34 @@ fun HomeScreen(
 fun HomeScreenContent(
     uiState: HomeUiState,
     onPlayClick: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
-    onNavigateStats: () -> Unit = {}
+    onNavigateSettings: () -> Unit = {},
+    onNavigateGame: () -> Unit = {}
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
 
-    Spacer(modifier = Modifier.height(10.dp))
-    AdBannerPlaceholder()
-    Spacer(modifier = Modifier.height(10.dp))
     Scaffold(
         topBar = {
-            UserHeaderCard(
-                displayName = uiState.displayName,
-                chipsOwned = uiState.chipsOwned,
-
-            )
+            Column(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .padding(horizontal = 12.dp)
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+                AdBannerPlaceholder()
+                Spacer(modifier = Modifier.height(12.dp))
+                UserHeaderCard(
+                    displayName = uiState.displayName,
+                    chipsOwned = uiState.chipsOwned
+                )
+            }
         },
         bottomBar = {
             AppBottomBar(
                 currentRoute = "home",
                 onNavigateHome = { /* Currently on Home */ },
-                onNavigateStats = onNavigateStats,
-                onNavigateProfile = onNavigateProfile,
-
-
-
+                onNavigateGame = onNavigateGame,
+                onNavigateSettings = onNavigateSettings
             )
         },
         containerColor = DarkBackground
@@ -146,7 +144,7 @@ fun HomeScreenContent(
                 .fillMaxSize()
                 .padding(horizontal = 12.dp)
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // STATS & RULES Buttons
             Row(
@@ -204,7 +202,7 @@ fun HomeScreenContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Classic Table Card
             Card(
@@ -255,17 +253,17 @@ fun HomeScreenContent(
                 }
             }
         }
+    }
 
-        if (showStatsDialog) {
-            StatsDialog(
-                uiState = uiState,
-                onDismiss = { showStatsDialog = false }
-            )
-        }
+    if (showStatsDialog) {
+        StatsDialog(
+            uiState = uiState,
+            onDismiss = { showStatsDialog = false }
+        )
+    }
 
-        if (showRulesDialog) {
-            RulesDialog(onDismiss = { showRulesDialog = false })
-        }
+    if (showRulesDialog) {
+        RulesDialog(onDismiss = { showRulesDialog = false })
     }
 }
 
