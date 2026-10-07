@@ -9,6 +9,7 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,6 +35,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +58,7 @@ import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import org.jetbrains.annotations.Async
 import java.io.ByteArrayOutputStream
+import java.util.Locale
 import kotlin.contracts.contract
 
 @Composable
@@ -300,14 +303,186 @@ fun ProfileScreenContent(
 
                             )
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = {
+                                val cleanedName = tempName.trim()
+
+                                if(cleanedName.isNotEmpty()){
+                                    onUpdateDisplayName(
+                                        cleanedName
+                                    )
+                                    isEditingName = false
+                                }
+
+                            },
+                            modifier = Modifier.height(50.dp),
+
+                            shape = RoundedCornerShape(10.dp),
+
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = BorderGold,
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Text(
+                                text = "SAVE",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                }else{
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable{
+                                tempName = uiState.displayName
+                                isEditingName = true
+                            }
+                            .padding(
+                                horizontal = 10.dp,
+                                vertical = 5.dp
+                            ),
+
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = uiState.displayName,
+
+                            color = Color.White,
+
+                            fontSize = 21.sp,
+
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.width(7.dp))
+
+                        Text(text = "✏\uFE0F", fontSize = 14.sp)
                     }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Chip Balance
+                Surface(
+                    shape = RoundedCornerShape(50.dp),
+                    color = Color(0xFF132A21),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = BorderGold.copy(alpha = 0.6f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(
+                            horizontal = 18.dp,
+                            vertical = 8.dp
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "🪙",
+                            fontSize = 18.sp
+                        )
+
+                        Spacer(
+                            modifier = Modifier.width(8.dp)
+                        )
+
+                        Text(
+                            text = "R${uiState.chipsOwned} CHIPS",
+                            color = BorderGold,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.8.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                //Career Overview
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(width = 1.dp, color = BorderGold.copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = CardBackground
+                    )
+
+                ){
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "CAREER OVERVIEW",
+                            color = BorderGold,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.2.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        ProfileStatRow(
+                            title = "Total Game Played",
+                            value = uiState.gamesPlayed.toString()
+                        )
+                        ProfileStatRow(
+                            title = "Total Losses",
+                            value = uiState.losses.toString()
+                        )
+                        ProfileStatRow(
+                            title = "Win Rate",
+                            value = String.format(Locale.US, "%.1f%%", uiState.winRate)
+                        )
+
+                    }
+                }
+
+
             }
         }
 
     }
 }
 
+@Composable
+private fun ProfileStatRow(
+    title: String,
+    value: String
+){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+
+        verticalAlignment = Alignment.CenterVertically,
+
+        horizontalArrangement = Arrangement.SpaceBetween
+    ){
+        Text(
+            text = title,
+
+            color = Color.White.copy(alpha = 0.72f),
+            fontSize = 13.sp
+        )
+        Text(
+            text = value,
+            color = Color.White,
+            fontSize = 14.sp,
+
+            fontWeight = FontWeight.Bold
+            )
+    }
+}
 @Composable
 fun AsyncImage(
     model: ByteArray?,
