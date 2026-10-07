@@ -32,7 +32,7 @@ fun AppNavigation(
         navController = navController,
         startDestination = Screen.Splash.route
     ) {
-        // Splash Destination
+        // 1. Splash Screen
         composable(Screen.Splash.route) {
             SplashScreen(
                 onTimeout = {
@@ -43,7 +43,7 @@ fun AppNavigation(
             )
         }
 
-        // Home Destination
+        // 2. Home Screen
         composable(Screen.Home.route) {
             val context = LocalContext.current
             val db = remember(context) { buildSplitHappensDatabase(context) }
@@ -76,7 +76,7 @@ fun AppNavigation(
             )
         }
 
-        // Settings Destination
+        // 3. Settings Screen
         composable(Screen.Settings.route) {
             val context = LocalContext.current
             val settingsViewModel: SettingViewModel = viewModel(
@@ -97,7 +97,7 @@ fun AppNavigation(
             )
         }
 
-        // Menu Destination
+        // 4. Menu Screen
         composable(Screen.Menu.route) {
             val context = LocalContext.current
             val menuViewModel: MenuViewModel = viewModel(
@@ -128,11 +128,12 @@ fun AppNavigation(
             )
         }
 
-        // Teammates' Screen Stubs
+        // 5. Game Screen Stub
         composable(Screen.Game.route) {
             Text("Game Screen Placeholder")
         }
 
+        // 6. Profile Screen Stub
         composable(Screen.Profile.route) {
             Text("Profile Screen Placeholder")
         }
