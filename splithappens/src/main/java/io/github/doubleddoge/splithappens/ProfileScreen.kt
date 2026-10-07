@@ -1,9 +1,7 @@
 package io.github.doubleddoge.splithappens
 
-import android.R
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
-import android.media.quality.PictureProfile
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -56,10 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
-import org.jetbrains.annotations.Async
 import java.io.ByteArrayOutputStream
 import java.util.Locale
-import kotlin.contracts.contract
+import coil.compose.AsyncImage
+
 
 @Composable
 fun ProfileScreen(
@@ -406,44 +404,204 @@ fun ProfileScreenContent(
 
                 //Career Overview
 
+
                 Card(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .border(width = 1.dp, color = BorderGold.copy(alpha = 0.3f)),
-                    shape = RoundedCornerShape(16.dp),
+                        .fillMaxWidth()
+                        .border(
+                            width = 1.dp,
+                            color = BorderGold.copy(alpha = 0.35f),
+                            shape = RoundedCornerShape(18.dp)
+                        ),
+                    shape = RoundedCornerShape(18.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = CardBackground
                     )
+                ) {
 
-                ){
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(18.dp)
                     ) {
-                        Text(
-                            text = "CAREER OVERVIEW",
-                            color = BorderGold,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.2.sp
+
+                       // HEADER
+
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+
+                                Text(
+                                    text = "CAREER OVERVIEW",
+                                    color = BorderGold,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.5.sp
+                                )
+
+                                Spacer(
+                                    modifier = Modifier.height(3.dp)
+                                )
+
+                                Text(
+                                    text = "YOUR BLACKJACK PERFORMANCE",
+                                    color = Color.White.copy(alpha = 0.45f),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    letterSpacing = 1.2.sp
+                                )
+                            }
+
+                            // Small crown decoration
+                            Text(
+                                text = "♛",
+                                color = BorderGold.copy(alpha = 0.7f),
+                                fontSize = 24.sp
+                            )
+                        }
+
+
+                        Spacer(
+                            modifier = Modifier.height(14.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(10.dp))
 
-                        ProfileStatRow(
-                            title = "Total Game Played",
-                            value = uiState.gamesPlayed.toString()
-                        )
-                        ProfileStatRow(
-                            title = "Total Losses",
-                            value = uiState.losses.toString()
-                        )
-                        ProfileStatRow(
-                            title = "Win Rate",
-                            value = String.format(Locale.US, "%.1f%%", uiState.winRate)
+                        // DIVIDER
+
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(
+                                    BorderGold.copy(alpha = 0.25f)
+                                )
                         )
 
+
+                        Spacer(
+                            modifier = Modifier.height(14.dp)
+                        )
+
+
+                      // STAT GRID
+
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+
+                            PremiumStatCard(
+                                title = "GAMES",
+                                value = uiState.gamesPlayed.toString(),
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            PremiumStatCard(
+                                title = "WINS",
+                                value = uiState.wins.toString(),
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            PremiumStatCard(
+                                title = "LOSSES",
+                                value = uiState.losses.toString(),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+
+                        Spacer(
+                            modifier = Modifier.height(10.dp)
+                        )
+
+
+                        // WIN RATE
+
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    Color.Black.copy(alpha = 0.18f)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = BorderGold.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(
+                                    horizontal = 14.dp,
+                                    vertical = 12.dp
+                                ),
+
+                            verticalAlignment =
+                                Alignment.CenterVertically
+                        ) {
+
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+
+                                Text(
+                                    text = "WIN RATE",
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.2.sp
+                                )
+
+                                Spacer(
+                                    modifier = Modifier.height(3.dp)
+                                )
+
+                                Text(
+                                    text = String.format(
+                                        Locale.US,
+                                        "%.1f%%",
+                                        uiState.winRate
+                                    ),
+                                    color = BorderGold,
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+
+                            // Performance status
+
+                            val performanceText =
+                                when {
+                                    uiState.gamesPlayed == 0 ->
+                                        "NO GAMES"
+
+                                    uiState.winRate >= 60 ->
+                                        "EXCELLENT"
+
+                                    uiState.winRate >= 50 ->
+                                        "GOOD FORM"
+
+                                    else ->
+                                        "KEEP PLAYING"
+                                }
+
+
+                            Text(
+                                text = performanceText,
+                                color = BorderGold,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                        }
                     }
                 }
 
@@ -451,6 +609,55 @@ fun ProfileScreenContent(
             }
         }
 
+    }
+}
+@Composable
+private fun PremiumStatCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+
+    Column(
+        modifier = modifier
+            .clip(
+                RoundedCornerShape(12.dp)
+            )
+            .background(
+                Color.Black.copy(alpha = 0.18f)
+            )
+            .border(
+                width = 1.dp,
+                color = BorderGold.copy(alpha = 0.15f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(
+                vertical = 12.dp,
+                horizontal = 6.dp
+            ),
+
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+
+        Text(
+            text = title,
+            color = Color.White.copy(alpha = 0.5f),
+            fontSize = 8.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+
+        Spacer(
+            modifier = Modifier.height(5.dp)
+        )
+
+        Text(
+            text = value,
+            color = BorderGold,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -478,22 +685,11 @@ private fun ProfileStatRow(
             text = value,
             color = Color.White,
             fontSize = 14.sp,
-
-
-
             fontWeight = FontWeight.Bold
             )
     }
 }
-@Composable
-fun AsyncImage(
-    model: ByteArray?,
-    contentDescription: String,
-    contentScale: ContentScale,
-    modifier: Modifier
-) {
-    TODO("Not yet implemented")
-}
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -502,7 +698,7 @@ fun ProfileScreenPreview() {
     val mockUiState = ProfileUiState(
         userId = "user_001",
         displayName = "Andriaan",
-        chipsOwned = 5000L,
+        chipsOwned = 2500L,
         profilePictureBytes = null, // Set to null to preview initial letter fallback
         gamesPlayed = 24,
         wins = 15,
