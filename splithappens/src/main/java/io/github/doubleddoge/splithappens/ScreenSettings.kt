@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
-// Screenshot-Matched Colors
 private val ScreenBackground = Color(0xFF072417)
 private val CardBackground = Color(0xFF0C2F20)
 private val CardBorderColor = Color(0xFF134530)
@@ -43,7 +42,6 @@ private val SubtitleColor = Color(0xFF8BA697)
 private val CategoryTitleColor = Color(0xFF789D8B)
 private val DividerColor = Color(0xFF133B29)
 
-// Switch Colors
 private val SwitchOnTrack = Color(0xFFF3B438)
 private val SwitchOnThumb = Color(0xFF0C2419)
 private val SwitchOffTrack = Color(0xFF435A50)
@@ -73,7 +71,6 @@ fun ScreenSettings(
                 .verticalScroll(rememberScrollState())
                 .padding(top = 28.dp, bottom = 24.dp)
         ) {
-            // Header: Circular back button + SETTINGS
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,7 +105,6 @@ fun ScreenSettings(
                 )
             }
 
-            // 1. APPEARANCE & DISPLAY
             SectionLabel(text = "APPEARANCE & DISPLAY")
             SettingsSectionCard {
                 SettingItemRow(
@@ -135,7 +131,6 @@ fun ScreenSettings(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2. AUDIO & FEEDBACK
             SectionLabel(text = "AUDIO & FEEDBACK")
             SettingsSectionCard {
                 SettingItemRow(
@@ -155,7 +150,6 @@ fun ScreenSettings(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 3. GAMEPLAY & CONTROLS
             SectionLabel(text = "GAMEPLAY & CONTROLS")
             SettingsSectionCard {
                 SettingItemRow(
@@ -175,7 +169,6 @@ fun ScreenSettings(
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            // Version Footer
             Text(
                 text = "Split Happens v1.0.0 • Double Doge",
                 color = SubtitleColor.copy(alpha = 0.5f),
