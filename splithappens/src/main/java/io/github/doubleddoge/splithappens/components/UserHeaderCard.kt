@@ -35,7 +35,7 @@ fun UserHeaderCard(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
             .border(2.dp, BorderGold, RoundedCornerShape(16.dp))
             .background(
                 color = Color(0xFF072C1E), // Dark green background

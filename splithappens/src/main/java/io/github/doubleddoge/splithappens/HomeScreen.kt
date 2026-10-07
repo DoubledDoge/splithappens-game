@@ -119,9 +119,7 @@ fun HomeScreenContent(
                     .statusBarsPadding()
                     .padding(horizontal = 12.dp)
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                AdBannerPlaceholder()
-                Spacer(modifier = Modifier.height(12.dp))
+
                 UserHeaderCard(
                     displayName = uiState.displayName,
                     chipsOwned = uiState.chipsOwned
@@ -144,7 +142,10 @@ fun HomeScreenContent(
                 .fillMaxSize()
                 .padding(horizontal = 12.dp)
         ) {
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            //Ad placeholder
+            AdBannerPlaceholder()
+            Spacer(modifier = Modifier.height(12.dp))
 
             // STATS & RULES Buttons
             Row(
