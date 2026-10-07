@@ -6,53 +6,54 @@ import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.dao.GameHistoryDao
 import io.github.doubleddoge.splithappens.data.dao.UserDao
 import io.github.doubleddoge.splithappens.data.entity.ProfilePictureEntity
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+
+// ================================================================
+// PROFILE UI STATE
+// ================================================================
 
 data class ProfileUiState(
     val userId: String = "",
     val displayName: String = "Player 1",
-    val chipsOwned: Long = 2500,
+    val chipsOwned: Long = 0L,
     val profilePictureBytes: ByteArray? = null,
+
     val gamesPlayed: Int = 0,
     val wins: Int = 0,
     val losses: Int = 0,
     val winRate: Double = 0.0,
+
     val isLoading: Boolean = true
 ) {
+
+    // ByteArray needs content-based equality
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other !is ProfileUiState) return false
 
-        other as ProfileUiState
-
-        if (userId != other.userId) return false
-        if (displayName != other.displayName) return false
-        if (chipsOwned != other.chipsOwned) return false
-        if (profilePictureBytes != null) {
-            if (other.profilePictureBytes == null) return false
-            if (!profilePictureBytes.contentEquals(other.profilePictureBytes)) return false
-        } else if (other.profilePictureBytes != null) return false
-        if (gamesPlayed != other.gamesPlayed) return false
-        if (wins != other.wins) return false
-        if (losses != other.losses) return false
-        if (winRate != other.winRate) return false
-        if (isLoading != other.isLoading) return false
-
-        return true
+        return userId == other.userId &&
+                displayName == other.displayName &&
+                chipsOwned == other.chipsOwned &&
+                profilePictureBytes.contentEqualsNullable(
+                    other.profilePictureBytes
+                ) &&
+                gamesPlayed == other.gamesPlayed &&
+                wins == other.wins &&
+                losses == other.losses &&
+                winRate == other.winRate &&
+                isLoading == other.isLoading
     }
 
     override fun hashCode(): Int {
         var result = userId.hashCode()
         result = 31 * result + displayName.hashCode()
         result = 31 * result + chipsOwned.hashCode()
-        result = 31 * result + (profilePictureBytes?.contentHashCode() ?: 0)
+        result = 31 * result +
+                (profilePictureBytes?.contentHashCode() ?: 0)
         result = 31 * result + gamesPlayed
         result = 31 * result + wins
         result = 31 * result + losses
@@ -62,92 +63,213 @@ data class ProfileUiState(
     }
 }
 
+// Helper for comparing nullable ByteArrays
+private fun ByteArray?.contentEqualsNullable(
+    other: ByteArray?
+): Boolean {
+    return when {
+        this == null && other == null -> true
+        this == null || other == null -> false
+        else -> this.contentEquals(other)
+    }
+}
+
+
+// ================================================================
+// PROFILE VIEW MODEL
+// ================================================================
+
 class ProfileViewModel(
     private val userDao: UserDao,
-    private val gameHistoryDao: GameHistoryDao
+    private val gameHistoryDao: GameHistoryDao,
+    private val userId: String
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProfileUiState())
-    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(
+        ProfileUiState(
+            userId = userId,
+            isLoading = true
+        )
+    )
+
+    val uiState: StateFlow<ProfileUiState> =
+        _uiState.asStateFlow()
 
     init {
-        observeProfileData()
+        observeProfile()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeProfileData() {
+    // ============================================================
+    // OBSERVE PROFILE
+    // ============================================================
+
+    private fun observeProfile() {
+
+        if (userId.isBlank()) {
+            _uiState.value = ProfileUiState(
+                isLoading = false
+            )
+            return
+        }
+
         viewModelScope.launch {
-            userDao.observeAll().flatMapLatest { users ->
-                val user = users.firstOrNull()
+
+            combine(
+                userDao.observeById(userId),
+                gameHistoryDao.observeForUser(userId)
+            ) { user, history ->
 
                 if (user == null) {
-                    flowOf(ProfileUiState(isLoading = true))
+                    ProfileUiState(
+                        userId = userId,
+                        isLoading = false
+                    )
                 } else {
-                    val picture = userDao.getPicture(user.userId)
 
-                    combine(
-                        gameHistoryDao.observeForUser(user.userId),
-                        gameHistoryDao.observeNetChips(user.userId)
-                    ) { historyList, _ ->
-                        val total = historyList.size
-                        val wins = historyList.count { it.netChips > 0 }
-                        val losses = historyList.count { it.netChips < 0 }
-                        val rate = if (total > 0) (wins.toDouble() / total) * 100 else 0.0
+                    val gamesPlayed = history.size
 
-                        ProfileUiState(
-                            userId = user.userId,
-                            displayName = user.displayName,
-                            chipsOwned = user.chipsOwned,
-                            profilePictureBytes = picture,
-                            gamesPlayed = total,
-                            wins = wins,
-                            losses = losses,
-                            winRate = rate,
-                            isLoading = false
-                        )
+                    val wins = history.count {
+                        it.netChips > 0
                     }
+
+                    val losses = history.count {
+                        it.netChips < 0
+                    }
+
+                    val winRate =
+                        if (gamesPlayed > 0) {
+                            (wins.toDouble() / gamesPlayed) * 100
+                        } else {
+                            0.0
+                        }
+
+                    ProfileUiState(
+                        userId = user.userId,
+                        displayName = user.displayName,
+                        chipsOwned = user.chipsOwned,
+                        gamesPlayed = gamesPlayed,
+                        wins = wins,
+                        losses = losses,
+                        winRate = winRate,
+                        isLoading = false
+                    )
                 }
+
             }.collect { state ->
-                _uiState.value = state
+
+                // Preserve the current picture while the rest of
+                // the profile state updates.
+                _uiState.value = state.copy(
+                    profilePictureBytes =
+                        _uiState.value.profilePictureBytes
+                )
+
+                // Load the picture if we don't have one yet.
+                if (
+                    state.userId.isNotBlank() &&
+                    _uiState.value.profilePictureBytes == null
+                ) {
+                    loadProfilePicture(state.userId)
+                }
             }
         }
     }
 
-    fun updateProfilePicture(bytes: ByteArray) {
-        val currentUserId = _uiState.value.userId
-        if (currentUserId.isBlank()) return
+    // ============================================================
+    // PROFILE PICTURE
+    // ============================================================
+
+    private fun loadProfilePicture(userId: String) {
 
         viewModelScope.launch {
+
+            val picture = userDao.getPicture(userId)
+
+            _uiState.value = _uiState.value.copy(
+                profilePictureBytes = picture
+            )
+        }
+    }
+
+    fun updateProfilePicture(bytes: ByteArray) {
+
+        val currentUserId = _uiState.value.userId
+
+        if (currentUserId.isBlank()) return
+        if (bytes.isEmpty()) return
+
+        viewModelScope.launch {
+
             userDao.savePicture(
                 ProfilePictureEntity(
                     userId = currentUserId,
                     image = bytes
                 )
             )
-            // Refresh state with newly updated picture
-            _uiState.value = _uiState.value.copy(profilePictureBytes = bytes)
+
+            _uiState.value =
+                _uiState.value.copy(
+                    profilePictureBytes = bytes
+                )
         }
     }
 
+    // ============================================================
+    // DISPLAY NAME
+    // ============================================================
+
     fun updateDisplayName(newName: String) {
+
         val currentUserId = _uiState.value.userId
-        if (currentUserId.isBlank() || newName.isBlank()) return
+
+        val cleanedName = newName.trim()
+
+        if (currentUserId.isBlank()) return
+        if (cleanedName.isBlank()) return
 
         viewModelScope.launch {
-            val user = userDao.getById(currentUserId)
-            if (user != null) {
-                userDao.update(user.copy(displayName = newName.trim()))
+
+            val currentUser =
+                userDao.getById(currentUserId)
+
+            if (currentUser != null) {
+
+                userDao.update(
+                    currentUser.copy(
+                        displayName = cleanedName
+                    )
+                )
             }
         }
     }
 }
 
+
+// ================================================================
+// VIEW MODEL FACTORY
+// ================================================================
+
 class ProfileViewModelFactory(
     private val userDao: UserDao,
-    private val gameHistoryDao: GameHistoryDao
+    private val gameHistoryDao: GameHistoryDao,
+    private val userId: String
 ) : ViewModelProvider.Factory {
+
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ProfileViewModel(userDao, gameHistoryDao) as T
+    override fun <T : ViewModel> create(
+        modelClass: Class<T>
+    ): T {
+
+        if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
+            return ProfileViewModel(
+                userDao = userDao,
+                gameHistoryDao = gameHistoryDao,
+                userId = userId
+            ) as T
+        }
+
+        throw IllegalArgumentException(
+            "Unknown ViewModel class: ${modelClass.name}"
+        )
     }
 }
