@@ -479,6 +479,8 @@ private fun ProfileStatRow(
             color = Color.White,
             fontSize = 14.sp,
 
+
+
             fontWeight = FontWeight.Bold
             )
     }
