@@ -3,6 +3,7 @@ package io.github.doubleddoge.splithappens
 import android.R
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.media.quality.PictureProfile
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -29,11 +30,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,43 +54,104 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import org.jetbrains.annotations.Async
 import java.io.ByteArrayOutputStream
-
+import kotlin.contracts.contract
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     onNavigateHome: () -> Unit = {},
-    onNavigateSettings: () -> Unit = {},
-    onNavigateGame: () -> Unit = {}
+    onNavigateGame: () -> Unit = {},
+    onNavigateSettings: () -> Unit = {}
+) {
 
-){
     val uiState by viewModel.uiState.collectAsState()
+
+    ProfileScreenContent(
+        uiState = uiState,
+
+        onUpdateDisplayName = { newName ->
+            viewModel.updateDisplayName(newName)
+        },
+
+        onUpdateProfilePicture = { bytes ->
+            viewModel.updateProfilePicture(bytes)
+        },
+
+        onNavigateHome = onNavigateHome,
+        onNavigateGame = onNavigateGame,
+        onNavigateSettings = onNavigateSettings
+    )
+}
+@Composable
+fun ProfileScreenContent(
+    uiState: ProfileUiState,
+
+    onUpdateDisplayName: (String) -> Unit = {},
+    onUpdateProfilePicture: (ByteArray) -> Unit = {},
+
+    onNavigateHome: () -> Unit ={},
+    onNavigateGame: () -> Unit ={},
+    onNavigateSettings: () -> Unit
+){
     val context = LocalContext.current
 
-    val isEditingName by remember { mutableStateOf(false) }
-    var tempName by remember { mutableStateOf(uiState.displayName) }
+    var isEditingName by remember {
+        mutableStateOf(false)
+    }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            val bitmap = if (Build.VERSION.SDK_INT < 28){
-                @Suppress("DEPRECATION")
-                MediaStore.Images.Media.getBitmap(context.contentResolver, it)
-            }else {
-                val source = ImageDecoder.createSource(context.contentResolver, it )
-                ImageDecoder.decodeBitmap(source)
+    var tempName by remember {
+        mutableStateOf(uiState.displayName)
+    }
+    LaunchedEffect(uiState.displayName) {
+        if (!isEditingName){
+            tempName = uiState.displayName
+        }
+    }
+    // IMAGE PICKER
+
+    val imagePickerLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+
+            uri ?: return@rememberLauncherForActivityResult
+
+            try {
+                val bitmap: Bitmap =
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        val source =
+                            ImageDecoder.createSource(
+                                context.contentResolver,
+                                uri
+                            )
+                        ImageDecoder.decodeBitmap(source)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        MediaStore.Images.Media.getBitmap(
+                            context.contentResolver,
+                            uri
+                        )
+                    }
+                 val outputStream =
+                     ByteArrayOutputStream()
+
+                bitmap.compress(
+                    Bitmap.CompressFormat.JPEG,
+                    80,
+                    outputStream
+                )
+                onUpdateProfilePicture(
+                    outputStream.toByteArray()
+                )
+            }catch (e: Exception) {
+                e.printStackTrace()
             }
-            val outputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-            val byteArray = outputStream.toByteArray()
-
-            viewModel.updateProfilePicture(byteArray)
-
         }
 
-    }
+    // SCREEN
     Scaffold(
         bottomBar = {
             AppBottomBar(
@@ -98,40 +162,162 @@ fun ProfileScreen(
             )
         },
         containerColor = DarkBackground
-    ) {innerPadding ->
-        Column (
+    ) { innerPadding ->
+
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
                 .statusBarsPadding()
                 .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterVertically
-        ){
-            Spacer(modifier = Modifier.height(24.dp))
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            //Title
+
+            Spacer(
+                modifier = Modifier.height(14.dp)
+            )
 
             Text(
-                text = "PLAYER PROFILE",
+                text = "Player Profile",
                 color = BorderGold,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.5.sp
             )
 
-            //Profile Picture
-            Box(
-                contentAlignment = Alignment.BottomEnd,
-                modifier = Modifier
-                    .size(110.dp)
-                    .clickable{imagePickerLauncher.launch("image/*")}
-            ){
+            Spacer(
+                modifier = Modifier.height(16.dp)
+            )
 
+            //Loading
+
+            if (uiState.isLoading){
+                Spacer(
+                    modifier = Modifier.height(30.dp)
+                )
+
+                CircularProgressIndicator(
+                    color = BorderGold,
+                    modifier = Modifier.size(32.dp)
+                )
+            }else{
+                // PROFILE PICTURE
+
+                Box(
+                    modifier = Modifier
+                        .size(105.dp)
+                        .clickable{
+                            imagePickerLauncher.launch("image/*")
+                        },
+
+                    contentAlignment = Alignment.BottomEnd
+                ){
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(
+                                Color(0xFF0F4D35)
+                            )
+                            .border(
+                                width = 2.dp,
+                                color = BorderGold,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ){
+                        if(
+                            uiState.profilePictureBytes != null &&
+                            uiState.profilePictureBytes.isNotEmpty()
+                        ){
+                            AsyncImage(
+                                model = uiState.profilePictureBytes,
+
+                                contentDescription = "Profile Picture",
+
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }else {
+                            Text(
+                                text = uiState.displayName.take(1).uppercase(),
+                                color = Color(0xFFFFD700),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 40.sp
+                            )
+                        }
+                    }
+                    //Camera Button
+
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .background(BorderGold)
+                            .border(1.dp,Color.Black,CircleShape),
+                        contentAlignment = Alignment.Center
+                    ){
+                        Text( text = "+", fontSize = 13.sp)
+
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // DISPLAY NAME
+
+                if(isEditingName){
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+
+                        verticalAlignment = Alignment.CenterVertically,
+
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        OutlinedTextField(
+                            value = tempName,
+
+                            onValueChange = {
+                                tempName = it
+                            },
+
+                            singleLine = true,
+                            
+                            modifier = Modifier.weight(1f),
+
+                            shape = RoundedCornerShape(10.dp),
+
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = BorderGold,
+                                unfocusedBorderColor = Color.White.copy(
+                                    alpha = 0.35f
+                                ),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+
+                                cursorColor = BorderGold,
+
+                            )
+                        )
+                    }
+                }
             }
         }
 
-
-
     }
 }
+
+@Composable
+fun AsyncImage(
+    model: ByteArray?,
+    contentDescription: String,
+    contentScale: ContentScale,
+    modifier: Modifier
+) {
+    TODO("Not yet implemented")
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ProfileScreenPreview() {
