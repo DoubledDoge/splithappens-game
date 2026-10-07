@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-// ================================================================
+
 // PROFILE UI STATE
-// ================================================================
+
 
 data class ProfileUiState(
     val userId: String = "",
@@ -75,9 +75,9 @@ private fun ByteArray?.contentEqualsNullable(
 }
 
 
-// ================================================================
+
 // PROFILE VIEW MODEL
-// ================================================================
+
 
 class ProfileViewModel(
     private val userDao: UserDao,
@@ -99,9 +99,9 @@ class ProfileViewModel(
         observeProfile()
     }
 
-    // ============================================================
+
     // OBSERVE PROFILE
-    // ============================================================
+
 
     private fun observeProfile() {
 
@@ -175,9 +175,9 @@ class ProfileViewModel(
         }
     }
 
-    // ============================================================
+
     // PROFILE PICTURE
-    // ============================================================
+
 
     private fun loadProfilePicture(userId: String) {
 
@@ -214,9 +214,9 @@ class ProfileViewModel(
         }
     }
 
-    // ============================================================
+
     // DISPLAY NAME
-    // ============================================================
+
 
     fun updateDisplayName(newName: String) {
 
@@ -245,9 +245,9 @@ class ProfileViewModel(
 }
 
 
-// ================================================================
+
 // VIEW MODEL FACTORY
-// ================================================================
+
 
 class ProfileViewModelFactory(
     private val userDao: UserDao,
