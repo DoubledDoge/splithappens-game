@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -26,6 +28,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,13 +51,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
-// Theme Colors
-private val CasinoBackgroundDark = Color(0xFF071B12)
-private val CasinoGlowCenter = Color(0xFF0F3022)
-private val CasinoGoldAccent = Color(0xFFE5B036)
-private val CasinoGreenSurface = Color(0xFF133827)
-private val CasinoMutedText = Color(0xFF9EBAAA)
-private val CasinoRedAlert = Color(0xFFB3261E)
+// Distinct names to avoid "conflicting declarations" in package io.github.doubleddoge.splithappens
+private val MenuTheme_BackgroundDark = Color(0xFF071B12)
+private val MenuTheme_GlowCenter = Color(0xFF0F3022)
+private val MenuTheme_GreenSurface = Color(0xFF133827)
+private val MenuTheme_MutedText = Color(0xFF9EBAAA)
+private val MenuTheme_RedAlert = Color(0xFFB3261E)
 
 @Composable
 fun MenuScreen(
@@ -84,24 +86,26 @@ fun MenuScreen(
             .fillMaxSize()
             .background(
                 brush = Brush.radialGradient(
-                    colors = listOf(CasinoGlowCenter, CasinoBackgroundDark),
+                    colors = listOf(MenuTheme_GlowCenter, MenuTheme_BackgroundDark),
                     radius = 1200f
                 )
             )
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(vertical = 36.dp),
+                .padding(vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header Row: Top-Left Close Button and Centered "MENU" Label
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 16.dp),
+                    .padding(bottom = 20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -109,7 +113,7 @@ fun MenuScreen(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(CasinoGreenSurface)
+                        .background(MenuTheme_GreenSurface)
                         .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
                         .clickable { runFeedback(onResumeGame) },
                     contentAlignment = Alignment.Center
@@ -124,8 +128,8 @@ fun MenuScreen(
 
                 Text(
                     text = "MENU",
-                    color = CasinoGoldAccent,
-                    fontSize = 28.sp,
+                    color = BorderGold,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 4.sp
                 )
@@ -134,16 +138,16 @@ fun MenuScreen(
                 Spacer(modifier = Modifier.size(40.dp))
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // 1. Profile (Top Priority)
+            // 1. Profile
             MenuButton(
                 text = "PROFILE",
                 icon = "👤",
                 onClick = { runFeedback(onNavigateToProfile) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // 2. Continue Active Game
             MenuButton(
@@ -153,7 +157,7 @@ fun MenuScreen(
                 onClick = { runFeedback(onResumeGame) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // 3. Rules & Strategy
             MenuButton(
@@ -162,7 +166,7 @@ fun MenuScreen(
                 onClick = { runFeedback(onOpenRules) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // 4. Settings
             MenuButton(
@@ -171,13 +175,13 @@ fun MenuScreen(
                 onClick = { runFeedback(onNavigateToSettings) }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // 5. Logout
             MenuButton(
                 text = "LOGOUT",
                 icon = "🚪",
-                borderColor = CasinoRedAlert.copy(alpha = 0.6f),
+                borderColor = MenuTheme_RedAlert.copy(alpha = 0.6f),
                 onClick = { runFeedback(onOpenLogoutConfirm) }
             )
         }
@@ -192,7 +196,7 @@ fun MenuScreen(
     if (uiState.isLogoutConfirmOpen) {
         AlertDialog(
             onDismissRequest = onCloseLogoutConfirm,
-            containerColor = CasinoGreenSurface,
+            containerColor = MenuTheme_GreenSurface,
             title = {
                 Text(
                     text = "Log Out?",
@@ -203,17 +207,15 @@ fun MenuScreen(
             text = {
                 Text(
                     text = "You will forfeit your current round and return to the login screen.",
-                    color = CasinoMutedText,
+                    color = MenuTheme_MutedText,
                     fontSize = 14.sp
                 )
             },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        runFeedback(onConfirmLogout)
-                    }
+                    onClick = { runFeedback(onConfirmLogout) }
                 ) {
-                    Text("LOG OUT", color = CasinoRedAlert, fontWeight = FontWeight.Bold)
+                    Text("LOG OUT", color = MenuTheme_RedAlert, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -236,14 +238,14 @@ private fun MenuButton(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isPrimary) CasinoGoldAccent else CasinoGreenSurface
+            containerColor = if (isPrimary) BorderGold else MenuTheme_GreenSurface
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp)
+            .height(58.dp)
             .border(
                 width = 1.dp,
-                color = if (isPrimary) CasinoGoldAccent else borderColor,
+                color = if (isPrimary) BorderGold else borderColor,
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable { onClick() }
@@ -258,21 +260,21 @@ private fun MenuButton(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = icon,
-                    fontSize = 20.sp
+                    fontSize = 18.sp
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = text,
-                    color = if (isPrimary) CasinoBackgroundDark else Color.White,
-                    fontSize = 15.sp,
+                    color = if (isPrimary) MenuTheme_BackgroundDark else Color.White,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp
                 )
             }
             Text(
                 text = "›",
-                color = if (isPrimary) CasinoBackgroundDark else Color.White.copy(alpha = 0.5f),
-                fontSize = 22.sp,
+                color = if (isPrimary) MenuTheme_BackgroundDark else Color.White.copy(alpha = 0.5f),
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Light
             )
         }
@@ -297,10 +299,10 @@ private fun RulesBookletDialog(onDismiss: () -> Unit) {
         ) {
             Card(
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = CasinoGreenSurface),
+                colors = CardDefaults.cardColors(containerColor = MenuTheme_GreenSurface),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.5.dp, CasinoGoldAccent, RoundedCornerShape(20.dp))
+                    .border(1.5.dp, BorderGold, RoundedCornerShape(20.dp))
             ) {
                 Column(
                     modifier = Modifier
@@ -314,7 +316,7 @@ private fun RulesBookletDialog(onDismiss: () -> Unit) {
                     ) {
                         Text(
                             text = "RULEBOOK",
-                            color = CasinoGoldAccent,
+                            color = BorderGold,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp
@@ -333,15 +335,14 @@ private fun RulesBookletDialog(onDismiss: () -> Unit) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Material 3 Non-deprecated SecondaryTabRow
                     SecondaryTabRow(
                         selectedTabIndex = selectedTab,
-                        containerColor = CasinoBackgroundDark,
-                        contentColor = CasinoGoldAccent,
+                        containerColor = MenuTheme_BackgroundDark,
+                        contentColor = BorderGold,
                         indicator = {
                             TabRowDefaults.SecondaryIndicator(
                                 modifier = Modifier.tabIndicatorOffset(selectedTab),
-                                color = CasinoGoldAccent
+                                color = BorderGold
                             )
                         }
                     ) {
@@ -352,7 +353,7 @@ private fun RulesBookletDialog(onDismiss: () -> Unit) {
                                 text = {
                                     Text(
                                         text = title,
-                                        color = if (selectedTab == index) CasinoGoldAccent else CasinoMutedText,
+                                        color = if (selectedTab == index) BorderGold else MenuTheme_MutedText,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp
                                     )
@@ -381,12 +382,12 @@ private fun RulesBookletDialog(onDismiss: () -> Unit) {
                     Button(
                         onClick = onDismiss,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = CasinoGoldAccent),
+                        colors = ButtonDefaults.buttonColors(containerColor = BorderGold),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
                             text = "BACK TO GAME",
-                            color = CasinoBackgroundDark,
+                            color = MenuTheme_BackgroundDark,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -399,7 +400,7 @@ private fun RulesBookletDialog(onDismiss: () -> Unit) {
 @Composable
 private fun RulesBasicsContent() {
     Column {
-        Text("THE OBJECTIVE", color = CasinoGoldAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text("THE OBJECTIVE", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         Text(
             "Beat the dealer's hand by getting closer to 21 without busting.",
             color = Color.White,
@@ -407,22 +408,22 @@ private fun RulesBasicsContent() {
             modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
         )
 
-        Text("CARD VALUES", color = CasinoGoldAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-        Text("• 2 through 10: Face value", color = CasinoMutedText, fontSize = 13.sp)
-        Text("• Jack, Queen, King: 10 each", color = CasinoMutedText, fontSize = 13.sp)
-        Text("• Ace: 1 or 11 (whichever is best)", color = CasinoMutedText, fontSize = 13.sp)
+        Text("CARD VALUES", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text("• 2 through 10: Face value", color = MenuTheme_MutedText, fontSize = 13.sp)
+        Text("• Jack, Queen, King: 10 each", color = MenuTheme_MutedText, fontSize = 13.sp)
+        Text("• Ace: 1 or 11 (whichever is best)", color = MenuTheme_MutedText, fontSize = 13.sp)
 
         Spacer(modifier = Modifier.height(12.dp))
-        Text("TABLE RULES", color = CasinoGoldAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-        Text("• Dealer stands on 17.", color = CasinoMutedText, fontSize = 13.sp)
-        Text("• Natural Blackjack pays 3:2.", color = CasinoMutedText, fontSize = 13.sp)
+        Text("TABLE RULES", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text("• Dealer stands on 17.", color = MenuTheme_MutedText, fontSize = 13.sp)
+        Text("• Natural Blackjack pays 3:2.", color = MenuTheme_MutedText, fontSize = 13.sp)
     }
 }
 
 @Composable
 private fun RulesWildcardsContent() {
     Column {
-        Text("WILDCARD PAYOUTS", color = CasinoGoldAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text("WILDCARD PAYOUTS", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         Spacer(modifier = Modifier.height(8.dp))
         PayoutRow("7-Card Charlie", "250x")
         PayoutRow("Triple Sevens (7-7-7)", "100x")
@@ -440,22 +441,22 @@ private fun PayoutRow(name: String, multiplier: String) {
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(name, color = CasinoMutedText, fontSize = 12.sp, modifier = Modifier.weight(1f))
-        Text(multiplier, color = CasinoGoldAccent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Text(name, color = MenuTheme_MutedText, fontSize = 12.sp, modifier = Modifier.weight(1f))
+        Text(multiplier, color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 12.sp)
     }
 }
 
 @Composable
 private fun RulesStrategyContent() {
     Column {
-        Text("BASIC STRATEGY", color = CasinoGoldAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text("BASIC STRATEGY", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         Spacer(modifier = Modifier.height(8.dp))
-        Text("• Hard 8 or less: Always HIT.", color = CasinoMutedText, fontSize = 13.sp)
-        Text("• Hard 11: Always DOUBLE DOWN if allowed, else HIT.", color = CasinoMutedText, fontSize = 13.sp)
-        Text("• Hard 12-16: STAND if dealer shows 4, 5, or 6; else HIT.", color = CasinoMutedText, fontSize = 13.sp)
-        Text("• Hard 17+: Always STAND.", color = CasinoMutedText, fontSize = 13.sp)
-        Text("• Always split Aces and 8s.", color = CasinoMutedText, fontSize = 13.sp)
-        Text("• Never split 10s or 5s.", color = CasinoMutedText, fontSize = 13.sp)
+        Text("• Hard 8 or less: Always HIT.", color = MenuTheme_MutedText, fontSize = 13.sp)
+        Text("• Hard 11: Always DOUBLE DOWN if allowed, else HIT.", color = MenuTheme_MutedText, fontSize = 13.sp)
+        Text("• Hard 12-16: STAND if dealer shows 4, 5, or 6; else HIT.", color = MenuTheme_MutedText, fontSize = 13.sp)
+        Text("• Hard 17+: Always STAND.", color = MenuTheme_MutedText, fontSize = 13.sp)
+        Text("• Always split Aces and 8s.", color = MenuTheme_MutedText, fontSize = 13.sp)
+        Text("• Never split 10s or 5s.", color = MenuTheme_MutedText, fontSize = 13.sp)
     }
 }
 

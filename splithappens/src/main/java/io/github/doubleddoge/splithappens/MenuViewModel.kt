@@ -2,6 +2,7 @@ package io.github.doubleddoge.splithappens
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -21,13 +22,23 @@ data class MenuUiState(
 @Suppress("unused")
 class MenuViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val prefs = application.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences =
+        application.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
+
+    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            "pref_sound_effects", "pref_haptic_vibration" -> {
+                loadPreferences()
+            }
+        }
+    }
 
     private val _uiState = MutableStateFlow(MenuUiState())
     val uiState: StateFlow<MenuUiState> = _uiState.asStateFlow()
 
     init {
         loadPreferences()
+        prefs.registerOnSharedPreferenceChangeListener(preferenceListener)
     }
 
     fun loadPreferences() {
@@ -61,6 +72,11 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
         }
         _uiState.update { it.copy(isLogoutConfirmOpen = false) }
         onLoggedOut()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener)
     }
 }
 
