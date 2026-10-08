@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.data.dao
+package io.github.doubleddoge.splithappens
 
 import androidx.room3.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver

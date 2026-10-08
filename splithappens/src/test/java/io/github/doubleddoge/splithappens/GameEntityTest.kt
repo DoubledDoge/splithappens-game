@@ -1,5 +1,6 @@
-package io.github.doubleddoge.splithappens.data.entity
+package io.github.doubleddoge.splithappens
 
+import io.github.doubleddoge.splithappens.data.entity.GameEntity
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

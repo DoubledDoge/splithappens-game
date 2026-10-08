@@ -1,5 +1,6 @@
-package io.github.doubleddoge.splithappens.data.entity
+package io.github.doubleddoge.splithappens
 
+import io.github.doubleddoge.splithappens.data.entity.SessionEntity
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 import org.junit.Assert.assertEquals

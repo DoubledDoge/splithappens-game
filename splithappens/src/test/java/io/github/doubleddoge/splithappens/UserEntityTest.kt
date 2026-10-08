@@ -1,5 +1,6 @@
-package io.github.doubleddoge.splithappens.data.entity
+package io.github.doubleddoge.splithappens
 
+import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import java.util.UUID
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals

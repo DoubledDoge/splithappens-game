@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.data.dao
+package io.github.doubleddoge.splithappens
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.entity.ProfilePictureEntity

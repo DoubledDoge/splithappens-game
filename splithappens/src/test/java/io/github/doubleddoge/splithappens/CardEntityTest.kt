@@ -1,5 +1,6 @@
-package io.github.doubleddoge.splithappens.data.entity
+package io.github.doubleddoge.splithappens
 
+import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.data.enum.Rank
 import io.github.doubleddoge.splithappens.data.enum.Suit
 import org.junit.Assert.assertEquals

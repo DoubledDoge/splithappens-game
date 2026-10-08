@@ -1,5 +1,7 @@
-package io.github.doubleddoge.splithappens.data.enum
+package io.github.doubleddoge.splithappens
 
+import io.github.doubleddoge.splithappens.data.enum.HandResult
+import io.github.doubleddoge.splithappens.data.enum.GameMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

@@ -13,7 +13,7 @@ class HandEntityTest {
             HandEntity.player(10, HandStatus.BUSTED, HandResult.WIN)
         }
     }
-    @Test fun DealerCannotSurrender(){
+    @Test fun dealerCannotSurrender(){
         assertThrows(IllegalArgumentException::class.java){
             HandEntity.dealer(HandStatus.SURRENDERED)
         }
