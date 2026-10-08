@@ -1,12 +1,12 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.data
 
 import androidx.room3.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.test.platform.app.InstrumentationRegistry
-import io.github.doubleddoge.splithappens.data.SplitHappensDatabase
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
+import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.assertTrue
+import org.junit.Assert
 import org.junit.Before
 
 // Fresh in-memory database per test
@@ -29,7 +29,7 @@ abstract class DatabaseTest {
         UserEntity(displayName = name, chipsOwned = chips).also { db.userDao().insert(it) }
 
     protected fun assertFailsWithException(block: suspend () -> Unit) {
-        val failed = runCatching { kotlinx.coroutines.runBlocking { block() } }.isFailure
-        assertTrue("Expected an exception", failed)
+        val failed = runCatching { runBlocking { block() } }.isFailure
+        Assert.assertTrue("Expected an exception", failed)
     }
 }

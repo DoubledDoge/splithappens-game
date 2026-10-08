@@ -1,11 +1,9 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.data
 
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert
 import org.junit.Test
 
 class SessionEntityTest {
@@ -13,10 +11,10 @@ class SessionEntityTest {
     fun defaults_areWildcardOngoingAndNotEnded() {
         val before = System.currentTimeMillis()
         val s = SessionEntity(userId = "u", stakes = 100)
-        assertEquals(0L, s.sessionId)
-        assertEquals(GameMode.WILDCARD, s.mode)
-        assertEquals(SessionStatus.ONGOING, s.status)
-        assertNull(s.endedAt)
-        assertTrue(s.startedAt >= before)
+        Assert.assertEquals(0L, s.sessionId)
+        Assert.assertEquals(GameMode.WILDCARD, s.mode)
+        Assert.assertEquals(SessionStatus.ONGOING, s.status)
+        Assert.assertNull(s.endedAt)
+        Assert.assertTrue(s.startedAt >= before)
     }
 }

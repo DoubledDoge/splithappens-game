@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity

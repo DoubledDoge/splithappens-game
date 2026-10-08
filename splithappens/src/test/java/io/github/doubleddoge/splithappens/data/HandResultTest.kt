@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.data
 
 import io.github.doubleddoge.splithappens.data.enum.HandResult
 import io.github.doubleddoge.splithappens.data.enum.GameMode

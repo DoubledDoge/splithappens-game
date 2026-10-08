@@ -1,20 +1,22 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.data
 
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
 import io.github.doubleddoge.splithappens.data.enum.HandResult
 import io.github.doubleddoge.splithappens.data.enum.HandStatus
-import org.junit.Assert.assertThrows
+import org.junit.Assert
 import org.junit.Test
 import kotlin.test.assertEquals
 
 class HandEntityTest {
-    @Test fun bustedHandMustLose(){
-        assertThrows(IllegalArgumentException::class.java){
+    @Test
+    fun bustedHandMustLose(){
+        Assert.assertThrows(IllegalArgumentException::class.java) {
             HandEntity.player(10, HandStatus.BUSTED, HandResult.WIN)
         }
     }
-    @Test fun dealerCannotSurrender(){
-        assertThrows(IllegalArgumentException::class.java){
+    @Test
+    fun dealerCannotSurrender(){
+        Assert.assertThrows(IllegalArgumentException::class.java) {
             HandEntity.dealer(HandStatus.SURRENDERED)
         }
 
