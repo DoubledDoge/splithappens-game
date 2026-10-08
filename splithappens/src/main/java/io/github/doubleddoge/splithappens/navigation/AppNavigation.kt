@@ -59,18 +59,14 @@ fun AppNavigation(
                 onPlayClick = {
                     navController.navigate(Screen.Game.route)
                 },
-                onNavigateSettings = {
-                    navController.navigate(Screen.Settings.route) {
-                        popUpTo(Screen.Home.route) { saveState = true }
+                onNavigateMenu = {
+                    navController.navigate(Screen.Menu.route) {
                         launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 onNavigateGame = {
                     navController.navigate(Screen.Game.route) {
-                        popUpTo(Screen.Home.route) { saveState = true }
                         launchSingleTop = true
-                        restoreState = true
                     }
                 }
             )
@@ -93,7 +89,38 @@ fun AppNavigation(
                 onToggleHapticVibration = { settingsViewModel.toggleHapticVibration(it) },
                 onToggleFastDeal = { settingsViewModel.toggleFastDeal(it) },
                 onToggleAutoStandOn21 = { settingsViewModel.toggleAutoStandOn21(it) },
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = {
+                    val popped = navController.popBackStack(Screen.Menu.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Menu.route) {
+                            popUpTo(Screen.Settings.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onNavigateHome = {
+                    val popped = navController.popBackStack(Screen.Home.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onNavigateGame = {
+                    navController.navigate(Screen.Game.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateMenu = {
+                    val popped = navController.popBackStack(Screen.Menu.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Menu.route) {
+                            popUpTo(Screen.Settings.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
             )
         }
 
@@ -118,12 +145,34 @@ fun AppNavigation(
                         }
                     })
                 },
-                onResumeGame = { navController.popBackStack() },
+                onResumeGame = {
+                    navController.navigate(Screen.Game.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateHome = {
+                    val popped = navController.popBackStack(Screen.Home.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onNavigateGame = {
+                    navController.navigate(Screen.Game.route) {
+                        launchSingleTop = true
+                    }
+                },
                 onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route)
+                    navController.navigate(Screen.Profile.route) {
+                        launchSingleTop = true
+                    }
                 },
                 onNavigateToSettings = {
-                    navController.navigate(Screen.Settings.route)
+                    navController.navigate(Screen.Settings.route) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }

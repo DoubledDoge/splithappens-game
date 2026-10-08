@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -21,10 +20,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
@@ -49,9 +47,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
-// Distinct names to avoid "conflicting declarations" in package io.github.doubleddoge.splithappens
 private val MenuTheme_BackgroundDark = Color(0xFF071B12)
 private val MenuTheme_GlowCenter = Color(0xFF0F3022)
 private val MenuTheme_GreenSurface = Color(0xFF133827)
@@ -67,6 +65,8 @@ fun MenuScreen(
     onCloseLogoutConfirm: () -> Unit = {},
     onConfirmLogout: () -> Unit = {},
     onResumeGame: () -> Unit = {},
+    onNavigateHome: () -> Unit = {},
+    onNavigateGame: () -> Unit = onResumeGame,
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {}
 ) {
@@ -81,113 +81,102 @@ fun MenuScreen(
         action()
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.radialGradient(
-                    colors = listOf(MenuTheme_GlowCenter, MenuTheme_BackgroundDark),
-                    radius = 1200f
-                )
+    Scaffold(
+        bottomBar = {
+            AppBottomBar(
+                currentRoute = "menu",
+                onNavigateHome = { runFeedback(onNavigateHome) },
+                onNavigateGame = { runFeedback(onNavigateGame) },
+                onNavigateMenu = { /* Already on Menu */ }
             )
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 24.dp)
-    ) {
-        Column(
+        },
+        containerColor = MenuTheme_BackgroundDark
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(innerPadding)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(MenuTheme_GlowCenter, MenuTheme_BackgroundDark),
+                        radius = 1200f
+                    )
+                )
+                .padding(horizontal = 24.dp)
         ) {
-            // Header Row: Top-Left Close Button and Centered "MENU" Label
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .statusBarsPadding()
+                    .padding(vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Centered "MENU" Header
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MenuTheme_GreenSurface)
-                        .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
-                        .clickable { runFeedback(onResumeGame) },
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "✕",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        text = "MENU",
+                        color = BorderGold,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 4.sp
                     )
                 }
 
-                Text(
-                    text = "MENU",
-                    color = BorderGold,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 4.sp
+                // 1. Continue Active Game
+                MenuButton(
+                    text = "CONTINUE GAME",
+                    icon = "♠️",
+                    isPrimary = true,
+                    onClick = { runFeedback(onResumeGame) }
                 )
 
-                // Spacer on the right to keep "MENU" centered
-                Spacer(modifier = Modifier.size(40.dp))
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 2. Profile
+                MenuButton(
+                    text = "PROFILE",
+                    icon = "👤",
+                    onClick = { runFeedback(onNavigateToProfile) }
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 3. Rules & Strategy
+                MenuButton(
+                    text = "RULES & STRATEGY",
+                    icon = "📖",
+                    onClick = { runFeedback(onOpenRules) }
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 4. Settings
+                MenuButton(
+                    text = "SETTINGS",
+                    icon = "⚙️",
+                    onClick = { runFeedback(onNavigateToSettings) }
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 5. Logout
+                MenuButton(
+                    text = "LOGOUT",
+                    icon = "🚪",
+                    borderColor = MenuTheme_RedAlert.copy(alpha = 0.6f),
+                    onClick = { runFeedback(onOpenLogoutConfirm) }
+                )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 1. Profile
-            MenuButton(
-                text = "PROFILE",
-                icon = "👤",
-                onClick = { runFeedback(onNavigateToProfile) }
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 2. Continue Active Game
-            MenuButton(
-                text = "CONTINUE GAME",
-                icon = "♠️",
-                isPrimary = true,
-                onClick = { runFeedback(onResumeGame) }
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 3. Rules & Strategy
-            MenuButton(
-                text = "RULES & STRATEGY",
-                icon = "📖",
-                onClick = { runFeedback(onOpenRules) }
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 4. Settings
-            MenuButton(
-                text = "SETTINGS",
-                icon = "⚙️",
-                onClick = { runFeedback(onNavigateToSettings) }
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 5. Logout
-            MenuButton(
-                text = "LOGOUT",
-                icon = "🚪",
-                borderColor = MenuTheme_RedAlert.copy(alpha = 0.6f),
-                onClick = { runFeedback(onOpenLogoutConfirm) }
-            )
         }
     }
 
-    // Modal In-Screen Rules Booklet
+    // Modal In-Screen Rules Booklet (Dismissed only via top-right ✕)
     if (uiState.isRulesBookletOpen) {
         RulesBookletDialog(onDismiss = onCloseRules)
     }
@@ -367,7 +356,7 @@ private fun RulesBookletDialog(onDismiss: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(280.dp)
+                            .height(300.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
                         when (selectedTab) {
@@ -378,19 +367,6 @@ private fun RulesBookletDialog(onDismiss: () -> Unit) {
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = onDismiss,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = BorderGold),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "BACK TO GAME",
-                            color = MenuTheme_BackgroundDark,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
                 }
             }
         }

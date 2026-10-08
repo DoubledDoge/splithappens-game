@@ -8,12 +8,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,12 +27,19 @@ import io.github.doubleddoge.splithappens.BorderGold
 import io.github.doubleddoge.splithappens.R
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
+private val ActiveGold = Color(0xFFFFD700)
+private val CasinoDarkGreen = Color(0xFF072C1E)
+
+// Circular badge styling
+private val IconCircleBackground = Color(0xFF041A12)
+private val IconCircleBorder = Color(0xFF0D3D2B)
+
 @Composable
 fun AppBottomBar(
     currentRoute: String,
     onNavigateHome: () -> Unit,
     onNavigateGame: () -> Unit,
-    onNavigateSettings: () -> Unit,
+    onNavigateMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -35,56 +47,82 @@ fun AppBottomBar(
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .border(1.dp, BorderGold , RoundedCornerShape(16.dp))
+            .border(1.dp, BorderGold, RoundedCornerShape(16.dp))
             .background(
-                color = Color(0xFF072C1E),
+                color = CasinoDarkGreen,
                 shape = RoundedCornerShape(16.dp)
             )
-            .padding(vertical = 4.dp),
-
+            .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onNavigateHome) {
+        // 1. Home Button (Always Yellow)
+        IconButton(
+            onClick = onNavigateHome,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(IconCircleBackground)
+                .border(1.dp, IconCircleBorder, CircleShape)
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_home),
                 contentDescription = "Home",
-                tint = if (currentRoute == "home") Color(0xFFFFD700) else Color.Gray
+                tint = ActiveGold,
+                modifier = Modifier.size(20.dp)
             )
         }
 
-        IconButton(onClick = onNavigateGame) {
+        // 2. Game Button (Always Yellow)
+        IconButton(
+            onClick = onNavigateGame,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(IconCircleBackground)
+                .border(1.dp, IconCircleBorder, CircleShape)
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_blackjackicon),
                 contentDescription = "Game",
-                tint = Color.Unspecified
+                tint = ActiveGold,
+                modifier = Modifier.size(20.dp)
             )
         }
 
-        IconButton(onClick = onNavigateSettings) {
+        // 3. Menu Button (Always Yellow)
+        IconButton(
+            onClick = onNavigateMenu,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(IconCircleBackground)
+                .border(1.dp, IconCircleBorder, CircleShape)
+        ) {
             Icon(
-              painter = painterResource(id = R.drawable.ic_settings),
-                contentDescription = "Settings",
-                tint = if (currentRoute == "settings") Color(0xFFFFD700) else Color.Gray,
-
+                imageVector = Icons.Default.Menu,
+                contentDescription = "Menu",
+                tint = ActiveGold,
+                modifier = Modifier.size(20.dp)
             )
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun AppBottomBarPreview() {
-    SplitHappensTheme() {
+    SplitHappensTheme {
         Box(
             modifier = Modifier
-                .background(Color(0xFF0B1B15)) // Dark background to match app theme
+                .background(Color(0xFF0B1B15))
                 .padding(16.dp)
         ) {
             AppBottomBar(
-                currentRoute = "home",
+                currentRoute = "settings",
                 onNavigateHome = {},
                 onNavigateGame = {},
-                onNavigateSettings = {}
+                onNavigateMenu = {}
             )
         }
     }

@@ -2,7 +2,6 @@ package io.github.doubleddoge.splithappens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +18,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -30,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -62,15 +66,18 @@ fun ScreenSettings(
     onToggleAutoStandOn21: (Boolean) -> Unit = {},
     onNavigateBack: () -> Unit = {},
     onNavigateHome: () -> Unit = {},
-    onNavigateGame: () -> Unit = {}
+    onNavigateGame: () -> Unit = {},
+    onNavigateMenu: () -> Unit = onNavigateBack
 ) {
+    val context = LocalContext.current
+
     Scaffold(
         bottomBar = {
             AppBottomBar(
                 currentRoute = "settings",
                 onNavigateHome = onNavigateHome,
                 onNavigateGame = onNavigateGame,
-                onNavigateSettings = { /* Already on settings */ }
+                onNavigateMenu = onNavigateMenu
             )
         },
         containerColor = SettingsBackground
@@ -82,7 +89,7 @@ fun ScreenSettings(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // Top Bar / Header
+            // Top Bar / Header with aligned vector back button
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,20 +97,19 @@ fun ScreenSettings(
                     .padding(bottom = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
+                IconButton(
+                    onClick = { onNavigateBack() },
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(42.dp)
                         .clip(CircleShape)
                         .background(SectionCardBackground)
                         .border(1.dp, SectionCardBorder, CircleShape)
-                        .clickable { onNavigateBack() },
-                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "←",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
@@ -152,14 +158,26 @@ fun ScreenSettings(
                     title = "Sound Effects",
                     subtitle = "Card deals, chip stacks, and win fanfare",
                     checked = uiState.soundEffects,
-                    onCheckedChange = onToggleSoundEffects
+                    onCheckedChange = { enabled ->
+                        onToggleSoundEffects(enabled)
+                        if (enabled) {
+                            // Trigger sample card deal sound effect
+                            triggerClickSound()
+                        }
+                    }
                 )
                 SettingItemDivider()
                 SettingItemRow(
                     title = "Haptic Vibration",
                     subtitle = "Physical pulses on hit, stand, double, and bust",
                     checked = uiState.hapticVibration,
-                    onCheckedChange = onToggleHapticVibration
+                    onCheckedChange = { enabled ->
+                        onToggleHapticVibration(enabled)
+                        if (enabled) {
+                            // Trigger tactile feedback pulse
+                            triggerDeviceVibration(context, durationMillis = 40L)
+                        }
+                    }
                 )
             }
 
