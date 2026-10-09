@@ -89,7 +89,7 @@ fun AdBannerPlaceholder(
 fun HomeScreen(
     viewModel: HomeViewModel,
     onPlayClick: () -> Unit = {},
-    onNavigateSettings: () -> Unit = {},
+    onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -97,7 +97,7 @@ fun HomeScreen(
     HomeScreenContent(
         uiState = uiState,
         onPlayClick = onPlayClick,
-        onNavigateSettings = onNavigateSettings,
+        onNavigateMenu = onNavigateMenu,
         onNavigateGame = onNavigateGame
     )
 }
@@ -106,7 +106,7 @@ fun HomeScreen(
 fun HomeScreenContent(
     uiState: HomeUiState,
     onPlayClick: () -> Unit = {},
-    onNavigateSettings: () -> Unit = {},
+    onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {}
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
@@ -119,7 +119,6 @@ fun HomeScreenContent(
                     .statusBarsPadding()
                     .padding(horizontal = 12.dp)
             ) {
-
                 UserHeaderCard(
                     displayName = uiState.displayName,
                     chipsOwned = uiState.chipsOwned
@@ -131,7 +130,7 @@ fun HomeScreenContent(
                 currentRoute = "home",
                 onNavigateHome = { /* Currently on Home */ },
                 onNavigateGame = onNavigateGame,
-                onNavigateSettings = onNavigateSettings
+                onNavigateMenu = onNavigateMenu
             )
         },
         containerColor = DarkBackground
@@ -143,7 +142,7 @@ fun HomeScreenContent(
                 .padding(horizontal = 12.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-            //Ad placeholder
+            // Ad placeholder
             AdBannerPlaceholder()
             Spacer(modifier = Modifier.height(12.dp))
 
