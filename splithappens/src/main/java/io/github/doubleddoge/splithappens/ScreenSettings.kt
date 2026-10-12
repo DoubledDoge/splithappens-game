@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
 private val ScreenBackground = Color(0xFF072417)
-private val CardBackground = Color(0xFF0C2F20)
 private val CardBorderColor = Color(0xFF134530)
 private val GoldAccent = Color(0xFFF3B438)
 private val SubtitleColor = Color(0xFF8BA697)
