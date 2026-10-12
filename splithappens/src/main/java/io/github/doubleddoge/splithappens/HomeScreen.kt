@@ -46,7 +46,7 @@ import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlin.math.abs
 
-// Color Palette
+// Standard Dark Theme Colors
 val DarkBackground = Color(0xFF0B1B15)
 val CardBackground = Color(0xFF0F3A2E)
 val BorderGold = Color(0xFFD4A311)
@@ -55,14 +55,17 @@ val ButtonTextColor = Color(0xFF1E1E1E)
 
 @Composable
 fun AdBannerPlaceholder(
+    isDarkTheme: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    val bgColor = if (isDarkTheme) Color(0xFF08251D) else Color(0xFF144D38)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(50.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFF08251D))
+            .background(bgColor)
             .border(
                 width = 1.dp,
                 color = BorderGold.copy(alpha = 0.25f),
@@ -88,6 +91,7 @@ fun AdBannerPlaceholder(
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
+    isDarkTheme: Boolean = true,
     onPlayClick: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {}
@@ -96,6 +100,7 @@ fun HomeScreen(
 
     HomeScreenContent(
         uiState = uiState,
+        isDarkTheme = isDarkTheme,
         onPlayClick = onPlayClick,
         onNavigateMenu = onNavigateMenu,
         onNavigateGame = onNavigateGame
@@ -105,12 +110,18 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
     uiState: HomeUiState,
+    isDarkTheme: Boolean = true,
     onPlayClick: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {}
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
+
+    // Dynamic emerald colors based on isDarkTheme
+    val currentBackground = if (isDarkTheme) DarkBackground else Color(0xFF144D38)
+    val currentCardBg = if (isDarkTheme) CardBackground else Color(0xFF1C6349)
+    val currentCardBorder = if (isDarkTheme) Color(0xFF1A5243) else Color(0xFF288160)
 
     Scaffold(
         topBar = {
@@ -128,12 +139,13 @@ fun HomeScreenContent(
         bottomBar = {
             AppBottomBar(
                 currentRoute = "home",
+                isDarkTheme = isDarkTheme,
                 onNavigateHome = { /* Currently on Home */ },
                 onNavigateGame = onNavigateGame,
                 onNavigateMenu = onNavigateMenu
             )
         },
-        containerColor = DarkBackground
+        containerColor = currentBackground
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -142,8 +154,7 @@ fun HomeScreenContent(
                 .padding(horizontal = 12.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-            // Ad placeholder
-            AdBannerPlaceholder()
+            AdBannerPlaceholder(isDarkTheme = isDarkTheme)
             Spacer(modifier = Modifier.height(12.dp))
 
             // STATS & RULES Buttons
@@ -157,8 +168,8 @@ fun HomeScreenContent(
                         .height(40.dp)
                         .clickable { showStatsDialog = true },
                     shape = RoundedCornerShape(8.dp),
-                    color = CardBackground,
-                    border = BorderStroke(1.dp, Color(0xFF1A5243))
+                    color = currentCardBg,
+                    border = BorderStroke(1.dp, currentCardBorder)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxSize(),
@@ -182,8 +193,8 @@ fun HomeScreenContent(
                         .height(40.dp)
                         .clickable { showRulesDialog = true },
                     shape = RoundedCornerShape(8.dp),
-                    color = CardBackground,
-                    border = BorderStroke(1.dp, Color(0xFF1A5243))
+                    color = currentCardBg,
+                    border = BorderStroke(1.dp, currentCardBorder)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxSize(),
@@ -210,7 +221,7 @@ fun HomeScreenContent(
                     .fillMaxWidth()
                     .border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBackground)
+                colors = CardDefaults.cardColors(containerColor = currentCardBg)
             ) {
                 Column(
                     modifier = Modifier
@@ -258,18 +269,23 @@ fun HomeScreenContent(
     if (showStatsDialog) {
         StatsDialog(
             uiState = uiState,
+            containerColor = currentCardBg,
             onDismiss = { showStatsDialog = false }
         )
     }
 
     if (showRulesDialog) {
-        RulesDialog(onDismiss = { showRulesDialog = false })
+        RulesDialog(
+            containerColor = currentCardBg,
+            onDismiss = { showRulesDialog = false }
+        )
     }
 }
 
 @Composable
 fun StatsDialog(
     uiState: HomeUiState,
+    containerColor: Color = CardBackground,
     onDismiss: () -> Unit
 ) {
     val winRate = if (uiState.totalGamesPlayed > 0) {
@@ -290,7 +306,7 @@ fun StatsDialog(
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
             shape = RoundedCornerShape(20.dp),
-            color = CardBackground,
+            color = containerColor,
             border = BorderStroke(1.dp, BorderGold),
             tonalElevation = 8.dp
         ) {
@@ -486,6 +502,7 @@ private fun StatCard(
 
 @Composable
 fun RulesDialog(
+    containerColor: Color = CardBackground,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -494,7 +511,7 @@ fun RulesDialog(
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
             shape = RoundedCornerShape(20.dp),
-            color = CardBackground,
+            color = containerColor,
             border = BorderStroke(1.dp, BorderGold),
             tonalElevation = 8.dp
         ) {
@@ -654,7 +671,8 @@ fun HomeScreenPreview() {
                 totalWins = 7,
                 netChipsEarned = 1400L,
                 isLoading = false
-            )
+            ),
+            isDarkTheme = true
         )
     }
 }

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -41,22 +40,9 @@ import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
-// Consistent Palette matching HomeScreen
-private val SettingsBackground = DarkBackground
-private val SectionCardBackground = CardBackground
-private val SectionCardBorder = Color(0xFF134530)
-private val SubtitleColor = Color(0xFF8BA697)
-private val CategoryTitleColor = Color(0xFF789D8B)
-private val DividerColor = Color(0xFF133B29)
-
-private val SwitchOnTrack = BorderGold
-private val SwitchOnThumb = Color(0xFF0C2419)
-private val SwitchOffTrack = Color(0xFF435A50)
-private val SwitchOffThumb = Color(0xFFFFFFFF)
-
 @Composable
 fun ScreenSettings(
-    uiState: SettingUiState = SettingUiState(),
+    uiState: SettingUiState = SettingUiState(darkTheme = true),
     onToggleDarkTheme: (Boolean) -> Unit = {},
     onToggleShowCardTotal: (Boolean) -> Unit = {},
     onToggleDealerRuleBanner: (Boolean) -> Unit = {},
@@ -71,16 +57,33 @@ fun ScreenSettings(
 ) {
     val context = LocalContext.current
 
+    // Screen colors
+    val currentBackground = if (uiState.darkTheme) DarkBackground else Color(0xFF144D38)
+    val currentCardBg = if (uiState.darkTheme) CardBackground else Color(0xFF1C6349)
+    val currentCardBorder = if (uiState.darkTheme) Color(0xFF134530) else Color(0xFF288160)
+    val currentSubtitle = if (uiState.darkTheme) Color(0xFF8BA697) else Color(0xFFBCE0CF)
+    val currentCategoryTitle = if (uiState.darkTheme) Color(0xFF789D8B) else Color(0xFFA5D6BD)
+    val currentDivider = if (uiState.darkTheme) Color(0xFF133B29) else Color(0xFF247053)
+
+    // Dynamic Switch Color Palette:
+    // Dark ON: Rich deep gold track, dark thumb
+    // Dark OFF: Deeper warm yellow track, pure white thumb
+    val activeTrackColor = if (uiState.darkTheme) BorderGold else Color(0xFFFFD54F)
+    val activeThumbColor = if (uiState.darkTheme) Color(0xFF0C2419) else Color.White
+    val inactiveTrackColor = if (uiState.darkTheme) Color(0xFF435A50) else Color(0xFF1B4E3A)
+    val inactiveThumbColor = if (uiState.darkTheme) Color(0xFF8BA697) else Color(0xFFBCE0CF)
+
     Scaffold(
         bottomBar = {
             AppBottomBar(
                 currentRoute = "settings",
+                isDarkTheme = uiState.darkTheme,
                 onNavigateHome = onNavigateHome,
                 onNavigateGame = onNavigateGame,
                 onNavigateMenu = onNavigateMenu
             )
         },
-        containerColor = SettingsBackground
+        containerColor = currentBackground
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -89,11 +92,10 @@ fun ScreenSettings(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // Top Bar / Header with aligned vector back button
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .statusBarsPadding()
                     .padding(bottom = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -102,8 +104,8 @@ fun ScreenSettings(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
-                        .background(SectionCardBackground)
-                        .border(1.dp, SectionCardBorder, CircleShape)
+                        .background(currentCardBg)
+                        .border(1.dp, currentCardBorder, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -125,79 +127,112 @@ fun ScreenSettings(
             }
 
             // Appearance Section
-            SectionLabel(text = "APPEARANCE & DISPLAY")
-            SettingsSectionCard {
+            SectionLabel(text = "APPEARANCE & DISPLAY", color = currentCategoryTitle)
+            SettingsSectionCard(cardBg = currentCardBg, cardBorder = currentCardBorder) {
                 SettingItemRow(
                     title = "Dark Theme",
-                    subtitle = "Deep casino midnight table tone",
+                    subtitle = if (uiState.darkTheme) "Deep casino midnight felt tone" else "Vibrant emerald casino felt tone",
+                    subtitleColor = currentSubtitle,
                     checked = uiState.darkTheme,
-                    onCheckedChange = onToggleDarkTheme
+                    onCheckedChange = onToggleDarkTheme,
+                    activeTrack = activeTrackColor,
+                    activeThumb = activeThumbColor,
+                    inactiveTrack = inactiveTrackColor,
+                    inactiveThumb = inactiveThumbColor
                 )
-                SettingItemDivider()
+                SettingItemDivider(dividerColor = currentDivider)
                 SettingItemRow(
                     title = "Show Card Total",
                     subtitle = "Displays current numerical hand sum over cards",
+                    subtitleColor = currentSubtitle,
                     checked = uiState.showCardTotal,
-                    onCheckedChange = onToggleShowCardTotal
+                    onCheckedChange = onToggleShowCardTotal,
+                    activeTrack = activeTrackColor,
+                    activeThumb = activeThumbColor,
+                    inactiveTrack = inactiveTrackColor,
+                    inactiveThumb = inactiveThumbColor
                 )
-                SettingItemDivider()
+                SettingItemDivider(dividerColor = currentDivider)
                 SettingItemRow(
                     title = "Dealer Rule Banner",
                     subtitle = "Display table rules ('Dealer stands on 17') on felt",
+                    subtitleColor = currentSubtitle,
                     checked = uiState.dealerRuleBanner,
-                    onCheckedChange = onToggleDealerRuleBanner
+                    onCheckedChange = onToggleDealerRuleBanner,
+                    activeTrack = activeTrackColor,
+                    activeThumb = activeThumbColor,
+                    inactiveTrack = inactiveTrackColor,
+                    inactiveThumb = inactiveThumbColor
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             // Audio & Feedback Section
-            SectionLabel(text = "AUDIO & FEEDBACK")
-            SettingsSectionCard {
+            SectionLabel(text = "AUDIO & FEEDBACK", color = currentCategoryTitle)
+            SettingsSectionCard(cardBg = currentCardBg, cardBorder = currentCardBorder) {
                 SettingItemRow(
                     title = "Sound Effects",
                     subtitle = "Card deals, chip stacks, and win fanfare",
+                    subtitleColor = currentSubtitle,
                     checked = uiState.soundEffects,
                     onCheckedChange = { enabled ->
                         onToggleSoundEffects(enabled)
                         if (enabled) {
-                            // Trigger sample card deal sound effect
-                            triggerClickSound()
+                            runCatching { triggerClickSound() }
                         }
-                    }
+                    },
+                    activeTrack = activeTrackColor,
+                    activeThumb = activeThumbColor,
+                    inactiveTrack = inactiveTrackColor,
+                    inactiveThumb = inactiveThumbColor
                 )
-                SettingItemDivider()
+                SettingItemDivider(dividerColor = currentDivider)
                 SettingItemRow(
                     title = "Haptic Vibration",
                     subtitle = "Physical pulses on hit, stand, double, and bust",
+                    subtitleColor = currentSubtitle,
                     checked = uiState.hapticVibration,
                     onCheckedChange = { enabled ->
                         onToggleHapticVibration(enabled)
                         if (enabled) {
-                            // Trigger tactile feedback pulse
-                            triggerDeviceVibration(context, durationMillis = 40L)
+                            runCatching { triggerDeviceVibration(context, durationMillis = 40L) }
                         }
-                    }
+                    },
+                    activeTrack = activeTrackColor,
+                    activeThumb = activeThumbColor,
+                    inactiveTrack = inactiveTrackColor,
+                    inactiveThumb = inactiveThumbColor
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             // Gameplay Section
-            SectionLabel(text = "GAMEPLAY & CONTROLS")
-            SettingsSectionCard {
+            SectionLabel(text = "GAMEPLAY & CONTROLS", color = currentCategoryTitle)
+            SettingsSectionCard(cardBg = currentCardBg, cardBorder = currentCardBorder) {
                 SettingItemRow(
                     title = "Fast Deal",
                     subtitle = "Accelerates card sliding and flip animations",
+                    subtitleColor = currentSubtitle,
                     checked = uiState.fastDeal,
-                    onCheckedChange = onToggleFastDeal
+                    onCheckedChange = onToggleFastDeal,
+                    activeTrack = activeTrackColor,
+                    activeThumb = activeThumbColor,
+                    inactiveTrack = inactiveTrackColor,
+                    inactiveThumb = inactiveThumbColor
                 )
-                SettingItemDivider()
+                SettingItemDivider(dividerColor = currentDivider)
                 SettingItemRow(
                     title = "Auto-Stand on 21",
                     subtitle = "Automatically pass turn when hand reaches 21",
+                    subtitleColor = currentSubtitle,
                     checked = uiState.autoStandOn21,
-                    onCheckedChange = onToggleAutoStandOn21
+                    onCheckedChange = onToggleAutoStandOn21,
+                    activeTrack = activeTrackColor,
+                    activeThumb = activeThumbColor,
+                    inactiveTrack = inactiveTrackColor,
+                    inactiveThumb = inactiveThumbColor
                 )
             }
 
@@ -205,7 +240,7 @@ fun ScreenSettings(
 
             Text(
                 text = "Split Happens v1.0.0 • Double Doge",
-                color = SubtitleColor.copy(alpha = 0.5f),
+                color = currentSubtitle.copy(alpha = 0.6f),
                 fontSize = 11.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
@@ -216,10 +251,10 @@ fun ScreenSettings(
 }
 
 @Composable
-private fun SectionLabel(text: String) {
+private fun SectionLabel(text: String, color: Color) {
     Text(
         text = text,
-        color = CategoryTitleColor,
+        color = color,
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.2.sp,
@@ -228,13 +263,17 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun SettingsSectionCard(content: @Composable () -> Unit) {
+private fun SettingsSectionCard(
+    cardBg: Color,
+    cardBorder: Color,
+    content: @Composable () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = SectionCardBackground),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, SectionCardBorder, RoundedCornerShape(14.dp))
+            .border(1.dp, cardBorder, RoundedCornerShape(14.dp))
     ) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)) {
             content()
@@ -246,8 +285,13 @@ private fun SettingsSectionCard(content: @Composable () -> Unit) {
 private fun SettingItemRow(
     title: String,
     subtitle: String,
+    subtitleColor: Color,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    activeTrack: Color,
+    activeThumb: Color,
+    inactiveTrack: Color,
+    inactiveThumb: Color
 ) {
     Row(
         modifier = Modifier
@@ -266,7 +310,7 @@ private fun SettingItemRow(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = subtitle,
-                color = SubtitleColor,
+                color = subtitleColor,
                 fontSize = 11.sp,
                 lineHeight = 15.sp
             )
@@ -278,11 +322,11 @@ private fun SettingItemRow(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = SwitchOnThumb,
-                checkedTrackColor = SwitchOnTrack,
+                checkedTrackColor = activeTrack,
+                checkedThumbColor = activeThumb,
                 checkedBorderColor = Color.Transparent,
-                uncheckedThumbColor = SwitchOffThumb,
-                uncheckedTrackColor = SwitchOffTrack,
+                uncheckedTrackColor = inactiveTrack,
+                uncheckedThumbColor = inactiveThumb,
                 uncheckedBorderColor = Color.Transparent
             )
         )
@@ -290,12 +334,12 @@ private fun SettingItemRow(
 }
 
 @Composable
-private fun SettingItemDivider() {
+private fun SettingItemDivider(dividerColor: Color) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(DividerColor)
+            .background(dividerColor)
     )
 }
 

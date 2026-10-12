@@ -28,6 +28,14 @@ import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
+    val context = LocalContext.current
+
+    // Hoisted Settings ViewModel so settings state propagates across screens
+    val settingsViewModel: SettingViewModel = viewModel(
+        factory = SettingViewModelFactory(context.applicationContext as Application)
+    )
+    val settingsUiState by settingsViewModel.uiState.collectAsState()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route
@@ -45,7 +53,6 @@ fun AppNavigation(
 
         // 2. Home Screen
         composable(Screen.Home.route) {
-            val context = LocalContext.current
             val db = remember(context) { buildSplitHappensDatabase(context) }
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
@@ -56,6 +63,7 @@ fun AppNavigation(
 
             HomeScreen(
                 viewModel = homeViewModel,
+                isDarkTheme = settingsUiState.darkTheme,
                 onPlayClick = {
                     navController.navigate(Screen.Game.route)
                 },
@@ -74,14 +82,8 @@ fun AppNavigation(
 
         // 3. Settings Screen
         composable(Screen.Settings.route) {
-            val context = LocalContext.current
-            val settingsViewModel: SettingViewModel = viewModel(
-                factory = SettingViewModelFactory(context.applicationContext as Application)
-            )
-            val uiState by settingsViewModel.uiState.collectAsState()
-
             ScreenSettings(
-                uiState = uiState,
+                uiState = settingsUiState,
                 onToggleDarkTheme = { settingsViewModel.toggleDarkTheme(it) },
                 onToggleShowCardTotal = { settingsViewModel.toggleShowCardTotal(it) },
                 onToggleDealerRuleBanner = { settingsViewModel.toggleDealerRuleBanner(it) },
@@ -126,14 +128,24 @@ fun AppNavigation(
 
         // 4. Menu Screen
         composable(Screen.Menu.route) {
-            val context = LocalContext.current
             val menuViewModel: MenuViewModel = viewModel(
                 factory = MenuViewModelFactory(context.applicationContext as Application)
             )
-            val uiState by menuViewModel.uiState.collectAsState()
+            val menuUiState by menuViewModel.uiState.collectAsState()
+
+            val db = remember(context) { buildSplitHappensDatabase(context) }
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(
+                    userDao = db.userDao(),
+                    gameHistoryDao = db.gameHistoryDao()
+                )
+            )
+            val homeUiState by homeViewModel.uiState.collectAsState()
 
             MenuScreen(
-                uiState = uiState,
+                uiState = menuUiState,
+                homeUiState = homeUiState,
+                isDarkTheme = settingsUiState.darkTheme,
                 onOpenRules = { menuViewModel.openRulesBooklet() },
                 onCloseRules = { menuViewModel.closeRulesBooklet() },
                 onOpenLogoutConfirm = { menuViewModel.openLogoutConfirmation() },
