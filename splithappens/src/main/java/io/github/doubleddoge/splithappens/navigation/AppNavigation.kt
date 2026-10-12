@@ -1,8 +1,5 @@
 package io.github.doubleddoge.splithappens.navigation
 
-import android.net.http.SslCertificate.restoreState
-import android.net.http.SslCertificate.saveState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -11,12 +8,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.savedstate.savedState
 import io.github.doubleddoge.splithappens.HomeScreen
 import io.github.doubleddoge.splithappens.HomeViewModel
 import io.github.doubleddoge.splithappens.HomeViewModelFactory
 import io.github.doubleddoge.splithappens.SplashScreen
-import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+import io.github.doubleddoge.splithappens.SplitHappensApp
+import kotlinx.coroutines.flow.first
+import androidx.compose.runtime.getValue
+import io.github.doubleddoge.splithappens.ProfileViewModelFactory
+import io.github.doubleddoge.splithappens.ProfileViewModel
+import androidx.compose.runtime.produceState
+import io.github.doubleddoge.splithappens.ProfileScreen
 
 @Composable
 fun AppNavigation(
@@ -27,19 +29,17 @@ fun AppNavigation(
         startDestination = Screen.Splash.route
     ) {
         composable(Screen.Splash.route) {
+            val app = LocalContext.current.applicationContext as SplitHappensApp
             SplashScreen(
-                onTimeout = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                }
+                onTimeout = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Splash.route) { inclusive = true } } },
+                awaitReady = { app.seedJob.join() }
             )
         }
 
 
         composable(Screen.Home.route) {
             val context = LocalContext.current
-           val db = remember(context){ buildSplitHappensDatabase(context) }
+           val db = remember(context){ (context.applicationContext as SplitHappensApp).database }
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
                     userDao = db.userDao(),
@@ -67,7 +67,26 @@ fun AppNavigation(
                 }
             )
         }
-        composable(Screen.Profile.route) { Text("Profile Screen Placeholder") }
+        composable(Screen.Profile.route) {
+            val context = LocalContext.current
+            val db = remember(context) { (context.applicationContext as SplitHappensApp).database }
+
+            val userId by produceState("") {
+                value = db.userDao().observeAll().first().firstOrNull()?.userId ?: ""
+            }
+
+            if (userId.isNotBlank()) {
+                val vm: ProfileViewModel = viewModel(
+                    factory = ProfileViewModelFactory(db.userDao(), db.gameHistoryDao(), userId)
+                )
+                ProfileScreen(
+                    viewModel = vm,
+                    onNavigateHome = { navController.navigate(Screen.Home.route) },
+                    onNavigateGame = { navController.navigate(Screen.Game.route) },
+                    onNavigateSettings = { navController.navigate(Screen.Settings.route) }
+                )
+            }
+        }
 
 
     }
