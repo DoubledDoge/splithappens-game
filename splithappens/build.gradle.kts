@@ -77,6 +77,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.navigation.compose)
+    implementation(kotlin("test"))
     implementation("androidx.compose.material:material-icons-extended")
     implementation("com.google.android.gms:play-services-ads:23.0.0")
     implementation(libs.androidx.lifecycle.runtime.compose)
