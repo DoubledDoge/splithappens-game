@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.github.doubleddoge.splithappens.GameScreen
 import io.github.doubleddoge.splithappens.HomeScreen
 import io.github.doubleddoge.splithappens.HomeViewModel
 import io.github.doubleddoge.splithappens.HomeViewModelFactory
@@ -65,7 +66,9 @@ fun AppNavigation(
                 viewModel = homeViewModel,
                 isDarkTheme = settingsUiState.darkTheme,
                 onPlayClick = {
-                    navController.navigate(Screen.Game.route)
+                    navController.navigate(Screen.Game.route) {
+                        launchSingleTop = true
+                    }
                 },
                 onNavigateMenu = {
                     navController.navigate(Screen.Menu.route) {
@@ -189,9 +192,39 @@ fun AppNavigation(
             )
         }
 
-        // 5. Game Screen Stub
+        // 5. Game Screen
         composable(Screen.Game.route) {
-            Text("Game Screen Placeholder")
+            val db = remember(context) { buildSplitHappensDatabase(context) }
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(
+                    userDao = db.userDao(),
+                    gameHistoryDao = db.gameHistoryDao()
+                )
+            )
+            val homeUiState by homeViewModel.uiState.collectAsState()
+
+            GameScreen(
+                displayName = homeUiState.displayName,
+                chipsOwned = homeUiState.chipsOwned,
+                isDarkTheme = settingsUiState.darkTheme,
+                onNavigateHome = {
+                    val popped = navController.popBackStack(Screen.Home.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onNavigateMenu = {
+                    val popped = navController.popBackStack(Screen.Menu.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Menu.route) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
         }
 
         // 6. Profile Screen Stub
