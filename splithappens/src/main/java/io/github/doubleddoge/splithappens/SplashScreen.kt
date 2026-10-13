@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 val CasinoBackgroundDark = Color(0xFF071B12)
 val CasinoGlowCenter = Color(0xFF0F3022)
@@ -40,6 +41,7 @@ val CasinoCardBackground = Color(0xFFF9F9F9)
 
 @Composable
 fun SplashScreen(
+    modifier: Modifier = Modifier,
     onTimeout: () -> Unit = {}
 ) {
     var progressTarget by remember { mutableFloatStateOf(0f) }
@@ -51,12 +53,12 @@ fun SplashScreen(
 
     LaunchedEffect(Unit) {
         progressTarget = 1.0f
-        delay(2200L) // Plain millisecond Long
+        delay(2200.milliseconds)
         onTimeout()
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(
                 brush = Brush.radialGradient(

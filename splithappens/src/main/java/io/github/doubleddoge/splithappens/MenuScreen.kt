@@ -31,7 +31,6 @@ import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -57,15 +56,15 @@ import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlin.math.abs
 
-// Standard Dark Theme Colors (Original)
+// Standard Dark Theme Colors
 private val MenuTheme_BackgroundDark = Color(0xFF071B12)
 private val MenuTheme_GlowCenter = Color(0xFF0F3022)
 private val MenuTheme_GreenSurface = Color(0xFF133827)
 private val MenuTheme_MutedText = Color(0xFF9EBAAA)
-private val MenuTheme_RedAlert = Color(0xFFB3261E)
 
 @Composable
 fun MenuScreen(
+    modifier: Modifier = Modifier,
     uiState: MenuUiState = MenuUiState(),
     homeUiState: HomeUiState = HomeUiState(),
     isDarkTheme: Boolean = true,
@@ -100,6 +99,7 @@ fun MenuScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         bottomBar = {
             AppBottomBar(
                 currentRoute = "menu",
@@ -264,6 +264,7 @@ private fun MenuButton(
     icon: String,
     surfaceColor: Color,
     borderColor: Color,
+    modifier: Modifier = Modifier,
     isPrimary: Boolean = false,
     onClick: () -> Unit
 ) {
@@ -272,7 +273,7 @@ private fun MenuButton(
         colors = CardDefaults.cardColors(
             containerColor = if (isPrimary) BorderGold else surfaceColor
         ),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(58.dp)
             .border(

@@ -55,8 +55,8 @@ val ButtonTextColor = Color(0xFF1E1E1E)
 
 @Composable
 fun AdBannerPlaceholder(
-    isDarkTheme: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isDarkTheme: Boolean = true
 ) {
     val bgColor = if (isDarkTheme) Color(0xFF08251D) else Color(0xFF144D38)
 
@@ -91,6 +91,7 @@ fun AdBannerPlaceholder(
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
+    modifier: Modifier = Modifier,
     isDarkTheme: Boolean = true,
     onPlayClick: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
@@ -100,6 +101,7 @@ fun HomeScreen(
 
     HomeScreenContent(
         uiState = uiState,
+        modifier = modifier,
         isDarkTheme = isDarkTheme,
         onPlayClick = onPlayClick,
         onNavigateMenu = onNavigateMenu,
@@ -110,6 +112,7 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
     uiState: HomeUiState,
+    modifier: Modifier = Modifier,
     isDarkTheme: Boolean = true,
     onPlayClick: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
@@ -124,6 +127,7 @@ fun HomeScreenContent(
     val currentCardBorder = if (isDarkTheme) Color(0xFF1A5243) else Color(0xFF288160)
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             Column(
                 modifier = Modifier
