@@ -5,6 +5,7 @@ import android.view.RoundedCorner
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -199,10 +200,13 @@ fun GameScreen(
                         // Felt Center Information
                         Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 28.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .fillMaxSize()
+                                .padding(horizontal = 12.dp, vertical = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceBetween
+
                         ) {
+
                             Row(verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(
