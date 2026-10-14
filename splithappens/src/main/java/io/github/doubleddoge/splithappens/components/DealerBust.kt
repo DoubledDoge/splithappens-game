@@ -153,6 +153,68 @@ private fun DrawScope.drawDealerBody(w: Float, h: Float){
 
 private fun DrawScope.drawDealerShirt(w: Float, h: Float){
     //White Shirt
+    val shirt = Path().apply {
+        moveTo(w * 0.41f, h * 0.48f)
+        lineTo(w* 0.50f, h * 0.76f)
+        lineTo(w * 0.59f, h * 0.48f)
+        close()
+    }
+    drawPath(
+        shirt,
+        brush = Brush.verticalGradient(
+            colors = listOf(Color.White,ShirtWhite, Color(0xFFD8D5CC)
+            ),
+            startY = h * 0.45f,
+            endY = h
+        )
+    )
+    val leftCollar = Path().apply {
+        moveTo(w * 0.40f, h * 0.45f)
+        lineTo(w * 0.49f, h * 0.55f)
+        lineTo(w * 0.46f, h * 0.63f)
+        lineTo(w * 0.38f, h * 0.49f)
+        close()
+    }
+    
+    val rightCollar = Path().apply {
+        moveTo(w * 0.60f, h * 0.45f)
+        lineTo(w * 0.51f, h * 0.55f)
+        lineTo(w * 0.54f, h * 0.63f)
+        lineTo(w * 0.62f, h * 0.49f)
+        close()
+    }
+
+    drawPath(leftCollar, color = Color.White)
+    drawPath(rightCollar, color = Color(0xFFE5E1D7))
+
+    //Bow tie
+    val bowLeft = Path().apply {
+        moveTo(w * 0.50f, h * 0.56f)
+        lineTo(w * 0.455f, h * 0.525f)
+        lineTo(w * 0.455f, h * 0.60f)
+        close()
+    }
+
+    val bowRight = Path().apply {
+        moveTo(w * 0.50f, h * 0.56f)
+        lineTo(w * 0.545f, h * 0.525f)
+        lineTo(w * 0.545f, h * 0.60f)
+        close()
+    }
+
+    //
+
+    drawPath(bowRight, color = Color(0xFF171A18))
+    drawPath(bowRight, color = Color(0xFF171A18))
+    drawCircle(
+        color = Gold,
+        radius = w * 0.008f,
+        center = Offset(w * 0.50f, h * 0.56f)
+    )
+
+}
+private fun DrawScope.drawDealerHead(w: Float, h: Float){
+
 }
 @Preview(showBackground = true, backgroundColor = 0xFF071B12)
 @Composable
