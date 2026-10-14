@@ -308,7 +308,41 @@ private fun DrawScope.drawDealerHead(w: Float, h: Float){
         )
     )
 
-    //
+    //Eyebrows
+    drawLine(
+        color = Hair,
+        start = Offset(cx - rx * 0.62f, cy - ry * 0.04f),
+        end = Offset(cx - rx * 0.16f, cy - ry * 0.10f),
+        strokeWidth = 2.3f
+    )
+    drawLine(
+        color = Hair,
+        start = Offset(cx + rx * 0.16f, cy - ry * 0.10f),
+        end = Offset(cx + rx * 0.62f, cy - ry * 0.04f),
+        strokeWidth = 2.3f
+    )
+
+    //Eyes
+    drawOval(
+        color = Color(0xFFF8F2E9),
+        topLeft = Offset(cx - rx * 0.58f, cy + ry * 0.04f),
+        size = Size(rx * 0.38f, ry * 0.14f)
+    )
+    drawOval(
+        color = Color(0xFFF8F2E9),
+        topLeft = Offset(cx + rx * 0.20f, cy + ry * 0.04f),
+        size = Size(rx * 0.38f, ry * 0.14f)
+    )
+    drawCircle(
+        color = Color(0xFF39291F),
+        radius = rx * 0.075f,
+        center = Offset(cx - rx * 0.39f, cy + ry * 0.105f)
+    )
+    drawCircle(
+        color = Color(0xFF39291F),
+        radius = rx * 0.075f,
+        center = Offset(cx + rx * 0.39f, cy + ry * 0.105f)
+    )
 }
 @Preview(showBackground = true, backgroundColor = 0xFF071B12)
 @Composable
