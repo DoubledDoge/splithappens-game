@@ -242,7 +242,73 @@ private fun DrawScope.drawDealerHead(w: Float, h: Float){
         size = Size(rx * 0.28f, ry * 0.42f)
     )
 
+    //Face shape
+    val face = Path().apply {
+        moveTo(cx - rx * 0.90f, cy - ry * 0.70f)
+        cubicTo(
+            cx - rx * 1.03f, cy + ry * 0.20f,
+            cx - rx * 0.55f, cy + ry * 0.94f,
+            cx, cy + ry
+        )
+        cubicTo(
+            cx + rx * 0.55f, cy + ry * 0.94f,
+            cx + rx * 1.03f, cy + ry * 0.20f,
+            cx + rx * 0.90f, cy - ry * 0.70f
+        )
+        close()
+    }
+    drawPath(
+        face,
+        brush = Brush.horizontalGradient(
+            colors = listOf(
+                SkinShadow,
+                Skin,
+                Color(0xFFF1CBAA)
+            ),
+            startX = cx - rx,
+            endX = cx + rx
+        )
+    )
 
+    val hair = Path().apply {
+        moveTo(cx - rx * 1.02f, cy - ry * 0.36f)
+        cubicTo(
+            cx - rx * 1.12f, cy - ry * 1.12f,
+            cx - rx * 0.25f, cy - ry * 1.25f,
+            cx + rx * 0.15f, cy - ry * 1.14f
+        )
+        cubicTo(
+            cx + rx * 0.90f, cy - ry * 1.15f,
+            cx + rx * 1.10f, cy - ry * 0.68f,
+            cx + rx * 0.98f, cy - ry * 0.24f
+        )
+        cubicTo(
+            cx + rx * 0.62f, cy - ry * 0.63f,
+            cx + rx * 0.10f, cy - ry * 0.68f,
+            cx - rx * 0.20f, cy - ry * 0.46f
+        )
+        cubicTo(
+            cx - rx * 0.55f, cy - ry * 0.25f,
+            cx - rx * 0.78f, cy - ry * 0.32f,
+            cx - rx * 1.02f, cy - ry * 0.36f
+        )
+        close()
+    }
+
+    drawPath(
+        hair,
+        brush = Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF4A3023),
+                Hair,
+                Color(0xFF17110D)
+            ),
+            startY = cy - ry * 1.25f,
+            endY = cy
+        )
+    )
+
+    //
 }
 @Preview(showBackground = true, backgroundColor = 0xFF071B12)
 @Composable
