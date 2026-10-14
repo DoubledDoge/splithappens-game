@@ -3,7 +3,7 @@ name: "CodeQL Analysis"
 on:
   push:
     paths:
-      - '.github/workflows/ci-cd.yml'
+      - '.github/workflows/codeql.yml'
   schedule:
     - cron: "30 1 * * 1"  # Weekly scan, Monday 01:30
   workflow_dispatch:
