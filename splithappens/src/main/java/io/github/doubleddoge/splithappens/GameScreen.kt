@@ -93,8 +93,8 @@ fun GameScreen(
                 // LAYER 1: The Croupier / Dealer standing behind the table
                 DealerBust(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(top = 0.dp)
                 )
 
                 // LAYER 2: Casino Table with Arched Wooden Bumper Rail & Felt
