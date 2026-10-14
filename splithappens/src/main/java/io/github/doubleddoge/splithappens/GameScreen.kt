@@ -247,7 +247,7 @@ fun GameScreen(
                                 letterSpacing = 1.5.sp,
                                 modifier = Modifier.padding(top = 6.dp)
                             )
-                            GameActionBar()
+                            GameActionBar(isBetting = true)
                         }
                     }
                 }

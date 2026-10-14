@@ -33,74 +33,35 @@ private val GoldDark = Color(0xFF9C7425)
 @Composable
 fun GameActionBar(
     modifier: Modifier = Modifier,
-    onBet: () -> Unit = {},
+    isBetting: Boolean = false,
+    canBet: Boolean = true,
+    onChip: (Long) -> Unit = {},
+    onClear: () -> Unit = {},
+    onDeal: () -> Unit = {},
     onHit: () -> Unit = {},
     onStand: () -> Unit = {},
     onDouble: () -> Unit = {},
-    betEnabled: Boolean = true,
-    hitEnabled: Boolean = true,
-    standEnabled: Boolean = true,
     doubleEnabled: Boolean = true
-){
-    Column(
+) {
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Brush.verticalGradient(
-                listOf(
-                    Color(0xFF0A1F16), Color(0xFF050F0A)
-                )
-            ))
-            .navigationBarsPadding()
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            .height(64.dp)
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        //Primary action: BET
-
-        GameButton(
-            label = "BET",
-            topColor = Gold,
-            bottomColor = GoldDark,
-            textColor = Color(0xFF1A1208),
-            height = 50.dp,
-            enabled = betEnabled,
-            onClick = onBet,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        //Row actions
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            GameButton(
-                label = "HIT",
-                topColor = Gold,
-                bottomColor = GoldDark,
-                textColor = Color(0xFF1A1208),
-                enabled = hitEnabled,
-                onClick = onHit,
-                modifier = Modifier.weight(1f)
-
-            )
-
-            GameButton(
-                label = "STAND",
-                topColor = Gold,
-                bottomColor = GoldDark,
-                textColor = Color(0xFF1A1208),
-                enabled = standEnabled,
-                onClick = onStand,
-                modifier = Modifier.weight(1f)
-            )
-            GameButton(
-                label = "DOUBLE",
-                topColor = Gold,
-                bottomColor = GoldDark,
-                textColor = Color(0xFF1A1208),
-                enabled = doubleEnabled,
-                onClick = onDouble,
-                modifier = Modifier.weight(1f)
-            )
+        if (isBetting) {
+            GameButton("5", Gold, GoldDark, Modifier.weight(1f), onClick = { onChip(5) })
+            GameButton("25", Gold, GoldDark, Modifier.weight(1f), onClick = { onChip(25) })
+            GameButton("100", Gold, GoldDark, Modifier.weight(1f), onClick = { onChip(100) })
+            GameButton("DEAL", Gold, GoldDark, Modifier.weight(1.4f),
+                textColor = Color(0xFF1A1208), enabled = canBet, onClick = onDeal)
+        } else {
+            GameButton("HIT", Gold, GoldDark, Modifier.weight(1f), onClick = onHit)
+            GameButton("STAND", Gold, GoldDark, Modifier.weight(1f), onClick = onStand)
+            GameButton("DOUBLE", Gold, GoldDark, Modifier.weight(1f),
+                enabled = doubleEnabled, onClick = onDouble)
         }
     }
 }

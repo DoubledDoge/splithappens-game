@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 // ---------- Palette ----------
@@ -72,7 +73,7 @@ private fun Frame.path(block: FramePath.() -> Unit): Path = FramePath(this).appl
 
 // ---------- Composable ----------
 @Composable
-fun DealerBust(modifier: Modifier = Modifier) {
+fun DealerBust(modifier: Modifier = Modifier, height: Dp = 110.dp) {
     val transition = rememberInfiniteTransition(label = "dealerMotion")
 
     val breath by transition.animateFloat(
@@ -88,13 +89,13 @@ fun DealerBust(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(150.dp),
+            .height(height),
         contentAlignment = Alignment.BottomCenter
     ) {
         Canvas(
             modifier = Modifier
-                .width(260.dp)
-                .height(150.dp)
+                .width(height *260f/150f)
+                .height(height)
                 .offset(y = breath.dp)
         ) {
             val f = Frame(cx = size.width / 2f, u = size.height)
