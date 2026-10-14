@@ -1,5 +1,6 @@
 package io.github.doubleddoge.splithappens
 
+import android.view.RoundedCorner
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import io.github.doubleddoge.splithappens.components.DealerBust
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -23,7 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.components.AppBottomBar
-import io.github.doubleddoge.splithappens.components.DealerBust
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
@@ -98,15 +99,16 @@ fun GameScreen(
                 // LAYER 2: Casino Table with Arched Wooden Bumper Rail & Felt
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 120.dp)
-                        .clip(RoundedCornerShape(topStart = 48.dp, topEnd = 48.dp))
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(WoodRailOuter, WoodRailInner, WoodRailOuter)
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(top = 12.dp, bottom = 12.dp)
+                        .clip(
+                            RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp
                             )
                         )
-                        .padding(top = 10.dp, start = 8.dp, end = 8.dp)
+                        .background(brush = Brush.verticalGradient(
+                            colors = listOf(WoodRailInner,WoodRailOuter,WoodRailInner)))
+                        .padding(top = 8.dp, start = 6.dp, end = 6.dp)
                 ) {
                     // Inner Felt Playfield
                     Box(
