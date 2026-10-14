@@ -1,15 +1,18 @@
 package io.github.doubleddoge.splithappens
 
+import android.icu.number.IntegerWidth
 import android.view.RoundedCorner
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,10 +22,15 @@ import androidx.compose.ui.Modifier
 import io.github.doubleddoge.splithappens.components.DealerBust
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -128,13 +136,9 @@ fun GameScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp))
-                            .background(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(feltColor.copy(alpha = 1.15f), feltColor),
-                                    radius = 800f
-                                )
-                            )
+                            .clip(feltShape)
+                            .border(1.dp, GoldFoil.copy(alpha = 0.22f),feltShape)
+
                     ) {
                         // Table Felt Markings & Arc Lines
                         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -142,20 +146,39 @@ fun GameScreen(
                             val h = size.height
 
                             // Outer gold accent arc
-                            val arcPath = Path().apply {
-                                moveTo(w * 0.08f, h * 0.28f)
-                                quadraticTo(
-                                    w * 0.50f, h * 0.44f,
-                                    w * 0.92f, h * 0.28f
+                            drawRect(Brush.radialGradient(
+                                colors = listOf(
+                                    lerp(feltColor, Color.White, 0.08f),
+                                    feltColor,
+                                    lerp(feltColor, Color.Black, 0.45f)
+                                ),
+                                center = Offset(w / 2f, h * 0.35f),
+                                radius = w * 1.15f
+                            ))
+                            drawRect(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(Color.Black.copy(alpha = 0.40f), Color.Transparent),
+                                    startY = 0f,
+                                    endY = h * 0.12f
+                                ),
+                                size = Size(w, h * 0.12f)
+                            )
+                            val centerX = w / 2f
+                            val centerY = h * 0.02f
+                            val outerR = w * 0.50f
+                            val innerR = outerR * 0.86f
+                            // Inner gold arc
+                            fun arc (radius: Float, color: Color, strokeWidth: Float){
+                                drawArc(
+                                    color = color,
+                                    startAngle = 25f,
+                                    sweepAngle = 130f,
+                                    useCenter = false,
+                                    topLeft = Offset(centerX - radius, centerY - radius),
+                                    size = Size(radius * 2, radius * 2),
+                                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                                 )
                             }
-                            drawPath(
-                                path = arcPath,
-                                color = GoldFoil.copy(alpha = 0.40f),
-                                style = Stroke(width = 2.5f)
-                            )
-
-                            // Inner gold arc
                             val innerArcPath = Path().apply {
                                 moveTo(w * 0.16f, h * 0.26f)
                                 quadraticTo(
@@ -168,7 +191,10 @@ fun GameScreen(
                                 color = GoldFoil.copy(alpha = 0.25f),
                                 style = Stroke(width = 1.5f)
                             )
+                            arc(outerR, GoldFoil.copy(alpha = 0.45f), 1.5.dp.toPx())
+                            arc(innerR, GoldFoil.copy(alpha = 0.25f), 1.dp.toPx())
                         }
+
 
                         // Felt Center Information
                         Column(
@@ -177,12 +203,45 @@ fun GameScreen(
                                 .padding(top = 28.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            Row(verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    Modifier
+                                        .width(28.dp)
+                                        .height(1.dp)
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                listOf(Color.Transparent, GoldFoil.copy(alpha = 0.55f))
+                                            )
+                                        )
+                                )
+                                Text(
+                                    text = "BlACKJACK PAYS 3 TO 2",
+                                    color = GoldFoil.copy(alpha = 0.75f),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp,
+                                    modifier = Modifier.padding(horizontal = 10.dp)
+                                )
+                                Box(
+                                    Modifier
+                                        .width(28.dp)
+                                        .height(1.dp)
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                listOf(GoldFoil.copy(alpha = 0.55f), Color.Transparent)
+                                            )
+                                        )
+                                )
+
+                            }
                             Text(
-                                text = "BLACKJACK PAYS 3 TO 2",
-                                color = GoldFoil.copy(alpha = 0.65f),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 2.sp
+                                text = "INSURANCE PAYS 2 TO 1",
+                                color = GoldFoil.copy(alpha = 0.40f),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Medium,
+                                letterSpacing = 1.5.sp,
+                                modifier = Modifier.padding(top = 6.dp)
                             )
                         }
                     }
