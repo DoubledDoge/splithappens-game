@@ -66,16 +66,16 @@ jobs:
           upload: never
           output: sarif-results
 
-      - name: Filter generated code and Compose false positives
+      - name: Filter generated code
         uses: advanced-security/filter-sarif@v1
         with:
           patterns: |
             -**/build/**
-          input: sarif-results/java-kotlin.sarif
-          output: sarif-results/java-kotlin.sarif
+          input: sarif-results/java.sarif
+          output: sarif-results/java.sarif
 
       - name: Upload filtered results
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: sarif-results/java-kotlin.sarif
+          sarif_file: sarif-results/java.sarif
           category: "/language:java-kotlin"
