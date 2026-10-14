@@ -343,6 +343,23 @@ private fun DrawScope.drawDealerHead(w: Float, h: Float){
         radius = rx * 0.075f,
         center = Offset(cx + rx * 0.39f, cy + ry * 0.105f)
     )
+
+    //Nose
+    drawLine(
+        color = SkinShadow.copy(alpha = 0.8f),
+        start = Offset(cx, cy + ry * 0.12f),
+        end = Offset(cx - rx * 0.07f, cy + ry * 0.43f),
+        strokeWidth = 1.8f
+    )
+
+    //Subtle smile
+    drawLine(
+        color = Color(0xFF995D4B),
+        start = Offset(cx - rx * 0.22f, cy + ry * 0.60f),
+        end = Offset(cx + rx * 0.22f, cy + ry * 0.60f),
+        strokeWidth = 1.7f
+
+    )
 }
 @Preview(showBackground = true, backgroundColor = 0xFF071B12)
 @Composable
