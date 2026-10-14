@@ -3,6 +3,7 @@ package io.github.doubleddoge.splithappens
 import android.view.RoundedCorner
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import io.github.doubleddoge.splithappens.components.DealerBust
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -98,18 +100,29 @@ fun GameScreen(
                 )
 
                 // LAYER 2: Casino Table with Arched Wooden Bumper Rail & Felt
+                val railRadius = 36.dp
+                val railThickness = 10.dp
+                val railShape = RoundedCornerShape(topStart = railRadius, topEnd = railRadius)
+                val feltShape = RoundedCornerShape(
+                    topStart = railRadius - railThickness,
+                    topEnd = railRadius - railThickness
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
                         .padding(top = 12.dp, bottom = 12.dp)
-                        .clip(
-                            RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp
-                            )
-                        )
+                        .shadow(12.dp, railShape)
                         .background(brush = Brush.verticalGradient(
                             colors = listOf(WoodRailInner,WoodRailOuter,WoodRailInner)))
-                        .padding(top = 8.dp, start = 6.dp, end = 6.dp)
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.verticalGradient(
+                                colors = listOf(Color.White.copy(alpha = 0.22f), Color.Transparent)
+                            ),
+                            shape = railShape
+                        )
+                        .padding(top = railThickness, start = railThickness, end = railThickness)
                 ) {
                     // Inner Felt Playfield
                     Box(
