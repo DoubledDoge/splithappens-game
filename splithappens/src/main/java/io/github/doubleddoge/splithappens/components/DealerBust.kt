@@ -327,7 +327,7 @@ private fun DrawScope.drawDealerCollarAndTie(f: Frame) {
     drawCircle(Gold, radius = 0.0055f * f.u, center = f.o(0f, 0.612f))
 }
 
-//Head
+//Headdflkbg.
 private fun DrawScope.drawDealerHead(f: Frame) {
     val px = 1.dp.toPx()
 

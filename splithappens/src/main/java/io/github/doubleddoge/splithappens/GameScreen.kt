@@ -1,7 +1,6 @@
 package io.github.doubleddoge.splithappens
 
-import android.icu.number.IntegerWidth
-import android.view.RoundedCorner
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.components.AppBottomBar
+import io.github.doubleddoge.splithappens.components.GameActionBar
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
@@ -247,10 +247,13 @@ fun GameScreen(
                                 letterSpacing = 1.5.sp,
                                 modifier = Modifier.padding(top = 6.dp)
                             )
+                            GameActionBar()
                         }
                     }
                 }
+
             }
+
         }
     }
 }
