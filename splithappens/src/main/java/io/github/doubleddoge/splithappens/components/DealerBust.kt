@@ -1,5 +1,6 @@
 package io.github.doubleddoge.splithappens.components
 
+import android.R
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -16,11 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -112,6 +115,44 @@ private fun DrawScope.drawDealerBody(w: Float, h: Float){
         lineTo(w * 0.34f, h * 0.62f)
         close()
     }
+    val rightLapel = Path().apply {
+        moveTo(w * 0.61f, h * 0.48f)
+        lineTo(w * 0.53f, h * 0.78f)
+        lineTo(w * 0.51f, h)
+        lineTo(w * 0.66f, h * 0.62f)
+        close()
+    }
+
+    drawPath(leftLapel, color = Color(0xFF202722))
+    drawPath(rightLapel, color = Color(0xFF202722))
+
+    drawPath(
+        leftLapel,
+        color = Gold.copy(alpha = 0.8f),
+        style = Stroke(width = 1.4f)
+    )
+    drawPath(
+        rightLapel,
+        color = Gold.copy( alpha = 0.8f),
+        style = Stroke(width = 1.4f)
+    )
+    // Small gold pocket detail
+    drawLine(
+        color = Gold,
+        start = Offset(w * 0.58f, h * 0.76f),
+        end = Offset(w * 0.68f, h * 0.76f),
+        strokeWidth = 2f
+    )
+    // Gold lapel pin
+    drawCircle(
+        color = Gold,
+        radius = w * 0.012f,
+        center = Offset(w * 0.62f, h * 0.68f)
+    )
+}
+
+private fun DrawScope.drawDealerShirt(w: Float, h: Float){
+    //White Shirt
 }
 @Preview(showBackground = true, backgroundColor = 0xFF071B12)
 @Composable
