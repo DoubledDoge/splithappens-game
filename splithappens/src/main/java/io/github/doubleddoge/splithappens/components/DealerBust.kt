@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
@@ -201,9 +202,6 @@ private fun DrawScope.drawDealerShirt(w: Float, h: Float){
         lineTo(w * 0.545f, h * 0.60f)
         close()
     }
-
-    //
-
     drawPath(bowRight, color = Color(0xFF171A18))
     drawPath(bowRight, color = Color(0xFF171A18))
     drawCircle(
@@ -212,8 +210,38 @@ private fun DrawScope.drawDealerShirt(w: Float, h: Float){
         center = Offset(w * 0.50f, h * 0.56f)
     )
 
+
+    //Shirt Buttons
+    for (i in 0..2){
+        drawCircle(
+            color = Color(0xFFB6B1A5),
+            radius = 1.5f,
+            center = Offset(w * 0.50f, h * (0.68f + i * 0.075f))
+        )
+    }
+
+
 }
 private fun DrawScope.drawDealerHead(w: Float, h: Float){
+    val cx = w * 0.50f
+    val cy = h * 0.315f
+    val rx = w * 0.092f
+    val ry = h * 0.205f
+
+    //Neck behinde the face
+    drawRect(
+        color = SkinShadow,
+        topLeft = Offset(cx - rx * 0.42f, cy + ry * 0.52f),
+        size = Size(rx * 0.84f, ry * 0.83f)
+    )
+
+    //Ears
+    drawOval(
+        color = SkinShadow,
+        topLeft = Offset(cx - rx * 1.08f, cy - ry * 0.02f),
+        size = Size(rx * 0.28f, ry * 0.42f)
+    )
+
 
 }
 @Preview(showBackground = true, backgroundColor = 0xFF071B12)
