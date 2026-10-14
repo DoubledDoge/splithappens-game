@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
@@ -84,7 +85,7 @@ fun GameScreen(
                     )
                 )
         ) {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 8.dp)
@@ -92,8 +93,8 @@ fun GameScreen(
                 // LAYER 1: The Croupier / Dealer standing behind the table
                 DealerBust(
                     modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 16.dp)
+                        .fillMaxWidth()
+                        .height(120.dp)
                 )
 
                 // LAYER 2: Casino Table with Arched Wooden Bumper Rail & Felt
