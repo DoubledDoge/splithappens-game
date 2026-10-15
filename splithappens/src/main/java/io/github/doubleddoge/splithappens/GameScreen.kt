@@ -1,6 +1,11 @@
 package io.github.doubleddoge.splithappens
 
 
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
+import android.graphics.RectF
+import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,18 +24,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import io.github.doubleddoge.splithappens.components.DealerBust
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -102,11 +108,11 @@ fun GameScreen(
                     .padding(horizontal = 8.dp)
             ) {
                 // LAYER 1: The Croupier / Dealer standing behind the table
-                DealerBust(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(top = 0.dp)
-                )
+//                DealerBust(
+//                    modifier = Modifier
+//                        .align(Alignment.CenterHorizontally)
+//                        .padding(top = 0.dp)
+//                )
 
                 // LAYER 2: Casino Table with Arched Wooden Bumper Rail & Felt
                 val railRadius = 36.dp
@@ -146,54 +152,45 @@ fun GameScreen(
                             val w = size.width
                             val h = size.height
 
-                            // Outer gold accent arc
-                            drawRect(Brush.radialGradient(
-                                colors = listOf(
-                                    lerp(feltColor, Color.White, 0.08f),
-                                    feltColor,
-                                    lerp(feltColor, Color.Black, 0.45f)
-                                ),
-                                center = Offset(w / 2f, h * 0.35f),
-                                radius = w * 1.15f
-                            ))
+                            // Felt: lit center, dark edges
                             drawRect(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(Color.Black.copy(alpha = 0.40f), Color.Transparent),
-                                    startY = 0f,
-                                    endY = h * 0.12f
-                                ),
-                                size = Size(w, h * 0.12f)
-                            )
-                            val centerX = w / 2f
-                            val centerY = h * 0.02f
-                            val outerR = w * 0.50f
-                            val innerR = outerR * 0.86f
-                            // Inner gold arc
-                            fun arc (radius: Float, color: Color, strokeWidth: Float){
-                                drawArc(
-                                    color = color,
-                                    startAngle = 25f,
-                                    sweepAngle = 130f,
-                                    useCenter = false,
-                                    topLeft = Offset(centerX - radius, centerY - radius),
-                                    size = Size(radius * 2, radius * 2),
-                                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        lerp(feltColor, Color.White, 0.08f),
+                                        feltColor,
+                                        lerp(feltColor, Color.Black, 0.45f)
+                                    ),
+                                    center = Offset(w / 2f, h * 0.45f),
+                                    radius = w * 1.15f
                                 )
-                            }
-                            val innerArcPath = Path().apply {
-                                moveTo(w * 0.16f, h * 0.26f)
-                                quadraticTo(
-                                    w * 0.50f, h * 0.38f,
-                                    w * 0.84f, h * 0.26f
-                                )
-                            }
-                            drawPath(
-                                path = innerArcPath,
-                                color = GoldFoil.copy(alpha = 0.25f),
-                                style = Stroke(width = 1.5f)
                             )
-                            arc(outerR, GoldFoil.copy(alpha = 0.45f), 1.5.dp.toPx())
-                            arc(innerR, GoldFoil.copy(alpha = 0.25f), 1.dp.toPx())
+
+                            // Arcs: the lowest point of the outer arc sits at the vertical middle of the felt
+                            val outerR = w * 0.52f
+                            val innerR = outerR - 30.dp.toPx()
+                            val center = Offset(w / 2f, h * 0.50f - outerR)
+
+                            fun arc(radius: Float, alpha: Float, strokeWidth: Float) = drawArc(
+                                color = GoldFoil.copy(alpha = alpha),
+                                startAngle = 90f - ArcSweep / 2f,
+                                sweepAngle = ArcSweep,
+                                useCenter = false,
+                                topLeft = Offset(center.x - radius, center.y - radius),
+                                size = Size(radius * 2, radius * 2),
+                                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                            )
+                            arc(outerR, 0.45f, 1.5.dp.toPx())
+                            arc(innerR, 0.25f, 1.dp.toPx())
+
+                            // Text sits just inside each arc line
+                            drawArcText(
+                                "BLACKJACK PAYS 3 TO 2", center, outerR - 8.dp.toPx(),
+                                GoldFoil.copy(alpha = 0.85f), 12.sp.toPx()
+                            )
+                            drawArcText(
+                                "INSURANCE PAYS 2 TO 1", center, innerR - 8.dp.toPx(),
+                                GoldFoil.copy(alpha = 0.55f), 9.sp.toPx(), spacingEm = 0.14f
+                            )
                         }
 
 
@@ -220,7 +217,7 @@ fun GameScreen(
                                         )
                                 )
                                 Text(
-                                    text = "BlACKJACK PAYS 3 TO 2",
+                                    text = "DEALER",
                                     color = GoldFoil.copy(alpha = 0.75f),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
@@ -236,17 +233,22 @@ fun GameScreen(
                                                 listOf(GoldFoil.copy(alpha = 0.55f), Color.Transparent)
                                             )
                                         )
-                                )
+                                ) {
+                                    Text(
+                                        text = "PLAYER",
+                                        color = GoldFoil.copy(alpha = 0.75f),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 2.sp,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = 10.dp)
+                                    )
+                                }
+
 
                             }
-                            Text(
-                                text = "INSURANCE PAYS 2 TO 1",
-                                color = GoldFoil.copy(alpha = 0.40f),
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Medium,
-                                letterSpacing = 1.5.sp,
-                                modifier = Modifier.padding(top = 6.dp)
-                            )
+
                             GameActionBar(isBetting = true)
                         }
                     }
@@ -255,6 +257,39 @@ fun GameScreen(
             }
 
         }
+    }
+}
+private const val ArcSweep = 110f
+
+private fun DrawScope.drawArcText(
+    text: String,
+    center: Offset,
+    radius: Float,
+    color: Color,
+    textSizePx: Float,
+    spacingEm: Float = 0.16f
+) {
+    val oval = RectF(
+        center.x - radius, center.y - radius,
+        center.x + radius, center.y + radius
+    )
+    val androidPath = AndroidPath().apply {
+        arcTo(oval, 90f + ArcSweep / 2f, -ArcSweep, true)
+    }
+    val paint = AndroidPaint().apply {
+        isAntiAlias = true
+        this.color = color.toArgb()
+        textSize = textSizePx
+        typeface = Typeface.DEFAULT_BOLD
+        letterSpacing = spacingEm
+    }
+    val pathLength = AndroidPathMeasure(androidPath, false).length
+    val textWidth = paint.measureText(text)
+
+    drawIntoCanvas { canvas ->
+        canvas.nativeCanvas.drawTextOnPath(
+            text, androidPath, (pathLength - textWidth) / 2f, 0f, paint
+        )
     }
 }
 
