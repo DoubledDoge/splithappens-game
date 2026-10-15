@@ -14,7 +14,7 @@ val Suit.symbol: String
 
 val Suit.isRed: Boolean get() = this == Suit.DIAMONDS || this == Suit.HEARTS
 
-// ACE is ordinal 0, so TWO..TEN are ordinal + 1
+// ACE is ordinal 0, so TWO.TEN are ordinal + 1
 val Rank.label: String
     get() = when (this) {
         Rank.ACE -> "A"

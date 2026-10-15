@@ -12,7 +12,7 @@ import androidx.room3.Index
 			entity = HandEntity::class,
 			parentColumns = ["handId"],
 			childColumns = ["handId"],
-			onDelete = ForeignKey.CASCADE
+			onDelete = ForeignKey.CASCADE //
 		),
 		ForeignKey(
 			entity = CardEntity::class,

@@ -41,7 +41,7 @@ fun GameActionBar(
     onHit: () -> Unit = {},
     onStand: () -> Unit = {},
     onDouble: () -> Unit = {},
-    doubleEnabled: Boolean = true
+    doubleEnabled: Boolean = true //
 ) {
     Row(
         modifier = modifier
