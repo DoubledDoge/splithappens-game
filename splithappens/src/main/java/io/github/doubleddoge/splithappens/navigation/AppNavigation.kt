@@ -18,11 +18,15 @@ import io.github.doubleddoge.splithappens.HomeViewModelFactory
 import io.github.doubleddoge.splithappens.MenuScreen
 import io.github.doubleddoge.splithappens.MenuViewModel
 import io.github.doubleddoge.splithappens.MenuViewModelFactory
+import io.github.doubleddoge.splithappens.ProfileScreen
+import io.github.doubleddoge.splithappens.ProfileViewModel
+import io.github.doubleddoge.splithappens.ProfileViewModelFactory
 import io.github.doubleddoge.splithappens.ScreenSettings
 import io.github.doubleddoge.splithappens.SettingViewModel
 import io.github.doubleddoge.splithappens.SettingViewModelFactory
 import io.github.doubleddoge.splithappens.SplashScreen
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+
 
 @Composable
 fun AppNavigation(
@@ -194,9 +198,61 @@ fun AppNavigation(
             Text("Game Screen Placeholder")
         }
 
-        // 6. Profile Screen Stub
+        // 6. Profile Screen
         composable(Screen.Profile.route) {
-            Text("Profile Screen Placeholder")
+            val db = remember(context) { buildSplitHappensDatabase(context) }
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(
+                    userDao = db.userDao(),
+                    gameHistoryDao = db.gameHistoryDao()
+                )
+            )
+            val homeUiState by homeViewModel.uiState.collectAsState()
+
+            val profileViewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(
+                    userDao = db.userDao(),
+                    gameHistoryDao = db.gameHistoryDao(),
+                    userId = homeUiState.userId
+                )
+            )
+
+            ProfileScreen(
+                viewModel = profileViewModel,
+                isDarkTheme = settingsUiState.darkTheme, // <-- Connects to global dark/light state
+                onNavigateBack = {
+                    val popped = navController.popBackStack(Screen.Menu.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Menu.route) {
+                            popUpTo(Screen.Profile.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onNavigateHome = {
+                    val popped = navController.popBackStack(Screen.Home.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onNavigateGame = {
+                    navController.navigate(Screen.Game.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateMenu = {
+                    val popped = navController.popBackStack(Screen.Menu.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Menu.route) {
+                            popUpTo(Screen.Profile.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
         }
     }
 }
