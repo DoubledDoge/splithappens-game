@@ -20,3 +20,4 @@ enum class HandResult(
     // Rounds down (always favour the house)
     fun payoutFor(bet: Long): Long = (bet * multiplier).toLong()
 }
+//

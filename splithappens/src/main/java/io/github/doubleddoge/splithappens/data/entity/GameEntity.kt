@@ -16,7 +16,7 @@ import androidx.room3.PrimaryKey
 		)
 	],
 	// Its leading column also serves as the FK index on sessionId.
-	indices = [Index(value = ["sessionId", "gameNum"], unique = true)]
+	indices = [Index(value = ["sessionId", "gameNum"], unique = true)] //
 )
 data class GameEntity(
 	@PrimaryKey(autoGenerate = true) val gameId: Long = 0,

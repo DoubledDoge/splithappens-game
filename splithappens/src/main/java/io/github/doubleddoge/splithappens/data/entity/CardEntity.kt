@@ -12,7 +12,7 @@ import io.github.doubleddoge.splithappens.data.enum.Suit
 )
 data class CardEntity(
     @PrimaryKey
-    val cardId: Int, // Make sure a card always has the same id no matter what (export/import)
+    val cardId: Int, // Make sure an card always has the same id no matter what (export/import)
     val suit: Suit,
     val rank: Rank,
 ) {
