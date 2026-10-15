@@ -11,8 +11,6 @@ navigationCompose = "2.8.0"
 composeBom = "2026.09.00"
 ksp = "2.3.11"
 room3 = "3.0.3"
-foundation = "1.12.1"
-foundationLayout = "1.12.1"
 
 
 
@@ -34,8 +32,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-room3-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room3" }
 androidx-room3-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
-androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
-androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+kotlinx-coroutines-test={group="org.jetbrains.kotlinx", name="kotlinx-coroutines-test", version="1.11.0"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
