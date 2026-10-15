@@ -29,6 +29,24 @@ abstract class RoundDao {
 
     @Insert abstract suspend fun insertHandCards(cards: List<HandCardEntity>)
 
+    //new constraints mentioned, helper functions for unit tests.
+    @Query("SELECT * FROM Hands WHERE gameId = :gameId ORDER BY handId")
+    abstract suspend fun getHands(gameId: Long): List<HandEntity>
+
+    @Query("SELECT COUNT(*) FROM Games") abstract suspend fun countGames(): Int
+    @Query("SELECT COUNT(*) FROM Hands") abstract suspend fun countHands(): Int
+    @Query("SELECT COUNT(*) FROM HandCards") abstract suspend fun countHandCards(): Int
+
+    //cascading deletion tests and constraints
+    @Query("SELECT * FROM HandCards WHERE handId = :handId ORDER BY dealtOrder")
+    abstract suspend fun getHandCards(handId: Long): List<HandCardEntity>
+
+    @Query("DELETE FROM Games WHERE gameId = :gameId")
+    abstract suspend fun deleteGame(gameId: Long)
+
+    @Query("DELETE FROM Hands WHERE handId = :handId")
+    abstract suspend fun deleteHand(handId: Long)
+
     @Query("UPDATE Users SET chipsOwned = chipsOwned + :delta WHERE userId = :userId")
     abstract suspend fun addChips(
         userId: String,
