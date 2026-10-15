@@ -64,6 +64,11 @@ fun AppNavigation(
                         launchSingleTop = true
                         restoreState = true
                     }
+                },
+                onNavigateProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }

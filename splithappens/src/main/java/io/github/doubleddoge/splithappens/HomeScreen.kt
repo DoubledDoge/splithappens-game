@@ -90,7 +90,8 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onPlayClick: () -> Unit = {},
     onNavigateSettings: () -> Unit = {},
-    onNavigateGame: () -> Unit = {}
+    onNavigateGame: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -98,7 +99,8 @@ fun HomeScreen(
         uiState = uiState,
         onPlayClick = onPlayClick,
         onNavigateSettings = onNavigateSettings,
-        onNavigateGame = onNavigateGame
+        onNavigateGame = onNavigateGame,
+        onNavigateProfile = onNavigateProfile
     )
 }
 
@@ -107,7 +109,8 @@ fun HomeScreenContent(
     uiState: HomeUiState,
     onPlayClick: () -> Unit = {},
     onNavigateSettings: () -> Unit = {},
-    onNavigateGame: () -> Unit = {}
+    onNavigateGame: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {}
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
@@ -122,7 +125,8 @@ fun HomeScreenContent(
 
                 UserHeaderCard(
                     displayName = uiState.displayName,
-                    chipsOwned = uiState.chipsOwned
+                    chipsOwned = uiState.chipsOwned,
+                    onProfileClick = onNavigateProfile
                 )
             }
         },
