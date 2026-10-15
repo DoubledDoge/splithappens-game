@@ -83,6 +83,7 @@ fun MenuScreen(
     val isPreview = LocalInspectionMode.current
     var showStatsDialog by remember { mutableStateOf(false) }
 
+
     // Dynamic color palette based on theme
     val bgGlowCenter = if (isDarkTheme) MenuTheme_GlowCenter else Color(0xFF1B634A)
     val bgOuterDark = if (isDarkTheme) MenuTheme_BackgroundDark else Color(0xFF144D38)
