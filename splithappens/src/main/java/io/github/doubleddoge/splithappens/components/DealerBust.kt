@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
 // ---------- Palette ----------
@@ -96,7 +97,7 @@ fun DealerBust(modifier: Modifier = Modifier, height: Dp = 110.dp) {
             modifier = Modifier
                 .width(height *260f/150f)
                 .height(height)
-                .offset(y = breath.dp)
+                .offset { IntOffset(x = 0, y = breath.dp.roundToPx()) }
         ) {
             val f = Frame(cx = size.width / 2f, u = size.height)
 
