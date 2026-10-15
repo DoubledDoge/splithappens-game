@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 data class SettingUiState(
-    val darkTheme: Boolean = true,
+    val darkTheme: Boolean = false,
     val showCardTotal: Boolean = true,
     val dealerRuleBanner: Boolean = true,
     val soundEffects: Boolean = true,
@@ -30,7 +30,7 @@ class SettingViewModel(application: Application) : AndroidViewModel(application)
 
     private val _uiState = MutableStateFlow(
         SettingUiState(
-            darkTheme = prefs.getBoolean("pref_dark_theme", true),
+            darkTheme = prefs.getBoolean("pref_dark_theme", false),
             showCardTotal = prefs.getBoolean("pref_show_card_total", true),
             dealerRuleBanner = prefs.getBoolean("pref_dealer_rule_banner", true),
             soundEffects = prefs.getBoolean("pref_sound_effects", true),
