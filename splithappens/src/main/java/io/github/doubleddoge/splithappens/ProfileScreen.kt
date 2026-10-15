@@ -64,7 +64,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     onNavigateHome: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
-    onNavigateSettings: () -> Unit = {}
+    onNavigateMenu: () -> Unit = {}
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
@@ -82,7 +82,7 @@ fun ProfileScreen(
 
         onNavigateHome = onNavigateHome,
         onNavigateGame = onNavigateGame,
-        onNavigateSettings = onNavigateSettings
+        onNavigateMenu = onNavigateMenu
     )
 }
 @Composable
@@ -94,7 +94,7 @@ fun ProfileScreenContent(
 
     onNavigateHome: () -> Unit ={},
     onNavigateGame: () -> Unit ={},
-    onNavigateSettings: () -> Unit
+    onNavigateMenu: () -> Unit
 ){
     val context = LocalContext.current
 
@@ -159,7 +159,7 @@ fun ProfileScreenContent(
                 currentRoute = "profile",
                 onNavigateHome = onNavigateHome,
                 onNavigateGame = onNavigateGame,
-                onNavigateSettings = onNavigateSettings
+                onNavigateMenu = onNavigateMenu,
             )
         },
         containerColor = DarkBackground
@@ -714,7 +714,7 @@ fun ProfileScreenPreview() {
             onUpdateProfilePicture = {},
             onNavigateHome = {},
             onNavigateGame = {},
-            onNavigateSettings = {}
+            onNavigateMenu = {}
         )
     }
 }
