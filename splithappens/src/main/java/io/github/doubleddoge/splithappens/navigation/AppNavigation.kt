@@ -31,7 +31,13 @@ fun AppNavigation(
         composable(Screen.Splash.route) {
             val app = LocalContext.current.applicationContext as SplitHappensApp
             SplashScreen(
-                onTimeout = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Splash.route) { inclusive = true } } },
+                onTimeout = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Splash.route) {
+                            inclusive = true
+                        }
+                    }
+                            },
                 awaitReady = { app.seedJob.join() }
             )
         }

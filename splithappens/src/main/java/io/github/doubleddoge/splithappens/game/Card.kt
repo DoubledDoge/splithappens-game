@@ -7,7 +7,7 @@ import io.github.doubleddoge.splithappens.data.enum.Rank
 data class Card(val suit:Suit, val rank: Rank) {
     val cardId: Int get() = CardEntity.idOf(suit, rank)
 
-    val value : Int get () = when (rank) {
+    val cardValue : Int get () = when (rank) {
         Rank.ACE -> 11
         Rank.JACK, Rank.QUEEN, Rank.KING -> 10
         else -> rank.ordinal + 1

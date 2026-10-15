@@ -12,8 +12,9 @@ class Shoe(
 
     init {reshuffle()}
 
-    val remaining get()= cards.size
-    val needsReshuffle get() = remaining < deckCount * 52 * reshuffleAt //check for round logic between rounds, NOT between hands! This prevents a hand being interrupted by a reshuffle.
+    //check for round logic between rounds, NOT between hands! This prevents a hand being interrupted by a reshuffle.
+    val cardsLeft get()= cards.size
+    val needsReshuffle get() = cardsLeft < deckCount * 52 * reshuffleAt
 
     fun deal():Card{
         if (cards.isEmpty()) reshuffle()
