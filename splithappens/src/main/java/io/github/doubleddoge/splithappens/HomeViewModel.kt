@@ -22,15 +22,13 @@ data class HomeUiState(
     val totalGamesPlayed: Int = 0,
     val totalWins: Int = 0,
     val netChipsEarned: Long = 0,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
 )
-
 
 class HomeViewModel(
     private val userDao: UserDao,
-    private val gameHistoryDao: GameHistoryDao
+    private val gameHistoryDao: GameHistoryDao,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -41,35 +39,38 @@ class HomeViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeUserDataAndStats() {
         viewModelScope.launch {
-            userDao.observeAll().flatMapLatest { users ->
-                val user = users.firstOrNull()
+            userDao
+                .observeAll()
+                .flatMapLatest { users ->
+                    val user = users.firstOrNull()
 
-                if (user == null) {
-                    val newUser = UserEntity(
-                        displayName = "Player 1",
-                        chipsOwned = 2500
-                    )
-                    userDao.insert(newUser)
-                    flowOf(HomeUiState(isLoading = true))
-                } else {
-                    combine(
-                        gameHistoryDao.observeForUser(user.userId),
-                        gameHistoryDao.observeNetChips(user.userId)
-                    ) { historyList, totalNetChips ->
-                        HomeUiState(
-                            userId = user.userId,
-                            displayName = user.displayName,
-                            chipsOwned = user.chipsOwned,
-                            totalGamesPlayed = historyList.size,
-                            totalWins = historyList.count { it.netChips > 0 },
-                            netChipsEarned = totalNetChips,
-                            isLoading = false
-                        )
+                    if (user == null) {
+                        val newUser =
+                            UserEntity(
+                                displayName = "Player 1",
+                                chipsOwned = 2500,
+                            )
+                        userDao.insert(newUser)
+                        flowOf(HomeUiState(isLoading = true))
+                    } else {
+                        combine(
+                            gameHistoryDao.observeForUser(user.userId),
+                            gameHistoryDao.observeNetChips(user.userId),
+                        ) { historyList, totalNetChips ->
+                            HomeUiState(
+                                userId = user.userId,
+                                displayName = user.displayName,
+                                chipsOwned = user.chipsOwned,
+                                totalGamesPlayed = historyList.size,
+                                totalWins = historyList.count { it.netChips > 0 },
+                                netChipsEarned = totalNetChips,
+                                isLoading = false,
+                            )
+                        }
                     }
+                }.collect { state ->
+                    _uiState.value = state
                 }
-            }.collect { state ->
-                _uiState.value = state
-            }
         }
     }
 
@@ -86,10 +87,17 @@ class HomeViewModel(
 
 class HomeViewModelFactory(
     private val userDao: UserDao,
-    private val gameHistoryDao: GameHistoryDao
+    private val gameHistoryDao: GameHistoryDao,
 ) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return HomeViewModel(userDao, gameHistoryDao) as T
-    }
+    override fun <T : ViewModel> create(modelClass: Class<T>): T =
+        when {
+            modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
+                @Suppress("UNCHECKED_CAST")
+                HomeViewModel(userDao, gameHistoryDao) as T
+            }
+
+            else -> {
+                throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+            }
+        }
 }
