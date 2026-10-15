@@ -56,7 +56,10 @@ fun ScreenSettings(
     onToggleHapticVibration: (Boolean) -> Unit = {},
     onToggleFastDeal: (Boolean) -> Unit = {},
     onToggleAutoStandOn21: (Boolean) -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onNavigateHome: () -> Unit = {},
+    onNavigateGame: () -> Unit = {},
+    onNavigateMenu: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier

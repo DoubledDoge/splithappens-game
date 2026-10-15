@@ -179,6 +179,7 @@ fun AppNavigation(
                         launchSingleTop = true
                     }
                 },
+
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route) {
                         launchSingleTop = true
