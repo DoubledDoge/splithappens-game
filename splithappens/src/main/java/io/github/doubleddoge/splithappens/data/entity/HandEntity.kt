@@ -23,7 +23,7 @@ import io.github.doubleddoge.splithappens.data.enum.HandStatus
                 entity = HandEntity::class,
                 parentColumns = ["handId"],
                 childColumns = ["parentHandId"],
-                onDelete = ForeignKey.CASCADE,
+                onDelete = ForeignKey.CASCADE, //
             ),
         ],
     indices = [Index("gameId"), Index("parentHandId")],

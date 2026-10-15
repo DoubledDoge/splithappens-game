@@ -1,8 +1,5 @@
 package io.github.doubleddoge.splithappens.components
 
-import android.R.attr.value
-import android.util.Log.i
-import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -27,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -40,7 +36,6 @@ import kotlin.math.PI
 
 private val ChipGold = Color(0xFFE5B036)
 
-
 private fun chipColor(value: Int): Color = when (value) {
     5 -> Color(0xFFB83A3A)
     25 -> Color(0xFF3A9A63)
@@ -50,19 +45,19 @@ private fun chipColor(value: Int): Color = when (value) {
 
 // A single casino chip
 @Composable
-fun ChipView(value: Int, modifier: Modifier = Modifier, chipSize: Dp = 44.dp){
+fun ChipView(value: Int, modifier: Modifier = Modifier, chipSize: Dp = 44.dp) {
     val color = chipColor(value)
     Box(
         modifier = modifier
             .size(chipSize)
             .shadow(3.dp, CircleShape),
         contentAlignment = Alignment.Center
-    ){
-        Canvas(Modifier.fillMaxSize()){
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
             val outer = size.minDimension / 2f
             drawCircle(color)
 
-            //12 white edge spots around the rim
+            // 12 white edge spots around the rim
             val ringRadius = outer - 3.dp.toPx()
             val seg = (2f * PI.toFloat() * ringRadius) / 24f
             drawCircle(
@@ -74,7 +69,7 @@ fun ChipView(value: Int, modifier: Modifier = Modifier, chipSize: Dp = 44.dp){
                 )
             )
 
-            //Inner Face
+            // Inner Face
             drawCircle(color, radius = outer * 0.68f)
             drawCircle(
                 color = Color.White.copy(alpha = 0.7f),
@@ -83,18 +78,17 @@ fun ChipView(value: Int, modifier: Modifier = Modifier, chipSize: Dp = 44.dp){
             )
         }
         Text(
-            text = "value",
+            text = "$value",
             color = Color.White,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold
         )
-
     }
 }
 
-//A chip that drops onto the table when it first appears
+// A chip that drops onto the table when it first appears
 @Composable
-private fun DroppingChip(value: Int, modifier: Modifier = Modifier){
+private fun DroppingChip(value: Int, modifier: Modifier = Modifier) {
     val progress = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         progress.animateTo(
@@ -104,20 +98,20 @@ private fun DroppingChip(value: Int, modifier: Modifier = Modifier){
     }
     ChipView(
         value = value,
-        modifier = modifier.graphicsLayer{
+        modifier = modifier.graphicsLayer {
             translationY = (1f - progress.value) * -140.dp.toPx()
-            alpha = progress.value.coerceIn(0f,1f)
+            alpha = progress.value.coerceIn(0f, 1f)
         }
     )
 }
 
-//All chips currently bet, stacked by value, with the total underneath
+// All chips currently bet, stacked by value, with the total underneath
 @Composable
 fun BetChips(
     chips: List<Int>,
     modifier: Modifier = Modifier,
     onUndo: () -> Unit = {}
-){
+) {
     val stacks = chips.groupingBy { it }.eachCount().toSortedMap()
     val total = chips.sum()
 
@@ -130,8 +124,8 @@ fun BetChips(
         ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(Modifier.height(84.dp), contentAlignment = Alignment.BottomCenter){
-            if(chips.isEmpty()){
+        Box(Modifier.height(84.dp), contentAlignment = Alignment.BottomCenter) {
+            if (chips.isEmpty()) {
                 Text(
                     "TAP A CHIP TO BET",
                     color = ChipGold.copy(alpha = 0.45f),
@@ -140,34 +134,31 @@ fun BetChips(
                     letterSpacing = 1.5.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-            } else{
+            } else {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    stacks.forEach{ (value, count) ->
+                    stacks.forEach { (value, count) ->
                         val shown = minOf(count, 10)
 
-                        Box(Modifier.size(width = 44.dp, height = 44.dp + (4 * (shown - 1)).dp))
-                        {
-                            for (i in 0 until shown){
-                                key(value, i){
+                        Box(Modifier.size(width = 44.dp, height = 44.dp + (4 * (shown - 1)).dp)) {
+                            for (i in 0 until shown) {
+                                key(value, i) {
                                     DroppingChip(
                                         value = value,
                                         modifier = Modifier
                                             .align(Alignment.BottomCenter)
-                                            .offset(y = (-4 * i ).dp)
+                                            .offset(y = (-4 * i).dp)
                                     )
                                 }
                             }
-
                         }
-
                     }
                 }
             }
         }
-        if (total > 0){
+        if (total > 0) {
             Text(
                 text = "R$total",
                 color = ChipGold,
@@ -177,5 +168,4 @@ fun BetChips(
             )
         }
     }
-
 }
