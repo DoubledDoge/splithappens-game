@@ -18,6 +18,9 @@ import io.github.doubleddoge.splithappens.data.entity.ProfilePictureEntity
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import io.github.doubleddoge.splithappens.data.view.GameHistory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Database(
 	entities = [
@@ -40,8 +43,38 @@ abstract class SplitHappensDatabase : RoomDatabase() {
 	abstract fun gameHistoryDao(): GameHistoryDao
 }
 
-// Only build once and hold the instance
-fun buildSplitHappensDatabase(context: Context): SplitHappensDatabase =
-	Room.databaseBuilder<SplitHappensDatabase>(context.applicationContext, "splithappens.db")
-		.setDriver(AndroidSQLiteDriver())
-		.build()
+@Volatile
+private var INSTANCE: SplitHappensDatabase? = null
+
+fun buildSplitHappensDatabase(context: Context): SplitHappensDatabase {
+	return INSTANCE ?: synchronized(SplitHappensDatabase::class.java) {
+		INSTANCE ?: run {
+			val db = Room.databaseBuilder<SplitHappensDatabase>(
+				context.applicationContext,
+				"splithappens.db"
+			)
+				.setDriver(AndroidSQLiteDriver())
+				.build()
+
+			// Initialize default user asynchronously without blocking callback signatures
+			CoroutineScope(Dispatchers.IO).launch {
+				try {
+					val userDao = db.userDao()
+					if (userDao.getById("default_player") == null) {
+						userDao.insert(
+							UserEntity(
+								userId = "default_player",
+								displayName = "Player 1",
+								chipsOwned = 2500L
+							)
+						)
+					}
+				} catch (e: Exception) {
+					e.printStackTrace()
+				}
+			}
+
+			db.also { INSTANCE = it }
+		}
+	}
+}

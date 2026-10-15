@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.dao.UserDao
+import io.github.doubleddoge.splithappens.data.enum.HandResult
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,88 +14,29 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-// --- 1. CARD MODELS & DECK ENGINE ---
+enum class DealerEmotion { NEUTRAL, SMUG, BUSTED }
 
-enum class Suit(val symbol: String, val isRed: Boolean) {
-    HEARTS("♥", true),
-    DIAMONDS("♦", true),
-    CLUBS("♣", false),
-    SPADES("♠", false)
-}
+enum class GameStage { BETTING, DEALING, PLAYER_TURN, DEALER_TURN, ROUND_OVER }
 
-enum class Rank(val display: String, val baseValue: Int) {
-    TWO("2", 2), THREE("3", 3), FOUR("4", 4), FIVE("5", 5),
-    SIX("6", 6), SEVEN("7", 7), EIGHT("8", 8), NINE("9", 9),
-    TEN("10", 10), JACK("J", 10), QUEEN("Q", 10), KING("K", 10),
-    ACE("A", 11)
-}
-
-data class Card(
-    val suit: Suit,
-    val rank: Rank,
-    val isFaceUp: Boolean = true
-) {
-    val value: Int get() = rank.baseValue
-}
-
-fun calculateHandValue(cards: List<Card>): Pair<Int, Boolean> {
-    val visibleCards = cards.filter { it.isFaceUp }
-    var sum = visibleCards.sumOf { it.value }
-    var aces = visibleCards.count { it.rank == Rank.ACE }
-
-    while (sum > 21 && aces > 0) {
-        sum -= 10
-        aces -= 1
-    }
-    val isSoft = aces > 0
-    return Pair(sum, isSoft)
-}
-
-fun createShuffledShoe(deckCount: Int = 4): MutableList<Card> {
-    val shoe = mutableListOf<Card>()
-    repeat(deckCount) {
-        for (suit in Suit.entries) {
-            for (rank in Rank.entries) {
-                shoe.add(Card(suit = suit, rank = rank, isFaceUp = true))
-            }
-        }
-    }
-    shoe.shuffle()
-    return shoe
-}
-
-// --- 2. GAME STATE & ENUMS ---
-
-enum class DealerEmotion {
-    NEUTRAL,
-    SMUG,
-    BUSTED
-}
-
-enum class GameStage {
-    BETTING,
-    PLAYER_TURN,
-    DEALER_TURN,
-    ROUND_OVER
-}
-
-enum class RoundResult(val bannerMessage: String) {
-    NONE(""),
-    PLAYER_BLACKJACK("BLACKJACK! PAYS 3:2"),
-    PLAYER_WIN("YOU WIN!"),
-    DEALER_BUST("DEALER BUSTS! YOU WIN"),
-    PUSH("PUSH - BET RETURNED"),
-    DEALER_WIN("DEALER WINS"),
-    PLAYER_BUST("BUSTED!")
+enum class RoundResult(val bannerMessage: String, val handResult: HandResult?) {
+    NONE("", null),
+    PLAYER_BLACKJACK("BLACKJACK! PAYS 3:2", HandResult.BLACKJACK),
+    PLAYER_WIN("YOU WIN!", HandResult.WIN),
+    DEALER_BUST("DEALER BUSTS! YOU WIN", HandResult.WIN),
+    PUSH("PUSH - BET RETURNED", HandResult.PUSH),
+    DEALER_WIN("DEALER WINS", HandResult.LOSS),
+    DEALER_BLACKJACK("DEALER HAS BLACKJACK", HandResult.LOSS),
+    PLAYER_BUST("BUSTED!", HandResult.LOSS)
 }
 
 data class GameUiState(
-    val userId: String = "",
+    val userId: String = "default_player",
     val displayName: String = "Player 1",
     val chipsOwned: Long = 2500L,
     val currentBet: Long = 0L,
-    val playerHand: List<Card> = emptyList(),
-    val dealerHand: List<Card> = emptyList(),
+    val isDoubled: Boolean = false,
+    val playerHand: List<TableCard> = emptyList(),
+    val dealerHand: List<TableCard> = emptyList(),
     val playerHandValue: Int = 0,
     val isPlayerSoft: Boolean = false,
     val dealerHandValue: Int = 0,
@@ -105,8 +48,6 @@ data class GameUiState(
     val canSplit: Boolean = false
 )
 
-// --- 3. VIEWMODEL IMPLEMENTATION ---
-
 class GameViewModel(
     private val userDao: UserDao
 ) : ViewModel() {
@@ -114,7 +55,8 @@ class GameViewModel(
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
-    private var deck: MutableList<Card> = createShuffledShoe()
+    private val shoe = Shoe(decks = 6)
+    private var roundJob: Job? = null
 
     init {
         observeUserData()
@@ -126,309 +68,236 @@ class GameViewModel(
                 val user = users.firstOrNull()
                 if (user != null) {
                     _uiState.update { current ->
-                        if (current.stage == GameStage.BETTING && current.currentBet == 0L) {
-                            current.copy(
-                                userId = user.userId,
-                                displayName = user.displayName,
-                                chipsOwned = user.chipsOwned
-                            )
-                        } else {
-                            current.copy(
-                                userId = user.userId,
-                                displayName = user.displayName
-                            )
-                        }
+                        val idle = current.stage == GameStage.BETTING && current.currentBet == 0L
+                        current.copy(
+                            userId = user.userId,
+                            displayName = user.displayName,
+                            chipsOwned = if (idle) user.chipsOwned else current.chipsOwned
+                        )
                     }
                 }
             }
         }
     }
 
-    private fun drawCard(isFaceUp: Boolean = true): Card {
-        if (deck.size < 15) {
-            deck = createShuffledShoe()
-        }
-        return deck.removeAt(0).copy(isFaceUp = isFaceUp)
-    }
-
-    // --- BETTING CONTROLS ---
+    // --- BETTING ---
 
     fun addBet(amount: Long) {
-        val current = _uiState.value
-        if (current.stage != GameStage.BETTING) return
-        if (current.chipsOwned >= amount) {
-            val newChips = current.chipsOwned - amount
-            val newBet = current.currentBet + amount
-            _uiState.update {
-                it.copy(
-                    chipsOwned = newChips,
-                    currentBet = newBet,
-                    dealerStatusText = "Bet: R$newBet"
-                )
-            }
+        val s = _uiState.value
+        if (s.stage != GameStage.BETTING) return
+        if (s.chipsOwned < amount) return
+
+        val newBet = s.currentBet + amount
+        _uiState.update {
+            it.copy(
+                chipsOwned = it.chipsOwned - amount,
+                currentBet = newBet,
+                dealerStatusText = "Bet: R$newBet"
+            )
         }
     }
 
     fun clearBet() {
-        val current = _uiState.value
-        if (current.stage != GameStage.BETTING || current.currentBet == 0L) return
-        val restoredChips = current.chipsOwned + current.currentBet
+        val s = _uiState.value
+        if (s.stage != GameStage.BETTING || s.currentBet == 0L) return
         _uiState.update {
             it.copy(
-                chipsOwned = restoredChips,
+                chipsOwned = it.chipsOwned + it.currentBet,
                 currentBet = 0L,
                 dealerStatusText = "Place your bets"
             )
         }
     }
 
-    // --- DEAL & ROUND INITIALIZATION ---
+    // --- DEAL ---
 
     fun deal() {
-        val current = _uiState.value
-        if (current.stage != GameStage.BETTING || current.currentBet <= 0) return
+        val s = _uiState.value
+        if (s.stage != GameStage.BETTING || s.currentBet <= 0L) return
 
-        persistUserChips(current.chipsOwned)
-
-        val pCard1 = drawCard(true)
-        val dCard1 = drawCard(true)
-        val pCard2 = drawCard(true)
-        val dCard2 = drawCard(false)
-
-        val playerInitial = listOf(pCard1, pCard2)
-        val dealerInitial = listOf(dCard1, dCard2)
-
-        val (pValue, pSoft) = calculateHandValue(playerInitial)
-        val (dValue, _) = calculateHandValue(listOf(dCard1))
-
-        val playerHasBlackjack = pValue == 21
-
+        persistUserChips(s.chipsOwned)
         _uiState.update {
             it.copy(
-                playerHand = playerInitial,
-                dealerHand = dealerInitial,
-                playerHandValue = pValue,
-                isPlayerSoft = pSoft,
-                dealerHandValue = dValue,
-                stage = if (playerHasBlackjack) GameStage.DEALER_TURN else GameStage.PLAYER_TURN,
-                dealerEmotion = DealerEmotion.NEUTRAL,
-                dealerStatusText = if (playerHasBlackjack) "Natural 21!" else "Hit or Stand?",
-                canDoubleDown = it.chipsOwned >= it.currentBet && !playerHasBlackjack,
-                canSplit = playerInitial[0].rank == playerInitial[1].rank && it.chipsOwned >= it.currentBet
+                stage = GameStage.DEALING,
+                playerHand = emptyList(),
+                dealerHand = emptyList(),
+                playerHandValue = 0,
+                dealerHandValue = 0,
+                isDoubled = false,
+                dealerStatusText = "Dealing..."
             )
         }
 
-        if (playerHasBlackjack) {
-            resolveDealerHand()
+        roundJob = viewModelScope.launch {
+            shoe.shuffleIfNeeded()
+            dealCard(toPlayer = true); delay(DEAL_DELAY)
+            dealCard(toPlayer = false); delay(DEAL_DELAY)
+            dealCard(toPlayer = true); delay(DEAL_DELAY)
+            dealCard(toPlayer = false, faceUp = false); delay(DEAL_DELAY)
+
+            val state = _uiState.value
+            val playerBlackjack = state.playerHandValue == 21
+            val dealerBlackjack = state.dealerHand.first().value >= 10 &&
+                    calculateHandValue(state.dealerHand, includeHidden = true).first == 21
+
+            when {
+                dealerBlackjack -> {
+                    revealHoleCard()
+                    delay(700.milliseconds)
+                    if (playerBlackjack) {
+                        endRound(RoundResult.PUSH, DealerEmotion.NEUTRAL, "Both have blackjack")
+                    } else {
+                        endRound(RoundResult.DEALER_BLACKJACK, DealerEmotion.SMUG, "Dealer has blackjack")
+                    }
+                }
+                playerBlackjack -> {
+                    revealHoleCard()
+                    delay(700.milliseconds)
+                    endRound(RoundResult.PLAYER_BLACKJACK, DealerEmotion.BUSTED, "Blackjack pays 3:2!")
+                }
+                else -> _uiState.update {
+                    it.copy(
+                        stage = GameStage.PLAYER_TURN,
+                        dealerStatusText = "Hit or Stand?",
+                        canDoubleDown = it.chipsOwned >= it.currentBet
+                    )
+                }
+            }
+        }
+    }
+
+    private fun dealCard(toPlayer: Boolean, faceUp: Boolean = true) {
+        val card = shoe.draw(faceUp)
+        _uiState.update { s ->
+            if (toPlayer) {
+                val hand = s.playerHand + card
+                val (value, soft) = calculateHandValue(hand)
+                s.copy(playerHand = hand, playerHandValue = value, isPlayerSoft = soft)
+            } else {
+                val hand = s.dealerHand + card
+                s.copy(dealerHand = hand, dealerHandValue = calculateHandValue(hand).first)
+            }
+        }
+    }
+
+    private fun revealHoleCard() {
+        _uiState.update { s ->
+            val hand = s.dealerHand.map { it.copy(isFaceUp = true) }
+            val value = calculateHandValue(hand).first
+            s.copy(dealerHand = hand, dealerHandValue = value, dealerStatusText = "Dealer has $value")
         }
     }
 
     // --- PLAYER ACTIONS ---
 
     fun hit() {
-        val current = _uiState.value
-        if (current.stage != GameStage.PLAYER_TURN) return
-
-        val newCard = drawCard(true)
-        val updatedPlayerHand = current.playerHand + newCard
-        val (pValue, pSoft) = calculateHandValue(updatedPlayerHand)
-
-        if (pValue > 21) {
-            endRound(
-                result = RoundResult.PLAYER_BUST,
-                updatedPlayerHand = updatedPlayerHand,
-                pValue = pValue,
-                pSoft = pSoft,
-                dealerEmotion = DealerEmotion.SMUG,
-                statusText = "Busted with $pValue!"
-            )
-        } else if (pValue == 21) {
-            _uiState.update {
-                it.copy(
-                    playerHand = updatedPlayerHand,
-                    playerHandValue = pValue,
-                    isPlayerSoft = pSoft,
-                    canDoubleDown = false,
-                    canSplit = false
-                )
-            }
-            stand()
-        } else {
-            _uiState.update {
-                it.copy(
-                    playerHand = updatedPlayerHand,
-                    playerHandValue = pValue,
-                    isPlayerSoft = pSoft,
-                    canDoubleDown = false,
-                    canSplit = false,
-                    dealerStatusText = "Player has $pValue"
-                )
+        if (_uiState.value.stage != GameStage.PLAYER_TURN) return
+        dealCard(toPlayer = true)
+        val value = _uiState.value.playerHandValue
+        when {
+            value > 21 -> endRound(RoundResult.PLAYER_BUST, DealerEmotion.SMUG, "Busted with $value!")
+            value == 21 -> stand()
+            else -> _uiState.update {
+                it.copy(canDoubleDown = false, canSplit = false, dealerStatusText = "Player has $value")
             }
         }
     }
 
     fun stand() {
-        val current = _uiState.value
-        if (current.stage != GameStage.PLAYER_TURN) return
-        _uiState.update { it.copy(stage = GameStage.DEALER_TURN) }
-        resolveDealerHand()
+        if (_uiState.value.stage != GameStage.PLAYER_TURN) return
+        _uiState.update { it.copy(stage = GameStage.DEALER_TURN, canDoubleDown = false, canSplit = false) }
+        roundJob = viewModelScope.launch { playOutDealer() }
     }
 
     fun doubleDown() {
-        val current = _uiState.value
-        if (current.stage != GameStage.PLAYER_TURN || !current.canDoubleDown) return
+        val s = _uiState.value
+        if (s.stage != GameStage.PLAYER_TURN || !s.canDoubleDown) return
 
-        val betAddition = current.currentBet
-        val newCard = drawCard(true)
-        val updatedHand = current.playerHand + newCard
-        val (pValue, pSoft) = calculateHandValue(updatedHand)
-
-        val newChips = current.chipsOwned - betAddition
+        val newChips = s.chipsOwned - s.currentBet
         persistUserChips(newChips)
-
         _uiState.update {
             it.copy(
                 chipsOwned = newChips,
-                currentBet = current.currentBet * 2,
-                playerHand = updatedHand,
-                playerHandValue = pValue,
-                isPlayerSoft = pSoft,
+                currentBet = it.currentBet * 2,
+                isDoubled = true,
                 canDoubleDown = false,
                 canSplit = false
             )
         }
+        dealCard(toPlayer = true)
 
-        if (pValue > 21) {
-            endRound(
-                result = RoundResult.PLAYER_BUST,
-                updatedPlayerHand = updatedHand,
-                pValue = pValue,
-                pSoft = pSoft,
-                dealerEmotion = DealerEmotion.SMUG,
-                statusText = "Double Down Bust!"
-            )
+        if (_uiState.value.playerHandValue > 21) {
+            endRound(RoundResult.PLAYER_BUST, DealerEmotion.SMUG, "Double Down Bust!")
         } else {
             stand()
         }
     }
 
-    // --- DEALER AI & TURN RESOLUTION ---
+    // --- DEALER ---
 
-    private fun resolveDealerHand() {
-        viewModelScope.launch {
-            delay(500.milliseconds)
-            val revealedHand = _uiState.value.dealerHand.map { it.copy(isFaceUp = true) }.toMutableList()
-            var (dValue, _) = calculateHandValue(revealedHand)
+    private suspend fun playOutDealer() {
+        delay(500.milliseconds)
+        revealHoleCard()
+        delay(700.milliseconds)
 
-            _uiState.update {
-                it.copy(
-                    dealerHand = revealedHand,
-                    dealerHandValue = dValue,
-                    dealerStatusText = "Dealer has $dValue"
-                )
-            }
+        while (_uiState.value.dealerHandValue < 17) {
+            dealCard(toPlayer = false)
+            _uiState.update { it.copy(dealerStatusText = "Dealer draws: ${it.dealerHandValue}") }
+            delay(800.milliseconds)
+        }
 
-            delay(700.milliseconds)
-
-            while (dValue < 17) {
-                val newCard = drawCard(true)
-                revealedHand.add(newCard)
-                val (updatedDValue, _) = calculateHandValue(revealedHand)
-                dValue = updatedDValue
-
-                _uiState.update {
-                    it.copy(
-                        dealerHand = revealedHand.toList(),
-                        dealerHandValue = dValue,
-                        dealerStatusText = "Dealer draws: $dValue"
-                    )
-                }
-                delay(800.milliseconds)
-            }
-
-            val pValue = _uiState.value.playerHandValue
-            val pHasBlackjack = _uiState.value.playerHand.size == 2 && pValue == 21
-            val dHasBlackjack = revealedHand.size == 2 && dValue == 21
-
-            val roundOutcome: Triple<RoundResult, DealerEmotion, String> = when {
-                pHasBlackjack && !dHasBlackjack ->
-                    Triple(RoundResult.PLAYER_BLACKJACK, DealerEmotion.BUSTED, "Blackjack pays 3:2!")
-                dValue > 21 ->
-                    Triple(RoundResult.DEALER_BUST, DealerEmotion.BUSTED, "Dealer busts!")
-                pValue > dValue ->
-                    Triple(RoundResult.PLAYER_WIN, DealerEmotion.BUSTED, "Player wins $pValue vs $dValue")
-                dValue > pValue ->
-                    Triple(RoundResult.DEALER_WIN, DealerEmotion.SMUG, "Dealer wins $dValue vs $pValue")
-                else ->
-                    Triple(RoundResult.PUSH, DealerEmotion.NEUTRAL, "Push on $pValue")
-            }
-
-            endRound(
-                result = roundOutcome.first,
-                updatedPlayerHand = _uiState.value.playerHand,
-                pValue = pValue,
-                pSoft = _uiState.value.isPlayerSoft,
-                dealerEmotion = roundOutcome.second,
-                statusText = roundOutcome.third
-            )
+        val p = _uiState.value.playerHandValue
+        val d = _uiState.value.dealerHandValue
+        when {
+            d > 21 -> endRound(RoundResult.DEALER_BUST, DealerEmotion.BUSTED, "Dealer busts!")
+            p > d -> endRound(RoundResult.PLAYER_WIN, DealerEmotion.BUSTED, "Player wins $p vs $d")
+            d > p -> endRound(RoundResult.DEALER_WIN, DealerEmotion.SMUG, "Dealer wins $d vs $p")
+            else -> endRound(RoundResult.PUSH, DealerEmotion.NEUTRAL, "Push on $p")
         }
     }
 
-    // --- PAYOUT & DATABASE PERSISTENCE ---
+    // --- PAYOUT & PERSISTENCE ---
 
-    private fun endRound(
-        result: RoundResult,
-        updatedPlayerHand: List<Card>,
-        pValue: Int,
-        pSoft: Boolean,
-        dealerEmotion: DealerEmotion,
-        statusText: String
-    ) {
-        val current = _uiState.value
-        val bet = current.currentBet
-
-        val payoutChips = when (result) {
-            RoundResult.PLAYER_BLACKJACK -> (bet * 2.5).toLong()
-            RoundResult.PLAYER_WIN, RoundResult.DEALER_BUST -> bet * 2
-            RoundResult.PUSH -> bet
-            RoundResult.DEALER_WIN, RoundResult.PLAYER_BUST, RoundResult.NONE -> 0L
-        }
-
-        val finalChips = current.chipsOwned + payoutChips
+    private fun endRound(result: RoundResult, emotion: DealerEmotion, statusText: String) {
+        val s = _uiState.value
+        val payout = result.handResult?.payoutFor(s.currentBet) ?: 0L
+        val finalChips = s.chipsOwned + payout
+        val revealed = s.dealerHand.map { it.copy(isFaceUp = true) }
 
         _uiState.update {
             it.copy(
                 chipsOwned = finalChips,
-                playerHand = updatedPlayerHand,
-                playerHandValue = pValue,
-                isPlayerSoft = pSoft,
+                dealerHand = revealed,
+                dealerHandValue = calculateHandValue(revealed).first,
                 stage = GameStage.ROUND_OVER,
                 result = result,
-                dealerEmotion = dealerEmotion,
-                dealerStatusText = statusText
+                dealerEmotion = emotion,
+                dealerStatusText = statusText,
+                canDoubleDown = false,
+                canSplit = false
             )
         }
-
         persistUserChips(finalChips)
     }
 
     private fun persistUserChips(newChips: Long) {
         val userId = _uiState.value.userId
         if (userId.isNotEmpty()) {
-            viewModelScope.launch {
-                userDao.setChips(userId, newChips)
-            }
+            viewModelScope.launch { userDao.setChips(userId, newChips) }
         }
     }
 
     fun resetForNextRound() {
+        if (_uiState.value.stage != GameStage.ROUND_OVER) return
         _uiState.update {
             it.copy(
                 currentBet = 0L,
+                isDoubled = false,
                 playerHand = emptyList(),
                 dealerHand = emptyList(),
                 playerHandValue = 0,
                 dealerHandValue = 0,
+                isPlayerSoft = false,
                 stage = GameStage.BETTING,
                 result = RoundResult.NONE,
                 dealerEmotion = DealerEmotion.NEUTRAL,
@@ -438,9 +307,11 @@ class GameViewModel(
             )
         }
     }
-}
 
-// --- 4. VIEWMODEL FACTORY ---
+    private companion object {
+        val DEAL_DELAY = 350.milliseconds
+    }
+}
 
 class GameViewModelFactory(
     private val userDao: UserDao

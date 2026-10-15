@@ -71,7 +71,7 @@ fun UserHeaderCard(
                 fontSize = 16.sp
             )
             Row(
-                modifier = modifier
+                modifier = Modifier
                     .background(
                         color = Color(0xFF041910),
                         shape = RoundedCornerShape(50.dp)

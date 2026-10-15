@@ -1,6 +1,7 @@
 package io.github.doubleddoge.splithappens.data.enum
 
-// Has a multiplier to enable different payouts decided by game logic
+// Has a multiplier to enable different payouts decided by game logic.
+// Multipliers are TOTAL RETURN (bet included): WIN 2.0 = even money, BLACKJACK 2.5 = pays 3:2.
 enum class HandResult(
     val multiplier: Double,
 ) {
@@ -8,7 +9,7 @@ enum class HandResult(
     SURRENDER(0.5),
     PUSH(1.0), // Tie
     WIN(2.0),
-    BLACKJACK(3.0), // ace + a ten-value card
+    BLACKJACK(2.5), // ace + a ten-value card, pays 3:2
     QUEEN_JACK(10.0), // queen + ace
     NATURAL_BLACKJACK(50.0), // jack + ace
     TRIPLE_SEVEN(100.0), // 21 with three 7s
