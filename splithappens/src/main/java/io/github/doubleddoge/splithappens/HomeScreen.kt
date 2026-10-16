@@ -108,7 +108,8 @@ fun HomeScreen(
         onPlayClick = onPlayClick,
          onNavigateSettings = onNavigateSettings,
         onNavigateMenu = onNavigateMenu,
-        onNavigateGame = onNavigateGame
+        onNavigateGame = onNavigateGame,
+        onNavigateProfile = onNavigateProfile
     )
 }
 
