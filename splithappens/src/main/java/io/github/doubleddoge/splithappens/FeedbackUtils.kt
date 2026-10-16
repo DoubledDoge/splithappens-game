@@ -1,38 +1,34 @@
 package io.github.doubleddoge.splithappens
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
-import android.os.CombinedVibration
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 
-@SuppressLint("MissingPermission")
-@Suppress("UNUSED_ANONYMOUS_PARAMETER", "UNUSED_VARIABLE", "unused")
-fun triggerDeviceVibration(context: Context, durationMs: Long = 30) {
-    try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager =
-                context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-            vibratorManager?.let { manager ->
-                val effect = VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
-                manager.vibrate(CombinedVibration.createParallel(effect))
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-            @Suppress("DEPRECATION")
-            vibrator?.vibrate(
-                VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
-            )
-        }
-    } catch (_e: Exception) {
-        // Safe fallback if device lacks vibrator hardware or permission
-    }
+// TODO: Integrate actual sound pool/audio asset playback when table audio assets are merged
+fun triggerClickSound() {
+    // TODO: SoundPool or MediaPlayer click sound implementation
 }
 
-@Suppress("unused")
-fun triggerClickSound() {
-    // Sound playback hook
+fun triggerDeviceVibration(context: Context, durationMillis: Long = 35L) {
+    try {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            vibratorManager?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        }
+
+        if (vibrator != null && vibrator.hasVibrator()) {
+            val effect = VibrationEffect.createOneShot(
+                durationMillis,
+                VibrationEffect.DEFAULT_AMPLITUDE
+            )
+            vibrator.vibrate(effect)
+        }
+    } catch (e: Exception) {
+        // Exception caught gracefully without crashing UI interactions
+    }
 }
