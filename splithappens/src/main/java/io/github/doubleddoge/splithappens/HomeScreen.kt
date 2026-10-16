@@ -94,8 +94,10 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     isDarkTheme: Boolean = true,
     onPlayClick: () -> Unit = {},
+    onNavigateSettings: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
-    onNavigateGame: () -> Unit = {}
+    onNavigateGame: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -104,6 +106,7 @@ fun HomeScreen(
         modifier = modifier,
         isDarkTheme = isDarkTheme,
         onPlayClick = onPlayClick,
+        onNavigateSettings = onNavigateSettings,
         onNavigateMenu = onNavigateMenu,
         onNavigateGame = onNavigateGame
     )
@@ -115,8 +118,10 @@ fun HomeScreenContent(
     modifier: Modifier = Modifier,
     isDarkTheme: Boolean = true,
     onPlayClick: () -> Unit = {},
+    onNavigateSettings: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
-    onNavigateGame: () -> Unit = {}
+    onNavigateGame: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {}
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
@@ -136,7 +141,8 @@ fun HomeScreenContent(
             ) {
                 UserHeaderCard(
                     displayName = uiState.displayName,
-                    chipsOwned = uiState.chipsOwned
+                    chipsOwned = uiState.chipsOwned,
+                    onProfileClick = onNavigateProfile
                 )
             }
         },

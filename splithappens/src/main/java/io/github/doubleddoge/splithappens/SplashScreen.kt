@@ -42,6 +42,7 @@ val CasinoCardBackground = Color(0xFFF9F9F9)
 @Composable
 fun SplashScreen(
     modifier: Modifier = Modifier,
+    awaitReady: suspend () -> Unit = {},
     onTimeout: () -> Unit = {}
 ) {
     var progressTarget by remember { mutableFloatStateOf(0f) }
@@ -54,6 +55,7 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         progressTarget = 1.0f
         delay(2200.milliseconds)
+        awaitReady() // returns instantly if seeding already finished
         onTimeout()
     }
 
