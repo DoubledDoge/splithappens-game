@@ -13,11 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -30,7 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -82,8 +79,8 @@ fun MenuScreen(
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
     var showStatsDialog by remember { mutableStateOf(false) }
+    var showInternalRulesDialog by remember { mutableStateOf(false) }
 
-    // Dynamic color palette based on theme
     val bgGlowCenter = if (isDarkTheme) MenuTheme_GlowCenter else Color(0xFF1B634A)
     val bgOuterDark = if (isDarkTheme) MenuTheme_BackgroundDark else Color(0xFF144D38)
     val surfaceColor = if (isDarkTheme) MenuTheme_GreenSurface else Color(0xFF1C6349)
@@ -147,7 +144,7 @@ fun MenuScreen(
                     )
                 }
 
-                // 1. Profile
+                // 1. PROFILE
                 MenuButton(
                     text = "PROFILE",
                     icon = "👤",
@@ -158,29 +155,7 @@ fun MenuScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // 2. Stats
-                MenuButton(
-                    text = "STATS",
-                    icon = "📊",
-                    surfaceColor = surfaceColor,
-                    borderColor = surfaceBorder,
-                    onClick = { runFeedback { showStatsDialog = true } }
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // 3. Rules & Strategy
-                MenuButton(
-                    text = "RULES & STRATEGY",
-                    icon = "📖",
-                    surfaceColor = surfaceColor,
-                    borderColor = surfaceBorder,
-                    onClick = { runFeedback(onOpenRules) }
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // 4. Settings
+                // 2. SETTINGS
                 MenuButton(
                     text = "SETTINGS",
                     icon = "⚙️",
@@ -191,7 +166,34 @@ fun MenuScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // 5. Switch Profile
+                // 3. STATS
+                MenuButton(
+                    text = "STATS",
+                    icon = "📊",
+                    surfaceColor = surfaceColor,
+                    borderColor = surfaceBorder,
+                    onClick = { runFeedback { showStatsDialog = true } }
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 4. RULES & STRATEGY
+                MenuButton(
+                    text = "RULES & STRATEGY",
+                    icon = "📖",
+                    surfaceColor = surfaceColor,
+                    borderColor = surfaceBorder,
+                    onClick = {
+                        runFeedback {
+                            onOpenRules()
+                            showInternalRulesDialog = true
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 5. SWITCH PROFILE
                 MenuButton(
                     text = "SWITCH PROFILE",
                     icon = "👥",
@@ -213,13 +215,16 @@ fun MenuScreen(
         )
     }
 
-    // Modal In-Screen Rules Booklet (Dismissed only via top-right ✕)
-    if (uiState.isRulesBookletOpen) {
+    // Modal In-Screen Rules Booklet (Clean header without '✕', closed via bottom button)
+    if (uiState.isRulesBookletOpen || showInternalRulesDialog) {
         RulesBookletDialog(
             surfaceColor = surfaceColor,
             backgroundColor = bgOuterDark,
             mutedTextColor = mutedTextColor,
-            onDismiss = onCloseRules
+            onDismiss = {
+                onCloseRules()
+                showInternalRulesDialog = false
+            }
         )
     }
 
@@ -566,54 +571,52 @@ private fun RulesBookletDialog(
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    // Centered Header
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "RULEBOOK",
                             color = BorderGold,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp
+                            letterSpacing = 2.sp
                         )
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.1f))
-                                .clickable { onDismiss() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = "✕", color = Color.White, fontSize = 14.sp)
-                        }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     SecondaryTabRow(
                         selectedTabIndex = selectedTab,
                         containerColor = backgroundColor,
                         contentColor = BorderGold,
-                        indicator = {
-                            TabRowDefaults.SecondaryIndicator(
-                                modifier = Modifier.tabIndicatorOffset(selectedTab),
-                                color = BorderGold
-                            )
-                        }
+                        divider = {}
                     ) {
                         tabs.forEachIndexed { index, title ->
                             Tab(
                                 selected = selectedTab == index,
                                 onClick = { selectedTab = index },
                                 text = {
-                                    Text(
-                                        text = title,
-                                        color = if (selectedTab == index) BorderGold else mutedTextColor,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp
-                                    )
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = title,
+                                            color = if (selectedTab == index) BorderGold else mutedTextColor,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp
+                                        )
+                                        if (selectedTab == index) {
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Box(
+                                                modifier = Modifier
+                                                    .width(32.dp)
+                                                    .height(2.5.dp)
+                                                    .background(BorderGold, RoundedCornerShape(2.dp))
+                                            )
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -624,7 +627,7 @@ private fun RulesBookletDialog(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(300.dp)
+                            .height(280.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
                         when (selectedTab) {
@@ -635,6 +638,25 @@ private fun RulesBookletDialog(
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BorderGold,
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Text(
+                            text = "CLOSE",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                    }
                 }
             }
         }

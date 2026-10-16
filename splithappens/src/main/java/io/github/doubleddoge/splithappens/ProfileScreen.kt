@@ -8,8 +8,8 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,8 +23,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -45,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -52,594 +55,429 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import java.io.ByteArrayOutputStream
 import java.util.Locale
-import coil.compose.AsyncImage
 
+// Theme fallback colors matching MenuScreen & GameScreen
+private val ProfileBgDarkOuter = Color(0xFF071B12)
+private val ProfileBgDarkCenter = Color(0xFF0F3022)
+private val ProfileBgLightOuter = Color(0xFF144D38)
+private val ProfileBgLightCenter = Color(0xFF1B634A)
+private val ProfileCardSurface = Color(0xFF133827)
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
+    isDarkTheme: Boolean = true,
     onNavigateHome: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
     onNavigateMenu: () -> Unit = {}
 ) {
-
     val uiState by viewModel.uiState.collectAsState()
 
     ProfileScreenContent(
         uiState = uiState,
-
+        isDarkTheme = isDarkTheme,
         onUpdateDisplayName = { newName ->
             viewModel.updateDisplayName(newName)
         },
-
         onUpdateProfilePicture = { bytes ->
             viewModel.updateProfilePicture(bytes)
         },
-
         onNavigateHome = onNavigateHome,
         onNavigateGame = onNavigateGame,
         onNavigateMenu = onNavigateMenu
     )
 }
+
 @Composable
 fun ProfileScreenContent(
     uiState: ProfileUiState,
-
+    isDarkTheme: Boolean = true,
     onUpdateDisplayName: (String) -> Unit = {},
     onUpdateProfilePicture: (ByteArray) -> Unit = {},
-
-    onNavigateHome: () -> Unit ={},
-    onNavigateGame: () -> Unit ={},
-    onNavigateMenu: () -> Unit
-){
+    onNavigateHome: () -> Unit = {},
+    onNavigateGame: () -> Unit = {},
+    onNavigateMenu: () -> Unit = {}
+) {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
-    var isEditingName by remember {
-        mutableStateOf(false)
-    }
+    var isEditingName by remember { mutableStateOf(false) }
+    var tempName by remember { mutableStateOf(uiState.displayName) }
 
-    var tempName by remember {
-        mutableStateOf(uiState.displayName)
-    }
     LaunchedEffect(uiState.displayName) {
-        if (!isEditingName){
+        if (!isEditingName) {
             tempName = uiState.displayName
         }
     }
-    // IMAGE PICKER
 
-    val imagePickerLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.GetContent()
-        ) { uri: Uri? ->
-
-            uri ?: return@rememberLauncherForActivityResult
-
-            try {
-                val bitmap: Bitmap =
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        val source =
-                            ImageDecoder.createSource(
-                                context.contentResolver,
-                                uri
-                            )
-                        ImageDecoder.decodeBitmap(source)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        MediaStore.Images.Media.getBitmap(
-                            context.contentResolver,
-                            uri
-                        )
-                    }
-                 val outputStream =
-                     ByteArrayOutputStream()
-
-                bitmap.compress(
-                    Bitmap.CompressFormat.JPEG,
-                    80,
-                    outputStream
-                )
-                onUpdateProfilePicture(
-                    outputStream.toByteArray()
-                )
-            }catch (e: Exception) {
-                e.printStackTrace()
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+        try {
+            val bitmap: Bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = ImageDecoder.createSource(context.contentResolver, uri)
+                ImageDecoder.decodeBitmap(source)
+            } else {
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
             }
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            onUpdateProfilePicture(outputStream.toByteArray())
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+    }
 
-    // SCREEN
+    val bgCenter = if (isDarkTheme) ProfileBgDarkCenter else ProfileBgLightCenter
+    val bgOuter = if (isDarkTheme) ProfileBgDarkOuter else ProfileBgLightOuter
+
     Scaffold(
         bottomBar = {
             AppBottomBar(
-                currentRoute = "profile",
+                currentRoute = "menu",
+                isDarkTheme = isDarkTheme,
                 onNavigateHome = onNavigateHome,
                 onNavigateGame = onNavigateGame,
-                onNavigateMenu = onNavigateMenu,
+                onNavigateMenu = onNavigateMenu
             )
         },
-        containerColor = DarkBackground
+        containerColor = bgOuter
     ) { innerPadding ->
-
-        Column(
+        Box(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            //Title
-
-            Spacer(
-                modifier = Modifier.height(14.dp)
-            )
-
-            Text(
-                text = "Player Profile",
-                color = BorderGold,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.5.sp
-            )
-
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-            //Loading
-
-            if (uiState.isLoading){
-                Spacer(
-                    modifier = Modifier.height(30.dp)
-                )
-
-                CircularProgressIndicator(
-                    color = BorderGold,
-                    modifier = Modifier.size(32.dp)
-                )
-            }else{
-                // PROFILE PICTURE
-
-                Box(
-                    modifier = Modifier
-                        .size(105.dp)
-                        .clickable{
-                            imagePickerLauncher.launch("image/*")
-                        },
-
-                    contentAlignment = Alignment.BottomEnd
-                ){
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
-                            .background(
-                                Color(0xFF0F4D35)
-                            )
-                            .border(
-                                width = 2.dp,
-                                color = BorderGold,
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ){
-                        if(
-                            uiState.profilePictureBytes != null &&
-                            uiState.profilePictureBytes.isNotEmpty()
-                        ){
-                            AsyncImage(
-                                model = uiState.profilePictureBytes,
-
-                                contentDescription = "Profile Picture",
-
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }else {
-                            Text(
-                                text = uiState.displayName.take(1).uppercase(),
-                                color = Color(0xFFFFD700),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 40.sp
-                            )
-                        }
-                    }
-                    //Camera Button
-
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(BorderGold)
-                            .border(1.dp,Color.Black,CircleShape),
-                        contentAlignment = Alignment.Center
-                    ){
-                        Text( text = "+", fontSize = 13.sp)
-
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // DISPLAY NAME
-
-                if(isEditingName){
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-
-                        verticalAlignment = Alignment.CenterVertically,
-
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        OutlinedTextField(
-                            value = tempName,
-
-                            onValueChange = {
-                                tempName = it
-                            },
-
-                            singleLine = true,
-                            
-                            modifier = Modifier.weight(1f),
-
-                            shape = RoundedCornerShape(10.dp),
-
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = BorderGold,
-                                unfocusedBorderColor = Color.White.copy(
-                                    alpha = 0.35f
-                                ),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-
-                                cursorColor = BorderGold,
-
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Button(
-                            onClick = {
-                                val cleanedName = tempName.trim()
-
-                                if(cleanedName.isNotEmpty()){
-                                    onUpdateDisplayName(
-                                        cleanedName
-                                    )
-                                    isEditingName = false
-                                }
-
-                            },
-                            modifier = Modifier.height(50.dp),
-
-                            shape = RoundedCornerShape(10.dp),
-
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = BorderGold,
-                                contentColor = Color.Black
-                            )
-                        ) {
-                            Text(
-                                text = "SAVE",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                }else{
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable{
-                                tempName = uiState.displayName
-                                isEditingName = true
-                            }
-                            .padding(
-                                horizontal = 10.dp,
-                                vertical = 5.dp
-                            ),
-
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = uiState.displayName,
-
-                            color = Color.White,
-
-                            fontSize = 21.sp,
-
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(modifier = Modifier.width(7.dp))
-
-                        Text(text = "✏\uFE0F", fontSize = 14.sp)
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Chip Balance
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = Color(0xFF132A21),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = BorderGold.copy(alpha = 0.6f)
+                .padding(innerPadding)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(bgCenter, bgOuter),
+                        radius = 1200f
                     )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(
-                            horizontal = 18.dp,
-                            vertical = 8.dp
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "🪙",
-                            fontSize = 18.sp
-                        )
-
-                        Spacer(
-                            modifier = Modifier.width(8.dp)
-                        )
-
-                        Text(
-                            text = "R${uiState.chipsOwned} CHIPS",
-                            color = BorderGold,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-                }
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .statusBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Screen Title
+                Text(
+                    text = "PLAYER PROFILE",
+                    color = BorderGold,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                //Career Overview
-
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(
-                            width = 1.dp,
-                            color = BorderGold.copy(alpha = 0.35f),
-                            shape = RoundedCornerShape(18.dp)
-                        ),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = CardBackground
+                if (uiState.isLoading) {
+                    Spacer(modifier = Modifier.height(40.dp))
+                    CircularProgressIndicator(
+                        color = BorderGold,
+                        modifier = Modifier.size(36.dp)
                     )
-                ) {
-
-                    Column(
+                } else {
+                    // Profile Avatar with Image Picker
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(18.dp)
+                            .size(105.dp)
+                            .clickable { imagePickerLauncher.launch("image/*") },
+                        contentAlignment = Alignment.BottomEnd
                     ) {
-
-                       // HEADER
-
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-
-                            Column(
-                                modifier = Modifier.weight(1f)
-                            ) {
-
-                                Text(
-                                    text = "CAREER OVERVIEW",
-                                    color = BorderGold,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.5.sp
-                                )
-
-                                Spacer(
-                                    modifier = Modifier.height(3.dp)
-                                )
-
-                                Text(
-                                    text = "YOUR BLACKJACK PERFORMANCE",
-                                    color = Color.White.copy(alpha = 0.45f),
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    letterSpacing = 1.2.sp
-                                )
-                            }
-
-                            // Small crown decoration
-                            Text(
-                                text = "♛",
-                                color = BorderGold.copy(alpha = 0.7f),
-                                fontSize = 24.sp
-                            )
-                        }
-
-
-                        Spacer(
-                            modifier = Modifier.height(14.dp)
-                        )
-
-
-                        // DIVIDER
-
-
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                                .background(
-                                    BorderGold.copy(alpha = 0.25f)
-                                )
-                        )
-
-
-                        Spacer(
-                            modifier = Modifier.height(14.dp)
-                        )
-
-
-                      // STAT GRID
-
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                                .background(Color(0xFF0F4D35))
+                                .border(width = 2.5.dp, color = BorderGold, shape = CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
-
-                            PremiumStatCard(
-                                title = "GAMES",
-                                value = uiState.gamesPlayed.toString(),
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            PremiumStatCard(
-                                title = "WINS",
-                                value = uiState.wins.toString(),
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            PremiumStatCard(
-                                title = "LOSSES",
-                                value = uiState.losses.toString(),
-                                modifier = Modifier.weight(1f)
-                            )
+                            if (uiState.profilePictureBytes != null && uiState.profilePictureBytes.isNotEmpty()) {
+                                AsyncImage(
+                                    model = uiState.profilePictureBytes,
+                                    contentDescription = "Profile Picture",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Text(
+                                    text = (uiState.displayName.ifBlank { "P" }).take(1).uppercase(),
+                                    color = Color(0xFFFFD700),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 42.sp
+                                )
+                            }
                         }
 
-
-                        Spacer(
-                            modifier = Modifier.height(10.dp)
-                        )
-
-
-                        // WIN RATE
-
-
-                        Row(
+                        // Edit Badge
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    Color.Black.copy(alpha = 0.18f)
-                                )
-                                .border(
-                                    width = 1.dp,
-                                    color = BorderGold.copy(alpha = 0.15f),
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .padding(
-                                    horizontal = 14.dp,
-                                    vertical = 12.dp
-                                ),
-
-                            verticalAlignment =
-                                Alignment.CenterVertically
+                                .size(30.dp)
+                                .clip(CircleShape)
+                                .background(BorderGold)
+                                .border(1.dp, Color.Black, CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
+                            Text(text = "📷", fontSize = 12.sp)
+                        }
+                    }
 
-                            Column(
-                                modifier = Modifier.weight(1f)
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Editable Display Name
+                    if (isEditingName) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            OutlinedTextField(
+                                value = tempName,
+                                onValueChange = { tempName = it },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = BorderGold,
+                                    unfocusedBorderColor = Color.White.copy(alpha = 0.35f),
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    cursorColor = BorderGold
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Button(
+                                onClick = {
+                                    val cleanedName = tempName.trim()
+                                    if (cleanedName.isNotEmpty()) {
+                                        onUpdateDisplayName(cleanedName)
+                                        isEditingName = false
+                                    }
+                                },
+                                modifier = Modifier.height(52.dp),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = BorderGold,
+                                    contentColor = Color.Black
+                                )
                             ) {
-
                                 Text(
-                                    text = "WIN RATE",
-                                    color = Color.White.copy(alpha = 0.5f),
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.2.sp
-                                )
-
-                                Spacer(
-                                    modifier = Modifier.height(3.dp)
-                                )
-
-                                Text(
-                                    text = String.format(
-                                        Locale.US,
-                                        "%.1f%%",
-                                        uiState.winRate
-                                    ),
-                                    color = BorderGold,
-                                    fontSize = 22.sp,
+                                    text = "SAVE",
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-
-
-                            // Performance status
-
-                            val performanceText =
-                                when {
-                                    uiState.gamesPlayed == 0 ->
-                                        "NO GAMES"
-
-                                    uiState.winRate >= 60 ->
-                                        "EXCELLENT"
-
-                                    uiState.winRate >= 50 ->
-                                        "GOOD FORM"
-
-                                    else ->
-                                        "KEEP PLAYING"
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    tempName = uiState.displayName
+                                    isEditingName = true
                                 }
-
-
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
                             Text(
-                                text = performanceText,
+                                text = uiState.displayName.ifBlank { "Player 1" },
+                                color = Color.White,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "✏\uFE0F", fontSize = 14.sp)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Chip Balance Badge
+                    Surface(
+                        shape = RoundedCornerShape(50.dp),
+                        color = Color(0xFF132A21),
+                        border = BorderStroke(width = 1.dp, color = BorderGold.copy(alpha = 0.6f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "🪙", fontSize = 16.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "R${uiState.chipsOwned} CHIPS",
                                 color = BorderGold,
-                                fontSize = 9.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                                letterSpacing = 0.8.sp
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Career Overview Card
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = BorderGold.copy(alpha = 0.35f),
+                                shape = RoundedCornerShape(18.dp)
+                            ),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = ProfileCardSurface)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(18.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "CAREER OVERVIEW",
+                                        color = BorderGold,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.5.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = "YOUR BLACKJACK PERFORMANCE",
+                                        color = Color.White.copy(alpha = 0.45f),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        letterSpacing = 1.2.sp
+                                    )
+                                }
+                                Text(
+                                    text = "♛",
+                                    color = BorderGold.copy(alpha = 0.7f),
+                                    fontSize = 24.sp
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                                    .background(BorderGold.copy(alpha = 0.25f))
+                            )
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                PremiumStatCard(
+                                    title = "GAMES",
+                                    value = uiState.gamesPlayed.toString(),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                PremiumStatCard(
+                                    title = "WINS",
+                                    value = uiState.wins.toString(),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                PremiumStatCard(
+                                    title = "LOSSES",
+                                    value = uiState.losses.toString(),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.Black.copy(alpha = 0.18f))
+                                    .border(
+                                        width = 1.dp,
+                                        color = BorderGold.copy(alpha = 0.15f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "WIN RATE",
+                                        color = Color.White.copy(alpha = 0.5f),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.2.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = String.format(Locale.US, "%.1f%%", uiState.winRate),
+                                        color = BorderGold,
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                val performanceText = when {
+                                    uiState.gamesPlayed == 0 -> "NO GAMES"
+                                    uiState.winRate >= 60 -> "EXCELLENT"
+                                    uiState.winRate >= 50 -> "GOOD FORM"
+                                    else -> "KEEP PLAYING"
+                                }
+
+                                Text(
+                                    text = performanceText,
+                                    color = BorderGold,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                        }
+                    }
                 }
-
-
             }
         }
-
     }
 }
+
 @Composable
 private fun PremiumStatCard(
     title: String,
     value: String,
     modifier: Modifier = Modifier
 ) {
-
     Column(
         modifier = modifier
-            .clip(
-                RoundedCornerShape(12.dp)
-            )
-            .background(
-                Color.Black.copy(alpha = 0.18f)
-            )
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.Black.copy(alpha = 0.18f))
             .border(
                 width = 1.dp,
                 color = BorderGold.copy(alpha = 0.15f),
                 shape = RoundedCornerShape(12.dp)
             )
-            .padding(
-                vertical = 12.dp,
-                horizontal = 6.dp
-            ),
-
-        horizontalAlignment =
-            Alignment.CenterHorizontally
+            .padding(vertical = 12.dp, horizontal = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text(
             text = title,
             color = Color.White.copy(alpha = 0.5f),
@@ -647,11 +485,7 @@ private fun PremiumStatCard(
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp
         )
-
-        Spacer(
-            modifier = Modifier.height(5.dp)
-        )
-
+        Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = value,
             color = BorderGold,
@@ -661,45 +495,14 @@ private fun PremiumStatCard(
     }
 }
 
-@Composable
-private fun ProfileStatRow(
-    title: String,
-    value: String
-){
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-
-        verticalAlignment = Alignment.CenterVertically,
-
-        horizontalArrangement = Arrangement.SpaceBetween
-    ){
-        Text(
-            text = title,
-
-            color = Color.White.copy(alpha = 0.72f),
-            fontSize = 13.sp
-        )
-        Text(
-            text = value,
-            color = Color.White,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-            )
-    }
-}
-
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ProfileScreenPreview() {
-    // Dummy ProfileViewModel instance or Mock State
     val mockUiState = ProfileUiState(
-        userId = "user_001",
-        displayName = "Andriaan",
+        userId = "default_player",
+        displayName = "Player 1",
         chipsOwned = 2500L,
-        profilePictureBytes = null, // Set to null to preview initial letter fallback
+        profilePictureBytes = null,
         gamesPlayed = 24,
         wins = 15,
         losses = 9,
@@ -707,9 +510,10 @@ fun ProfileScreenPreview() {
         isLoading = false
     )
 
-    SplitHappensTheme() {
+    SplitHappensTheme {
         ProfileScreenContent(
             uiState = mockUiState,
+            isDarkTheme = true,
             onUpdateDisplayName = {},
             onUpdateProfilePicture = {},
             onNavigateHome = {},

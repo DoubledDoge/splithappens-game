@@ -1,7 +1,6 @@
 package io.github.doubleddoge.splithappens.navigation
 
 import android.app.Application
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,6 +18,9 @@ import io.github.doubleddoge.splithappens.HomeViewModelFactory
 import io.github.doubleddoge.splithappens.MenuScreen
 import io.github.doubleddoge.splithappens.MenuViewModel
 import io.github.doubleddoge.splithappens.MenuViewModelFactory
+import io.github.doubleddoge.splithappens.ProfileScreen
+import io.github.doubleddoge.splithappens.ProfileViewModel
+import io.github.doubleddoge.splithappens.ProfileViewModelFactory
 import io.github.doubleddoge.splithappens.ScreenSettings
 import io.github.doubleddoge.splithappens.SettingViewModel
 import io.github.doubleddoge.splithappens.SettingViewModelFactory
@@ -30,6 +32,7 @@ fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
     val context = LocalContext.current
+    val db = remember(context) { buildSplitHappensDatabase(context) }
 
     // Hoisted Settings ViewModel so settings state propagates across screens
     val settingsViewModel: SettingViewModel = viewModel(
@@ -54,7 +57,6 @@ fun AppNavigation(
 
         // 2. Home Screen
         composable(Screen.Home.route) {
-            val db = remember(context) { buildSplitHappensDatabase(context) }
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
                     userDao = db.userDao(),
@@ -84,9 +86,11 @@ fun AppNavigation(
         }
 
         // 3. Settings Screen
+        // 3. Settings Screen
         composable(Screen.Settings.route) {
             ScreenSettings(
                 uiState = settingsUiState,
+                isDarkTheme = settingsUiState.darkTheme,
                 onToggleDarkTheme = { settingsViewModel.toggleDarkTheme(it) },
                 onToggleShowCardTotal = { settingsViewModel.toggleShowCardTotal(it) },
                 onToggleDealerRuleBanner = { settingsViewModel.toggleDealerRuleBanner(it) },
@@ -94,15 +98,6 @@ fun AppNavigation(
                 onToggleHapticVibration = { settingsViewModel.toggleHapticVibration(it) },
                 onToggleFastDeal = { settingsViewModel.toggleFastDeal(it) },
                 onToggleAutoStandOn21 = { settingsViewModel.toggleAutoStandOn21(it) },
-                onNavigateBack = {
-                    val popped = navController.popBackStack(Screen.Menu.route, false)
-                    if (!popped) {
-                        navController.navigate(Screen.Menu.route) {
-                            popUpTo(Screen.Settings.route) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                },
                 onNavigateHome = {
                     val popped = navController.popBackStack(Screen.Home.route, false)
                     if (!popped) {
@@ -136,7 +131,6 @@ fun AppNavigation(
             )
             val menuUiState by menuViewModel.uiState.collectAsState()
 
-            val db = remember(context) { buildSplitHappensDatabase(context) }
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
                     userDao = db.userDao(),
@@ -179,7 +173,6 @@ fun AppNavigation(
                         launchSingleTop = true
                     }
                 },
-
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route) {
                         launchSingleTop = true
@@ -195,7 +188,6 @@ fun AppNavigation(
 
         // 5. Game Screen
         composable(Screen.Game.route) {
-            val db = remember(context) { buildSplitHappensDatabase(context) }
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
                     userDao = db.userDao(),
@@ -228,9 +220,50 @@ fun AppNavigation(
             )
         }
 
-        // 6. Profile Screen Stub
+        // 6. Profile Screen
         composable(Screen.Profile.route) {
-            Text("Profile Screen Placeholder")
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(
+                    userDao = db.userDao(),
+                    gameHistoryDao = db.gameHistoryDao()
+                )
+            )
+            val homeUiState by homeViewModel.uiState.collectAsState()
+
+            val profileViewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(
+                    userDao = db.userDao(),
+                    gameHistoryDao = db.gameHistoryDao(),
+                    userId = homeUiState.userId.ifBlank { "default_player" }
+                )
+            )
+
+            ProfileScreen(
+                viewModel = profileViewModel,
+                isDarkTheme = settingsUiState.darkTheme,
+                onNavigateHome = {
+                    val popped = navController.popBackStack(Screen.Home.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onNavigateGame = {
+                    navController.navigate(Screen.Game.route) {
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateMenu = {
+                    val popped = navController.popBackStack(Screen.Menu.route, false)
+                    if (!popped) {
+                        navController.navigate(Screen.Menu.route) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
         }
     }
 }
