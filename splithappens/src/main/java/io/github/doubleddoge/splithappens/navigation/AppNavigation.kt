@@ -1,6 +1,8 @@
 package io.github.doubleddoge.splithappens.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -11,14 +13,12 @@ import androidx.navigation.compose.rememberNavController
 import io.github.doubleddoge.splithappens.HomeScreen
 import io.github.doubleddoge.splithappens.HomeViewModel
 import io.github.doubleddoge.splithappens.HomeViewModelFactory
+import io.github.doubleddoge.splithappens.ProfileScreen
+import io.github.doubleddoge.splithappens.ProfileViewModel
+import io.github.doubleddoge.splithappens.ProfileViewModelFactory
 import io.github.doubleddoge.splithappens.SplashScreen
 import io.github.doubleddoge.splithappens.SplitHappensApp
 import kotlinx.coroutines.flow.first
-import androidx.compose.runtime.getValue
-import io.github.doubleddoge.splithappens.ProfileViewModelFactory
-import io.github.doubleddoge.splithappens.ProfileViewModel
-import androidx.compose.runtime.produceState
-import io.github.doubleddoge.splithappens.ProfileScreen
 
 @Composable
 fun AppNavigation(
@@ -36,10 +36,9 @@ fun AppNavigation(
             )
         }
 
-
         composable(Screen.Home.route) {
             val context = LocalContext.current
-           val db = remember(context){ (context.applicationContext as SplitHappensApp).database }
+            val db = remember(context.applicationContext) { (context.applicationContext as SplitHappensApp).database }
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
                     userDao = db.userDao(),
@@ -52,7 +51,14 @@ fun AppNavigation(
                     navController.navigate(Screen.Game.route)
                 },
                 onNavigateSettings = {
-                    navController.navigate(Screen.Settings.route){
+                    navController.navigate(Screen.Settings.route) {
+                        popUpTo(Screen.Home.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onNavigateMenu = {
+                    navController.navigate(Screen.Menu.route) {
                         popUpTo(Screen.Home.route) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
@@ -72,9 +78,10 @@ fun AppNavigation(
                 }
             )
         }
+
         composable(Screen.Profile.route) {
             val context = LocalContext.current
-            val db = remember(context) { (context.applicationContext as SplitHappensApp).database }
+            val db = remember(context.applicationContext) { (context.applicationContext as SplitHappensApp).database }
 
             val userId by produceState("") {
                 value = db.userDao().observeAll().first().firstOrNull()?.userId ?: ""
@@ -88,11 +95,9 @@ fun AppNavigation(
                     viewModel = vm,
                     onNavigateHome = { navController.navigate(Screen.Home.route) },
                     onNavigateGame = { navController.navigate(Screen.Game.route) },
-                    onNavigateSettings = { navController.navigate(Screen.Settings.route) }
+                    onNavigateMenu = { navController.navigate(Screen.Menu.route) }
                 )
             }
         }
-
-
     }
 }
