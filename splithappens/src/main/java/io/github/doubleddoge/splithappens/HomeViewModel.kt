@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.dao.GameHistoryDao
 import io.github.doubleddoge.splithappens.data.dao.UserDao
-import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,13 +44,7 @@ class HomeViewModel(
                     val user = users.firstOrNull()
 
                     if (user == null) {
-                        val newUser =
-                            UserEntity(
-                                displayName = "Player 1",
-                                chipsOwned = 2500,
-                            )
-                        userDao.insert(newUser)
-                        flowOf(HomeUiState(isLoading = true))
+                        flowOf(HomeUiState(isLoading = true)) // seeding in progress; Room re-emits once the row lands
                     } else {
                         combine(
                             gameHistoryDao.observeForUser(user.userId),
