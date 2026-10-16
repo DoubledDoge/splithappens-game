@@ -42,7 +42,7 @@ val CasinoCardBackground = Color(0xFFF9F9F9)
 @Composable
 fun SplashScreen(
     modifier: Modifier = Modifier,
-   awaitReady: suspend () -> Unit = {},
+    awaitReady: suspend () -> Unit = {},
     onTimeout: () -> Unit = {}
 ) {
     var progressTarget by remember { mutableFloatStateOf(0f) }

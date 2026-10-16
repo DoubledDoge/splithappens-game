@@ -97,7 +97,7 @@ fun HomeScreen(
     onNavigateSettings: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
-  onNavigateProfile: () -> Unit = {}
+    onNavigateProfile: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -106,10 +106,9 @@ fun HomeScreen(
         modifier = modifier,
         isDarkTheme = isDarkTheme,
         onPlayClick = onPlayClick,
-         onNavigateSettings = onNavigateSettings,
+        onNavigateSettings = onNavigateSettings,
         onNavigateMenu = onNavigateMenu,
-        onNavigateGame = onNavigateGame,
-        onNavigateProfile = onNavigateProfile
+        onNavigateGame = onNavigateGame
     )
 }
 
@@ -122,7 +121,7 @@ fun HomeScreenContent(
     onNavigateSettings: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
-   onNavigateProfile: () -> Unit = {}
+    onNavigateProfile: () -> Unit = {}
 ) {
     var showStatsDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
