@@ -11,7 +11,7 @@ fun Card.toTableCard(uid: Long, isFaceUp: Boolean = true): TableCard{
     )
 }
 
-fun List<Card>.toTableCards(hideHoleCard: TableCard:Boolean = false): List<TableCard>{
+fun List<Card>.toTableCards(hideHoleCard: Boolean = false): List<TableCard> {
     return mapIndexed { index, card ->
         val faceUp = !(hideHoleCard && index == 1)
         card.toTableCard(uid = index.toLong() + card.cardId * 100L, isFaceUp = faceUp)
