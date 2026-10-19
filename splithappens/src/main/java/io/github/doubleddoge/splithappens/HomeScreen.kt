@@ -165,7 +165,7 @@ fun HomeScreenContent(
                 .padding(horizontal = 12.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-            //Ad placeholder
+
             BannerAd()
             Spacer(modifier = Modifier.height(12.dp))
 
