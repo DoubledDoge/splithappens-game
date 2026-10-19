@@ -34,31 +34,39 @@ import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
+// Figma Color Palette
 val CasinoBackgroundDark = Color(0xFF071B12)
 val CasinoGlowCenter = Color(0xFF0F3022)
 val CasinoGoldAccent = Color(0xFFE5B036)
 val CasinoCardBackground = Color(0xFFF9F9F9)
 
+
+/**
+ * Screen 01 - Splash Screen matching Figma spec.
+ */
 @Composable
 fun SplashScreen(
-    modifier: Modifier = Modifier,
-    onTimeout: () -> Unit = {}
+    onTimeout: () -> Unit = {},
+    awaitReady: suspend () -> Unit = {}
 ) {
+    // Track loading progress (0.0f to 1.0f)
     var progressTarget by remember { mutableFloatStateOf(0f) }
     val animatedProgress by animateFloatAsState(
         targetValue = progressTarget,
-        animationSpec = tween(durationMillis = 2000),
+        animationSpec = tween(durationMillis = 2500),
         label = "LoadingProgress"
     )
 
     LaunchedEffect(Unit) {
         progressTarget = 1.0f
-        delay(2200.milliseconds)
+        delay(2800.milliseconds)
+        awaitReady() // returns instantly if seeding already finished
         onTimeout()
     }
 
+    // Outer background with subtle gradient glow in center
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.radialGradient(
@@ -68,11 +76,13 @@ fun SplashScreen(
             ),
         contentAlignment = Alignment.Center
     ) {
+        // Main content column centered vertically
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(24.dp)
         ) {
+            // --- 1. Ace Card Graphic ---
             Surface(
                 modifier = Modifier.size(width = 110.dp, height = 150.dp),
                 shape = RoundedCornerShape(12.dp),
@@ -84,6 +94,7 @@ fun SplashScreen(
                         .fillMaxSize()
                         .padding(8.dp)
                 ) {
+                    // Top-left card rank
                     Text(
                         text = "A",
                         color = Color.Black,
@@ -91,6 +102,7 @@ fun SplashScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.TopStart)
                     )
+                    // Centered Spade symbol
                     Text(
                         text = "♠",
                         color = Color.Black,
@@ -102,6 +114,7 @@ fun SplashScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // --- 2. Title & Subtitle ---
             Text(
                 text = "BLACKJACK",
                 color = CasinoGoldAccent,
@@ -120,8 +133,9 @@ fun SplashScreen(
                 letterSpacing = 2.sp
             )
 
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(100.dp))
 
+            // --- 3. Loading Bar & Text ---
             Text(
                 text = "Loading",
                 color = Color.White,
@@ -142,6 +156,7 @@ fun SplashScreen(
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
