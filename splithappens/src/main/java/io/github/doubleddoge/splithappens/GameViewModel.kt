@@ -1,12 +1,15 @@
 package io.github.doubleddoge.splithappens
 
+import android.app.ProgressDialog.show
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.dao.UserDao
+import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.HandResult
 import io.github.doubleddoge.splithappens.game.Action
 import io.github.doubleddoge.splithappens.game.Card
+import io.github.doubleddoge.splithappens.game.Phase
 import io.github.doubleddoge.splithappens.game.PlayerHand
 import io.github.doubleddoge.splithappens.game.Round
 import kotlinx.coroutines.Job
@@ -86,15 +89,15 @@ class GameViewModel(
 
     fun addBet(amount: Long) {
         val s = _uiState.value
-        if (s.stage != GameStage.BETTING) return
-        if (s.chipsOwned < amount) return
+        if (s.stage != GameStage.BETTING || s.chipsOwned < amount) return
+
 
         val newBet = s.currentBet + amount
         _uiState.update {
             it.copy(
                 chipsOwned = it.chipsOwned - amount,
                 currentBet = newBet,
-                dealerStatusText = "Bet: R$newBet"
+                statusText ="Bet: R$newBet"
             )
         }
     }
@@ -106,7 +109,7 @@ class GameViewModel(
             it.copy(
                 chipsOwned = it.chipsOwned + it.currentBet,
                 currentBet = 0L,
-                dealerStatusText = "Place your bets"
+                statusText =  "Place your bets"
             )
         }
     }
@@ -117,58 +120,52 @@ class GameViewModel(
         val s = _uiState.value
         if (s.stage != GameStage.BETTING || s.currentBet <= 0L) return
 
+        if (shoe.needsReshuffle) show.reshuffle()
         persistUserChips(s.chipsOwned)
+        val round = Round(
+            shoe = shoe,
+            mode = GameMode.STANDARD,
+            bankroll = s.chipsOwned + s.currentBet,
+            minBet = 5L
+        )
         _uiState.update {
             it.copy(
-                stage = GameStage.DEALING,
-                playerHand = emptyList(),
-                dealerHand = emptyList(),
-                playerHandValue = 0,
-                dealerHandValue = 0,
-                isDoubled = false,
-                dealerStatusText = "Dealing..."
+                stage = if (round.phase == Phase.INSURANCE) GameStage.INSURANCE else GameStage.PLAYER_TURN,
+                playerHand = round.hands.toList(),
+                activeHandIndex = round.activeIndex,
+                dealerCards = round.dealerCards.toList(),
+                hideholeCard = round.holeHidden,
+                legalActions = round.legalActions(),
+                statusText = if (round.phase == Phase.INSURANCE) "Insurance Offered" else "Your turn"
             )
         }
+        if(round.phase == Phase.FINISHED) finishRound()
+    }
 
-        roundJob = viewModelScope.launch {
-            shoe.shuffleIfNeeded()
-            dealCard(toPlayer = true); delay(DEAL_DELAY)
-            dealCard(toPlayer = false); delay(DEAL_DELAY)
-            dealCard(toPlayer = true); delay(DEAL_DELAY)
-            dealCard(toPlayer = false, faceUp = false); delay(DEAL_DELAY)
+    fun performAction(action: Action){
+        val round = currentRound?: return
+        if (round.phase != Phase.PLAYER_TURN) return
 
-            val state = _uiState.value
-            val playerBlackjack = state.playerHandValue == 21
-            val dealerBlackjack = state.dealerHand.first().value >= 10 &&
-                    calculateHandValue(state.dealerHand, includeHidden = true).first == 21
-
-            when {
-                dealerBlackjack -> {
-                    revealHoleCard()
-                    delay(700.milliseconds)
-                    if (playerBlackjack) {
-                        endRound(RoundResult.PUSH, DealerEmotion.NEUTRAL, "Both have blackjack")
-                    } else {
-                        endRound(RoundResult.DEALER_BLACKJACK, DealerEmotion.SMUG, "Dealer has blackjack")
-                    }
-                }
-                playerBlackjack -> {
-                    revealHoleCard()
-                    delay(700.milliseconds)
-                    endRound(RoundResult.PLAYER_BLACKJACK, DealerEmotion.BUSTED, "Blackjack pays 3:2!")
-                }
-                else -> _uiState.update {
-                    it.copy(
-                        stage = GameStage.PLAYER_TURN,
-                        dealerStatusText = "Hit or Stand?",
-                        canDoubleDown = it.chipsOwned >= it.currentBet
-                    )
-                }
+        round.act(action)
+        _uiState.update {
+            it.copy(
+                playerHands = round.hands.toList(),
+                activeHandIndex = round.activeIndex,
+                dealerCards = round.dealerCards.toList(),
+                hideHoleCard = round.holeHidden,
+                legalActions = round.legalActions()
+            )
+        }
+        if(round.phase == Phase.FINISHED){
+            roundJob = viewModelScope.launch {
+                _uiState.update { it.copy(stage = GameStage.DEALER_TURN, statusText = "Dealer drawing..."   ) }
+                delay(600.milliseconds)
+                finishRound()
             }
         }
     }
 
-    private fun dealCard(toPlayer: Boolean, faceUp: Boolean = true) {
+    private fun reso(toPlayer: Boolean, faceUp: Boolean = true) {
         val card = shoe.draw(faceUp)
         _uiState.update { s ->
             if (toPlayer) {
