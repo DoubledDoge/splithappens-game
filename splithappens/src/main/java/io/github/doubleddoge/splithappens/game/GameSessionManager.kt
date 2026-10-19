@@ -12,7 +12,7 @@ class GameSessionManager(
     private val roundDao: RoundDao,
     private val userId: String,
     private val stakes: Long,
-    private val mode: GameMode = GameMode.WILDCARD
+    private val mode: GameMode = GameMode.WILDCARD,
 ) {
     var sessionId: Long = 0
         private set
