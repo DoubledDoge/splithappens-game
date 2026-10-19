@@ -25,16 +25,7 @@ enum class DealerEmotion { NEUTRAL, SMUG, BUSTED }
 
 enum class GameStage { BETTING, INSURANCE, PLAYER_TURN, DEALER_TURN, ROUND_OVER }
 
-enum class RoundResult(val bannerMessage: String, val handResult: HandResult?) {
-    NONE("", null),
-    PLAYER_BLACKJACK("BLACKJACK! PAYS 3:2", HandResult.BLACKJACK),
-    PLAYER_WIN("YOU WIN!", HandResult.WIN),
-    DEALER_BUST("DEALER BUSTS! YOU WIN", HandResult.WIN),
-    PUSH("PUSH - BET RETURNED", HandResult.PUSH),
-    DEALER_WIN("DEALER WINS", HandResult.LOSS),
-    DEALER_BLACKJACK("DEALER HAS BLACKJACK", HandResult.LOSS),
-    PLAYER_BUST("BUSTED!", HandResult.LOSS)
-}
+
 
 data class GameUiState(
     val userId: String = "default_player",
@@ -58,7 +49,7 @@ class GameViewModel(
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
-    private val shoe = Shoe(decks = 6)
+    private val shoe = io.github.doubleddoge.splithappens.game.Shoe(deckCount = 6)
     private var roundJob: Job? = null
 
     private var currentRound: Round? = null
@@ -124,7 +115,7 @@ class GameViewModel(
 
         val round = Round(
             shoe = shoe,
-            mode = GameMode.STANDARD,
+            mode = GameMode.TRADITIONAL,
             bankroll = s.chipsOwned + s.currentBet,
             minBet = 5L
         )
