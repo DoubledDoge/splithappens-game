@@ -20,7 +20,9 @@ class SplitHappensApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        seedJob = appScope.launch { seedDefaults() }
+      seedJob = appScope.launch {
+    runCatching { seedDefaults() }.onFailure { it.printStackTrace() }
+}
     }
 
     private suspend fun seedDefaults() {

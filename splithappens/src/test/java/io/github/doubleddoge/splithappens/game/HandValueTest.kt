@@ -137,7 +137,6 @@ class HandValueTest {
 
     @Test
     fun testSixCardUnbustedHand() {
-        // 2 + 2 + 2 + 2 + 3 + 3 = 14 (6 cards without busting)
         val hand = HandValue.of(twoClubs, twoSpades, twoHearts, twoDiamonds, threeClubs, threeSpades)
         assertEquals(14, hand.total)
         assertEquals(6, hand.cardCount)
@@ -149,7 +148,6 @@ class HandValueTest {
 
     @Test
     fun testSevenCardUnbustedHand() {
-        // 2 + 2 + 2 + 2 + 3 + 3 + Ace = 15 (7 cards without busting)
         val hand = HandValue.of(twoClubs, twoSpades, twoHearts, twoDiamonds, threeClubs, threeSpades, aceClubs)
         assertEquals(15, hand.total)
         assertEquals(7, hand.cardCount)

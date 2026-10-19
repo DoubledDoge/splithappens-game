@@ -2,9 +2,9 @@ package io.github.doubleddoge.splithappens.game
 
 import io.github.doubleddoge.splithappens.data.enum.Rank
 
-//
-//  The classification of a Blackjack hand based on its total and composition.
-//
+/**
+ * The classification of a Blackjack hand based on its total and composition.
+ */
 enum class HandType {
     BLACKJACK,
     SOFT,
@@ -12,13 +12,13 @@ enum class HandType {
     BUST,
 }
 
-//
-//  Calculates and holds the estimated total value, card count, and status of a Blackjack hand,
-//  including special hand combinations (e.g., 6/7-card Charlie, Triple 7s, Queen+Ace, Jack+Ace).
-//
-//  @property cards The list of cards in the hand.
-//  @property isSplit True if this hand was created as the result of a split action.
-//
+/**
+ * Calculates and holds the estimated total value, card count, and status of a Blackjack hand,
+ * including special hand combinations (e.g., 6/7-card Charlie, Triple 7s, Queen+Ace, Jack+Ace).
+ *
+ * @property cards The list of cards in the hand.
+ * @property isSplit True if this hand was created as the result of a split action.
+ */
 data class HandValue(
     val cards: List<Card> = emptyList(),
     val isSplit: Boolean = false,
@@ -67,10 +67,10 @@ data class HandValue(
         isSoft = softAceCount > 0
     }
 
-//
-//      Human-readable description of the hand's status and total.
-//      Examples: "Blackjack", "Soft 17", "Hard 15", "Bust (24)", "6-Card Hand"
-//
+    /**
+     * Human-readable description of the hand's status and total.
+     * Examples: "Blackjack", "Soft 17", "Hard 15", "Bust (24)", "6-Card Hand"
+     */
     val displayString: String
         get() = when {
             isSevenCard -> "7-Card Hand ($total)"
@@ -88,8 +88,8 @@ data class HandValue(
     }
 }
 
-//
-//  Extension function to evaluate a list of cards as a Blackjack hand.
-//
+/**
+ * Extension function to evaluate a list of cards as a Blackjack hand.
+ */
 fun List<Card>.evaluateHand(isSplit: Boolean = false): HandValue =
     HandValue(this, isSplit = isSplit)
