@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(kotlin("test"))
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.android.gms:play-services-ads:23.0.0")
     implementation(libs.androidx.lifecycle.runtime.compose)
 }
