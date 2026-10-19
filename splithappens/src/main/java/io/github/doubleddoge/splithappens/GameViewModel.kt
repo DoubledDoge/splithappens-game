@@ -5,6 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.dao.UserDao
 import io.github.doubleddoge.splithappens.data.enum.HandResult
+import io.github.doubleddoge.splithappens.game.Action
+import io.github.doubleddoge.splithappens.game.Card
+import io.github.doubleddoge.splithappens.game.PlayerHand
+import io.github.doubleddoge.splithappens.game.Round
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +20,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 enum class DealerEmotion { NEUTRAL, SMUG, BUSTED }
 
-enum class GameStage { BETTING, DEALING, PLAYER_TURN, DEALER_TURN, ROUND_OVER }
+enum class GameStage { BETTING, INSURANCE, PLAYER_TURN, DEALER_TURN, ROUND_OVER }
 
 enum class RoundResult(val bannerMessage: String, val handResult: HandResult?) {
     NONE("", null),
@@ -34,18 +38,14 @@ data class GameUiState(
     val displayName: String = "Player 1",
     val chipsOwned: Long = 2500L,
     val currentBet: Long = 0L,
-    val isDoubled: Boolean = false,
-    val playerHand: List<TableCard> = emptyList(),
-    val dealerHand: List<TableCard> = emptyList(),
-    val playerHandValue: Int = 0,
-    val isPlayerSoft: Boolean = false,
-    val dealerHandValue: Int = 0,
     val stage: GameStage = GameStage.BETTING,
-    val result: RoundResult = RoundResult.NONE,
-    val dealerEmotion: DealerEmotion = DealerEmotion.NEUTRAL,
-    val dealerStatusText: String = "Place your bets",
-    val canDoubleDown: Boolean = false,
-    val canSplit: Boolean = false
+    val playerHands: List<PlayerHand> = emptyList(),
+    val activeHandIndex: Int = 0,
+    val dealerCards: List<Card> = emptyList(),
+    val hideHoleCard: Boolean = true,
+    val legalActions: Set<Action> = emptySet(),
+    val results: List<HandResult> = emptyList(),
+    val statusText: String = "Place your bets"
 )
 
 class GameViewModel(
@@ -55,8 +55,10 @@ class GameViewModel(
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
-    private val shoe = Shoe(decks = 6)
+    private val shoe = Shoe(deckCount = 6)
     private var roundJob: Job? = null
+
+    private var currentRound: Round? = null
 
     init {
         observeUserData()
