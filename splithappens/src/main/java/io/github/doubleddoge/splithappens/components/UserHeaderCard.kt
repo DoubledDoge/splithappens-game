@@ -2,6 +2,7 @@ package io.github.doubleddoge.splithappens.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,7 +30,8 @@ import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 fun UserHeaderCard(
     displayName: String,
     chipsOwned: Long,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onProfileClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -41,6 +43,7 @@ fun UserHeaderCard(
                 color = Color(0xFF072C1E), // Dark green background
                 shape = RoundedCornerShape(16.dp)
             )
+            .clickable { onProfileClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
