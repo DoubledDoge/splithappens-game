@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.github.doubleddoge.splithappens.GameScreen
 import io.github.doubleddoge.splithappens.HomeScreen
 import io.github.doubleddoge.splithappens.HomeViewModel
 import io.github.doubleddoge.splithappens.HomeViewModelFactory
@@ -96,6 +97,20 @@ fun AppNavigation(
         composable(Screen.Settings.route) {
             ScreenSettings (
                 onNavigateHome = { navController.navigate(Screen.Home.route) }
+            )
+        }
+        composable(Screen.Game.route) {
+            GameScreen(
+                onNavigateHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateMenu = {
+                    navController.navigate(Screen.Menu.route) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 

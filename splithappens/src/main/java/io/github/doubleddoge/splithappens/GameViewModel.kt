@@ -187,22 +187,33 @@ class GameViewModel(
 
     private fun finishRound() {
         val round = currentRound ?: return
-        val result = round.results()
+        val results = round.results()
 
         var totalPayout = 0L
         round.hands.forEachIndexed { i, hand ->
-            totalPayout += (hand.bet * result[i].multiplier).toLong()
+            totalPayout += (hand.bet * results[i].multiplier).toLong()
         }
         val updateChips = _uiState.value.chipsOwned + totalPayout
+
+        // Map the result of the primary hand to a banner message
+        val primaryResult = results.firstOrNull()
+        val outcomeMessage = when (primaryResult) {
+            HandResult.BLACKJACK, HandResult.NATURAL_BLACKJACK, HandResult.QUEEN_JACK -> "BLACKJACK! YOU WIN!"
+            HandResult.WIN, HandResult.TRIPLE_SEVEN, HandResult.SIX_CARD, HandResult.SEVEN_CARD -> "YOU WIN!"
+            HandResult.PUSH -> "PUSH - BET RETURNED"
+            HandResult.LOSS -> if (round.hands.firstOrNull()?.value?.isBust == true) "BUSTED!" else "DEALER WINS"
+            HandResult.SURRENDER -> "SURRENDERED"
+            null -> "ROUND OVER"
+        }
+
         _uiState.update {
             it.copy(
                 chipsOwned = updateChips,
                 stage = GameStage.ROUND_OVER,
                 hideHoleCard = false,
-                results = result,
+                results = results,
                 legalActions = emptySet(),
-                statusText = "Round Finished7"
-
+                statusText = outcomeMessage
             )
         }
         persistUserChips(updateChips)

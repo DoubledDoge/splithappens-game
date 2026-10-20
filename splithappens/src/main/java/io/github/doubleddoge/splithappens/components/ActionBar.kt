@@ -88,14 +88,14 @@ fun GameActionBar(
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
-                onClick = onHit
+                onClick = {onAction(Action.HIT)}
             )
             GameButton(
                 label = "STAND",
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
-                onClick = onStand
+                onClick = {onAction(Action.STAND)}
             )
             if(Action.DOUBLE in legalActions){
                 GameButton(label = "DOUBLE", topColor = Gold, bottomColor = GoldDark, modifier = Modifier.weight(1f), onClick = { onAction(Action.DOUBLE) })
