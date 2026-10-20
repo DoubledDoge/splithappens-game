@@ -13,9 +13,11 @@ import androidx.navigation.compose.rememberNavController
 import io.github.doubleddoge.splithappens.HomeScreen
 import io.github.doubleddoge.splithappens.HomeViewModel
 import io.github.doubleddoge.splithappens.HomeViewModelFactory
+import io.github.doubleddoge.splithappens.MenuScreen
 import io.github.doubleddoge.splithappens.ProfileScreen
 import io.github.doubleddoge.splithappens.ProfileViewModel
 import io.github.doubleddoge.splithappens.ProfileViewModelFactory
+import io.github.doubleddoge.splithappens.ScreenSettings
 import io.github.doubleddoge.splithappens.SplashScreen
 import io.github.doubleddoge.splithappens.SplitHappensApp
 import kotlinx.coroutines.flow.first
@@ -76,6 +78,24 @@ fun AppNavigation(
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+
+
+        // --- MENU SCREEN DESTINATION ---
+        composable(Screen.Menu.route) {
+            MenuScreen(
+                onNavigateHome = { navController.navigate(Screen.Home.route) },
+                onNavigateGame = { navController.navigate(Screen.Game.route) },
+                onNavigateToProfile = {navController.navigate(Screen.Profile.route)},
+                onNavigateToSettings = {navController.navigate(Screen.Settings.route)}
+            )
+        }
+
+        // --- SETTINGS SCREEN DESTINATION ---
+        composable(Screen.Settings.route) {
+            ScreenSettings (
+                onNavigateHome = { navController.navigate(Screen.Home.route) }
             )
         }
 
