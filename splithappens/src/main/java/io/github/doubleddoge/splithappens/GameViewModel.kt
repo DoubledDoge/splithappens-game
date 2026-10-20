@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 enum class DealerEmotion { NEUTRAL, SMUG, BUSTED }
 
-enum class GameStage { BETTING, INSURANCE, PLAYER_TURN, DEALER_TURN, ROUND_OVER }
+enum class GameStage { BETTING, DEALING, INSURANCE, PLAYER_TURN, DEALER_TURN, ROUND_OVER }
 
 
 
@@ -120,22 +120,61 @@ class GameViewModel(
             minBet = 5L
         )
         currentRound = round
-        round.placeBet(s.currentBet)
+        round.startBetting(s.currentBet)
 
         _uiState.update {
             it.copy(
-                stage = if (round.phase == Phase.INSURANCE) GameStage.INSURANCE else GameStage.PLAYER_TURN,
+                stage = GameStage.DEALING,
+                statusText = "Dealing...",
                 playerHands = round.hands.toList(),
-                activeHandIndex = round.activeIndex,
-                dealerCards = round.dealerCards.toList(),
-                hideHoleCard = round.holeHidden,
-                legalActions = round.legalActions(),
-                statusText = if (round.phase == Phase.INSURANCE) "Insurance Offered" else "Your turn"
+                dealerCards = emptyList(),
+                hideHoleCard = true
             )
         }
+        roundJob = viewModelScope.launch {
+            // 1. Card to Player
+            round.dealOneToPlayer()
+            updateDealState(round)
+            delay(350.milliseconds)
 
-        if (round.phase == Phase.FINISHED) finishRound()
+            // 2. Up-card to Dealer
+            round.dealOneToDealer()
+            updateDealState(round)
+            delay(350.milliseconds)
+
+            // 3. Card to Player
+            round.dealOneToPlayer()
+            updateDealState(round)
+            delay(350.milliseconds)
+
+            // 4. Hole-card to Dealer
+            round.dealOneToDealer()
+            updateDealState(round)
+            delay(350.milliseconds)
+
+            round.finalizeDeal()
+
+            _uiState.update {
+                it.copy(
+                    stage = if (round.phase == Phase.INSURANCE) GameStage.INSURANCE else GameStage.PLAYER_TURN,
+                    legalActions = round.legalActions(),
+                    statusText = if (round.phase == Phase.INSURANCE) "Insurance Offered" else "Hit or Stand?"
+                )
+            }
+
+            if (round.phase == Phase.FINISHED) finishRound()
+        }
     }
+    private fun updateDealState(round: Round) {
+        _uiState.update {
+            it.copy(
+                playerHands = round.hands.toList(),
+                dealerCards = round.dealerCards.toList(),
+                hideHoleCard = round.holeHidden
+            )
+        }
+    }
+
 
     fun performAction(action: Action) {
         val round = currentRound ?: return

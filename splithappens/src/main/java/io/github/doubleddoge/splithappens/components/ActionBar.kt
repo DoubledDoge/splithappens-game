@@ -98,13 +98,19 @@ fun GameActionBar(
                 onClick = {onAction(Action.STAND)}
             )
             if(Action.DOUBLE in legalActions){
-                GameButton(label = "DOUBLE", topColor = Gold, bottomColor = GoldDark, modifier = Modifier.weight(1f), onClick = { onAction(Action.DOUBLE) })
+                GameButton(label = "DOUBLE", topColor = Gold,
+                    bottomColor = GoldDark,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onAction(Action.DOUBLE) })
             }
             //if(Action.SPLIT in legalActions){
                // TODO(//Do the Split feature)
            // }
             if(Action.SURRENDER in legalActions){
-                GameButton(label = "SURRENDER", topColor = Gold, bottomColor = GoldDark, modifier = Modifier.weight(1f), onClick = { onAction(Action.SURRENDER) })
+                GameButton(label = "SURRENDER", topColor = Gold,
+                    bottomColor = GoldDark,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onAction(Action.SURRENDER) })
 
             }
         }
