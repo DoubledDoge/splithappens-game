@@ -90,7 +90,7 @@ fun GameScreen(
     val context = LocalContext.current
     val db = remember(context) { buildSplitHappensDatabase(context) }
     val gameViewModel: GameViewModel = viewModel(
-        factory = GameViewModelFactory(db.userDao())
+        factory = GameViewModelFactory(db.userDao(), db.sessionDao(), db.roundDao())
     )
     val uiState by gameViewModel.uiState.collectAsState()
 

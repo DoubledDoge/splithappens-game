@@ -46,6 +46,7 @@ import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.components.BannerAd
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import java.util.Locale
 import kotlin.math.abs
 
 // Color Palette
@@ -262,8 +263,6 @@ fun HomeScreenContent(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    val playButtonContainer = if (isDarkTheme) Color.Black else ButtonBackground
-                    val playButtonContent = if (isDarkTheme) BorderGold else ButtonTextColor
 
                     Button(
                         onClick = onPlayClick,
@@ -272,8 +271,8 @@ fun HomeScreenContent(
                             .height(44.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = playButtonContainer,
-                            contentColor = playButtonContent
+                            containerColor = ButtonBackground,
+                            contentColor = ButtonTextColor
                         )
                     ) {
                         Text(
