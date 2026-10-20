@@ -26,6 +26,7 @@ data class ProfileUiState(
     val wins: Int = 0,
     val losses: Int = 0,
     val winRate: Double = 0.0,
+    val netChipsEarned: Long = 0L,
 
     val isLoading: Boolean = true
 ) {
@@ -116,8 +117,9 @@ class ProfileViewModel(
 
             combine(
                 userDao.observeById(userId),
-                gameHistoryDao.observeForUser(userId)
-            ) { user, history ->
+                gameHistoryDao.observeForUser(userId),
+                gameHistoryDao.observeNetChips(userId)
+            ) { user, history, totalNetChips ->
 
                 if (user == null) {
                     ProfileUiState(
@@ -151,6 +153,7 @@ class ProfileViewModel(
                         wins = wins,
                         losses = losses,
                         winRate = winRate,
+                        netChipsEarned = totalNetChips,
                         isLoading = false
                     )
                 }
