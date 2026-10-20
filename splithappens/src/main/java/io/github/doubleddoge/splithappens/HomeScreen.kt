@@ -43,51 +43,52 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import io.github.doubleddoge.splithappens.components.AppBottomBar
+import io.github.doubleddoge.splithappens.components.BannerAd
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlin.math.abs
 
-// Standard Dark Theme Colors
+// Color Palette
 val DarkBackground = Color(0xFF0B1B15)
 val CardBackground = Color(0xFF0F3A2E)
 val BorderGold = Color(0xFFD4A311)
 val ButtonBackground = Color(0xFFD8D8D8)
 val ButtonTextColor = Color(0xFF1E1E1E)
 
-@Composable
-fun AdBannerPlaceholder(
-    modifier: Modifier = Modifier,
-    isDarkTheme: Boolean = true
-) {
-    val bgColor = if (isDarkTheme) Color(0xFF08251D) else Color(0xFF144D38)
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(bgColor)
-            .border(
-                width = 1.dp,
-                color = BorderGold.copy(alpha = 0.25f),
-                shape = RoundedCornerShape(8.dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "ADVERTISEMENT",
-                color = Color.White.copy(alpha = 0.45f),
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 1.2.sp
-            )
-        }
-    }
-}
+//@Composable
+//fun AdBannerPlaceholder(
+//    modifier: Modifier = Modifier,
+//    isDarkTheme: Boolean = true
+//) {
+//    val bgColor = if (isDarkTheme) Color(0xFF08251D) else Color(0xFF144D38)
+//
+//    Box(
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .height(50.dp)
+//            .clip(RoundedCornerShape(8.dp))
+//            .background(bgColor)
+//            .border(
+//                width = 1.dp,
+//                color = BorderGold.copy(alpha = 0.25f),
+//                shape = RoundedCornerShape(8.dp)
+//            ),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Row(
+//            verticalAlignment = Alignment.CenterVertically,
+//            horizontalArrangement = Arrangement.Center
+//        ) {
+//            Text(
+//                text = "ADVERTISEMENT",
+//                color = Color.White.copy(alpha = 0.45f),
+//                fontSize = 9.sp,
+//                fontWeight = FontWeight.Medium,
+//                letterSpacing = 1.2.sp
+//            )
+//        }
+//    }
+//}
 
 @Composable
 fun HomeScreen(
@@ -171,7 +172,8 @@ fun HomeScreenContent(
                 .padding(horizontal = 12.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-            AdBannerPlaceholder(isDarkTheme = isDarkTheme)
+
+            BannerAd()
             Spacer(modifier = Modifier.height(12.dp))
 
             // STATS & RULES Buttons
@@ -260,6 +262,9 @@ fun HomeScreenContent(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    val playButtonContainer = if (isDarkTheme) Color.Black else ButtonBackground
+                    val playButtonContent = if (isDarkTheme) BorderGold else ButtonTextColor
+
                     Button(
                         onClick = onPlayClick,
                         modifier = Modifier
@@ -267,8 +272,8 @@ fun HomeScreenContent(
                             .height(44.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = ButtonBackground,
-                            contentColor = ButtonTextColor
+                            containerColor = playButtonContainer,
+                            contentColor = playButtonContent
                         )
                     ) {
                         Text(
