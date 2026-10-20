@@ -190,6 +190,7 @@ fun AppNavigation(
                     ProfileScreen(
                         viewModel = vm,
                         isDarkTheme = settingUiState.darkTheme,
+                        onNavigateBack = { navController.popBackStack() },
                         onNavigateHome = { navController.navigate(Screen.Home.route) },
                         onNavigateGame = { navController.navigate(Screen.Game.route) },
                         onNavigateMenu = { navController.navigate(Screen.Menu.route) }
