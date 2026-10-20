@@ -90,6 +90,31 @@ class Round(
         }
     }
 
+
+    fun startBetting(amount: Long) {
+        check(phase == Phase.BETTING) { "Bet already placed" }
+        require(amount in minBet..bankroll) { "Bet must be between $minBet and $bankroll" }
+
+        hands.clear()
+        dealerCards.clear()
+        hands += PlayerHand(mutableListOf(), amount)
+    }
+
+    fun dealOneToPlayer() {
+        hands[0].cards += shoe.deal()
+    }
+
+    fun dealOneToDealer() {
+        dealerCards += shoe.deal()
+    }
+
+    fun finalizeDeal() {
+        if (dealerCards.isNotEmpty() && dealerCards[0].isAce) {
+            phase = Phase.INSURANCE
+        } else {
+            startPlay()
+        }
+    }
     fun act(action: Action){
         require(action in legalActions()) {"Illegal action: $action"}
         val h = hands[activeIndex]

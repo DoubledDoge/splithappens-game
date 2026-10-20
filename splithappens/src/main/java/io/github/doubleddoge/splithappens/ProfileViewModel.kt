@@ -39,9 +39,7 @@ data class ProfileUiState(
         return userId == other.userId &&
                 displayName == other.displayName &&
                 chipsOwned == other.chipsOwned &&
-                profilePictureBytes.contentEqualsNullable(
-                    other.profilePictureBytes
-                ) &&
+                profilePictureBytes.contentEqualsNullable(other.profilePictureBytes) &&
                 gamesPlayed == other.gamesPlayed &&
                 wins == other.wins &&
                 losses == other.losses &&
@@ -53,8 +51,7 @@ data class ProfileUiState(
         var result = userId.hashCode()
         result = 31 * result + displayName.hashCode()
         result = 31 * result + chipsOwned.hashCode()
-        result = 31 * result +
-                (profilePictureBytes?.contentHashCode() ?: 0)
+        result = 31 * result + (profilePictureBytes?.contentHashCode() ?: 0)
         result = 31 * result + gamesPlayed
         result = 31 * result + wins
         result = 31 * result + losses
@@ -64,10 +61,7 @@ data class ProfileUiState(
     }
 }
 
-// Helper for comparing nullable ByteArrays
-private fun ByteArray?.contentEqualsNullable(
-    other: ByteArray?
-): Boolean {
+private fun ByteArray?.contentEqualsNullable(other: ByteArray?): Boolean {
     return when {
         this == null && other == null -> true
         this == null || other == null -> false
@@ -93,8 +87,7 @@ class ProfileViewModel(
         )
     )
 
-    val uiState: StateFlow<ProfileUiState> =
-        _uiState.asStateFlow()
+    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     init {
         observeProfile()
@@ -127,23 +120,14 @@ class ProfileViewModel(
                         isLoading = false
                     )
                 } else {
-
                     val gamesPlayed = history.size
-
-                    val wins = history.count {
-                        it.netChips > 0
+                    val wins = history.count { it.netChips > 0 }
+                    val losses = history.count { it.netChips < 0 }
+                    val winRate = if (gamesPlayed > 0) {
+                        (wins.toDouble() / gamesPlayed) * 100
+                    } else {
+                        0.0
                     }
-
-                    val losses = history.count {
-                        it.netChips < 0
-                    }
-
-                    val winRate =
-                        if (gamesPlayed > 0) {
-                            (wins.toDouble() / gamesPlayed) * 100
-                        } else {
-                            0.0
-                        }
 
                     ProfileUiState(
                         userId = user.userId,
@@ -163,15 +147,10 @@ class ProfileViewModel(
                 // Preserve the current picture while the rest of
                 // the profile state updates.
                 _uiState.value = state.copy(
-                    profilePictureBytes =
-                        _uiState.value.profilePictureBytes
+                    profilePictureBytes = _uiState.value.profilePictureBytes
                 )
 
-                // Load the picture if we don't have one yet.
-                if (
-                    state.userId.isNotBlank() &&
-                    _uiState.value.profilePictureBytes == null
-                ) {
+                if (state.userId.isNotBlank() && _uiState.value.profilePictureBytes == null) {
                     loadProfilePicture(state.userId)
                 }
             }
@@ -197,9 +176,7 @@ class ProfileViewModel(
     fun updateProfilePicture(bytes: ByteArray) {
 
         val currentUserId = _uiState.value.userId
-
-        if (currentUserId.isBlank()) return
-        if (bytes.isEmpty()) return
+        if (currentUserId.isBlank() || bytes.isEmpty()) return
 
         viewModelScope.launch {
 
@@ -209,11 +186,9 @@ class ProfileViewModel(
                     image = bytes
                 )
             )
-
-            _uiState.value =
-                _uiState.value.copy(
-                    profilePictureBytes = bytes
-                )
+            _uiState.value = _uiState.value.copy(
+                profilePictureBytes = bytes
+            )
         }
     }
 
@@ -226,15 +201,10 @@ class ProfileViewModel(
         val currentUserId = _uiState.value.userId
 
         val cleanedName = newName.trim()
-
-        if (currentUserId.isBlank()) return
-        if (cleanedName.isBlank()) return
+        if (currentUserId.isBlank() || cleanedName.isBlank()) return
 
         viewModelScope.launch {
-
-            val currentUser =
-                userDao.getById(currentUserId)
-
+            val currentUser = userDao.getById(currentUserId)
             if (currentUser != null) {
 
                 userDao.update(
@@ -247,10 +217,7 @@ class ProfileViewModel(
     }
 }
 
-
-
 // VIEW MODEL FACTORY
-
 
 class ProfileViewModelFactory(
     private val userDao: UserDao,

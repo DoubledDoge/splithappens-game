@@ -13,7 +13,7 @@ import androidx.room3.PrimaryKey
 			entity = UserEntity::class,
 			parentColumns = ["userId"],
 			childColumns = ["userId"],
-			onDelete = ForeignKey.CASCADE
+			onDelete = ForeignKey.CASCADE //
 		)
 	]
 )
