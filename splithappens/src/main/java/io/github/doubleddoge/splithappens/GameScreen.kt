@@ -9,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -57,6 +58,7 @@ import io.github.doubleddoge.splithappens.components.GameActionBar
 import io.github.doubleddoge.splithappens.components.HandRow
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
 // Theme Palettes
@@ -137,7 +139,7 @@ fun GameScreen(
                 val railShape = RoundedCornerShape(topStart = railRadius, topEnd = railRadius)
                 val feltShape = RoundedCornerShape(
                     topStart = railRadius - railThickness,
-                    topEnd = railRadius - railThickness
+                        topEnd = railRadius - railThickness
                 )
 
                 Box(
@@ -220,10 +222,12 @@ fun GameScreen(
                         ) {
                             TableLabel(
                                 text = "DEALER",
-                                total = if (uiState.dealerHand.isNotEmpty()) uiState.dealerHandValue else null
+                                total = if (uiState.dealerCards.isNotEmpty() && !uiState.hideHoleCard) {
+                                    uiState.dealerCards.sumOf { it.value }
+                                } else null
                             )
                             Spacer(modifier = Modifier.height(6.dp))
-                            HandRow(hand = uiState.dealerHand)
+                            HandRow(hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard    ))
                         }
 
                         // PLAYER AREA, STATUS BANNER & CONTROLS (Bottom)
@@ -235,109 +239,129 @@ fun GameScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             // OUTCOME BANNER (Positioned directly above Player's Cards with border & solid backdrop)
-                            if (uiState.result.bannerMessage.isNotEmpty()) {
-                                Surface(
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = Color(0xFF092016),
-                                    border = BorderStroke(2.dp, GoldFoil),
-                                    shadowElevation = 8.dp,
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .padding(bottom = 8.dp)
-                                ) {
-                                    Text(
-                                        text = uiState.result.bannerMessage,
-                                        color = GoldFoil,
-                                        fontSize = 22.sp,
-                                        fontWeight = FontWeight.Black,
-                                        letterSpacing = 1.2.sp,
-                                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 7.dp)
-                                    )
-                                }
-                            } else if (uiState.stage != GameStage.BETTING && uiState.dealerStatusText.isNotEmpty()) {
-                                // Subtle turn prompt (e.g., "Hit or Stand?")
+                            if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
                                 Text(
-                                    text = uiState.dealerStatusText,
+                                    text = uiState.statusText,
                                     color = Color.White.copy(alpha = 0.9f),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(bottom = 6.dp)
                                 )
                             }
-
-                            // Player Hand
-                            HandRow(hand = uiState.playerHand)
+                            // PLAYER HAND DISPLAY
+                            val primaryHand = uiState.playerHands.firstOrNull()
+                            if (primaryHand != null ) {
+                                //TODO: Replace single HandRow rendering with side-by-side Row layout when split hands are enabled
+                                HandRow(hand = primaryHand.cards.toTableCards())
+                            }
 
                             Spacer(modifier = Modifier.height(6.dp))
 
                             TableLabel(
                                 text = "PLAYER",
-                                total = if (uiState.playerHand.isNotEmpty()) uiState.playerHandValue else null
+                                total = primaryHand?.value?.total
                             )
 
-                            // During betting phase: show BetChips
-                            if (uiState.stage == GameStage.BETTING) {
+                            if(uiState.stage == GameStage.BETTING){
                                 Spacer(modifier = Modifier.height(6.dp))
-                                BetChips(
-                                    chips = betChipsList,
-                                    onUndo = {
-                                        if (betChipsList.isNotEmpty()) {
-                                            gameViewModel.clearBet()
-                                            betChipsList = emptyList()
+                                    BetChips(
+                                        chips = betChipsList,
+                                        onUndo = {
+                                            if (betChipsList.isNotEmpty()) {
+                                                gameViewModel.clearBet()
+                                                betChipsList = emptyList()
+                                            }
                                         }
-                                    }
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Controls: Play Again button or Action Bar
-                            if (uiState.stage == GameStage.ROUND_OVER) {
-                                Button(
-                                    onClick = {
-                                        betChipsList = emptyList()
-                                        gameViewModel.resetForNextRound()
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(48.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = GoldFoil,
-                                        contentColor = Color(0xFF1A1208)
-                                    )
-                                ) {
-                                    Text(
-                                        text = "PLAY AGAIN",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        letterSpacing = 1.5.sp
                                     )
                                 }
-                            } else {
-                                GameActionBar(
-                                    isBetting = uiState.stage == GameStage.BETTING,
-                                    canBet = uiState.currentBet > 0L,
-                                    onChip = { amount ->
-                                        if (uiState.chipsOwned >= amount) {
-                                            betChipsList = betChipsList + amount.toInt()
-                                            gameViewModel.addBet(amount)
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                                    if (uiState.stage == GameStage.ROUND_OVER) {
+                                        Button(
+                                            onClick = {
+                                                betChipsList = emptyList()
+                                                gameViewModel.resetForNextRound()
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(48.dp),
+                                            shape = RoundedCornerShape(12.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = GoldFoil,
+                                                contentColor = Color(0xFF1A1208)
+                                            )
+                                        ) {
+                                            Text(
+                                                text = "PLAY AGAIN",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp,
+                                                letterSpacing = 1.5.sp
+                                            )
                                         }
-                                    },
-                                    onClear = {
-                                        betChipsList = emptyList()
-                                        gameViewModel.clearBet()
-                                    },
-                                    onDeal = {
-                                        gameViewModel.deal()
-                                    },
-                                    onHit = { gameViewModel.hit() },
-                                    onStand = { gameViewModel.stand() },
-                                    onDouble = { gameViewModel.doubleDown() },
-                                    doubleEnabled = uiState.canDoubleDown
-                                )
-                            }
-                        }
+                                    }else {
+                                        GameActionBar(
+                                            isBetting = uiState.stage == GameStage.BETTING,
+                                            canBet = uiState.currentBet > 0L,
+                                            legalActions = uiState.legalActions,
+                                            onChip = { amount ->
+                                                if(uiState.chipsOwned >= amount) {
+                                                    betChipsList = betChipsList + amount.toInt()
+                                                    gameViewModel.addBet(amount)
+                                                }
+
+                                            },
+                                            onDeal = {gameViewModel.deal()},
+                                            onAction = {action ->
+                                                gameViewModel.performAction(action)
+                                            }
+                                        )
+                                    }
+                                }
+                                //Insurance overlay prompt
+                                if (uiState.stage == GameStage.INSURANCE) {
+                                    Surface(
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = Color(0xFF092016),
+                                        border = BorderStroke(2.dp, GoldFoil),
+                                        shadowElevation = 12.dp,
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .padding(24.dp)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(20.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(
+                                                text = "INSURANCE OFFERED",
+                                                color = GoldFoil,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                letterSpacing = 1.2.sp
+                                            )
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                                Button(
+                                                    onClick = {gameViewModel.resolveInsurance(true)},
+                                                    colors = ButtonDefaults.buttonColors(
+                                                        contentColor = GoldFoil, containerColor = Color.Black)
+                                                ) {
+                                                    Text("ACCEPT")
+                                                }
+                                                Button(
+                                                    onClick = {gameViewModel.resolveInsurance(false)},
+                                                    colors = ButtonDefaults.buttonColors(
+                                                        containerColor = Color(0xFF2A3B32),
+                                                        contentColor = Color.White)
+                                                ) {
+                                                    Text("DECLINE")
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+
                     }
                 }
             }
