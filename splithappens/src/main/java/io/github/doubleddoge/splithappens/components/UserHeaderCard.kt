@@ -26,13 +26,30 @@ import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.BorderGold
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
+// Dark Theme Colors
+private val CardBgDark = Color(0xFF072C1E)
+private val AvatarBgDark = Color(0xFF0F4D35)
+private val ChipBadgeBgDark = Color(0xFF041910)
+
+// Light Theme Colors
+private val CardBgLight = Color(0xFF1B6349)
+private val AvatarBgLight = Color(0xFF237D5D)
+private val ChipBadgeBgLight = Color(0xFF124533)
+
+private val ChipGold = Color(0xFFFFD700)
+
 @Composable
 fun UserHeaderCard(
     displayName: String,
     chipsOwned: Long,
     modifier: Modifier = Modifier,
+    isDarkTheme: Boolean = true,
     onProfileClick: () -> Unit = {}
 ) {
+    val cardBg = if (isDarkTheme) CardBgDark else CardBgLight
+    val avatarBg = if (isDarkTheme) AvatarBgDark else AvatarBgLight
+    val chipBadgeBg = if (isDarkTheme) ChipBadgeBgDark else ChipBadgeBgLight
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -40,7 +57,7 @@ fun UserHeaderCard(
             .padding(horizontal = 10.dp, vertical = 8.dp)
             .border(2.dp, BorderGold, RoundedCornerShape(16.dp))
             .background(
-                color = Color(0xFF072C1E), // Dark green background
+                color = cardBg,
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable { onProfileClick() }
@@ -52,12 +69,12 @@ fun UserHeaderCard(
             modifier = Modifier
                 .size(44.dp)
                 .border(1.dp, BorderGold, RoundedCornerShape(24.dp))
-                .background(Color(0xFF0F4D35), shape = CircleShape),
+                .background(avatarBg, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = displayName.take(1).uppercase(),
-                color = Color(0xFFFFD700),
+                color = ChipGold,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -76,17 +93,15 @@ fun UserHeaderCard(
             Row(
                 modifier = Modifier
                     .background(
-                        color = Color(0xFF041910),
+                        color = chipBadgeBg,
                         shape = RoundedCornerShape(50.dp)
-
                     )
                     .padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
-            )
-            {
+            ) {
                 Text(
                     text = "🪙 R$chipsOwned",
-                    color = Color(0xFFFFD700), // Gold chips color
+                    color = ChipGold,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -94,18 +109,20 @@ fun UserHeaderCard(
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun UserHeaderCardPreview() {
-    SplitHappensTheme(){
+    SplitHappensTheme {
         Box(
             modifier = Modifier
-                .background(Color(0xFF0B1B15)) // Dark background to match app theme
+                .background(Color(0xFF0B1B15))
                 .padding(16.dp)
         ) {
             UserHeaderCard(
                 displayName = "Player 1",
-                chipsOwned = 2500L
+                chipsOwned = 2500L,
+                isDarkTheme = true
             )
         }
     }
