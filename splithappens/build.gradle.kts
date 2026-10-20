@@ -60,6 +60,7 @@ room3 {
 
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.play.services.ads)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -80,6 +81,5 @@ dependencies {
     implementation(kotlin("test"))
     implementation("androidx.compose.material:material-icons-extended")
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.google.android.gms:play-services-ads:23.0.0")
     implementation(libs.androidx.lifecycle.runtime.compose)
 }

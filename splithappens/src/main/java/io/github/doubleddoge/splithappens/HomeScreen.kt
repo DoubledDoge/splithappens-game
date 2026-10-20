@@ -109,7 +109,8 @@ fun HomeScreen(
         onPlayClick = onPlayClick,
         onNavigateSettings = onNavigateSettings,
         onNavigateMenu = onNavigateMenu,
-        onNavigateGame = onNavigateGame
+        onNavigateGame = onNavigateGame,
+        onNavigateProfile = onNavigateProfile
     )
 }
 
@@ -255,6 +256,9 @@ fun HomeScreenContent(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    val playButtonContainer = if (isDarkTheme) Color.Black else ButtonBackground
+                    val playButtonContent = if (isDarkTheme) BorderGold else ButtonTextColor
+
                     Button(
                         onClick = onPlayClick,
                         modifier = Modifier
@@ -262,8 +266,8 @@ fun HomeScreenContent(
                             .height(44.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = ButtonBackground,
-                            contentColor = ButtonTextColor
+                            containerColor = playButtonContainer,
+                            contentColor = playButtonContent
                         )
                     ) {
                         Text(
