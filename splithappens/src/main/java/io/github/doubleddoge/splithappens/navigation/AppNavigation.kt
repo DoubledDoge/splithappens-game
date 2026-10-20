@@ -1,45 +1,21 @@
 package io.github.doubleddoge.splithappens.navigation
 
-import android.app.Application
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.github.doubleddoge.splithappens.BorderGold
-import io.github.doubleddoge.splithappens.DarkBackground
 import io.github.doubleddoge.splithappens.HomeScreen
 import io.github.doubleddoge.splithappens.HomeViewModel
 import io.github.doubleddoge.splithappens.HomeViewModelFactory
-import io.github.doubleddoge.splithappens.MenuScreen
-import io.github.doubleddoge.splithappens.MenuViewModel
-import io.github.doubleddoge.splithappens.MenuViewModelFactory
 import io.github.doubleddoge.splithappens.ProfileScreen
 import io.github.doubleddoge.splithappens.ProfileViewModel
 import io.github.doubleddoge.splithappens.ProfileViewModelFactory
-import io.github.doubleddoge.splithappens.ScreenSettings
-import io.github.doubleddoge.splithappens.SettingViewModel
-import io.github.doubleddoge.splithappens.SettingViewModelFactory
 import io.github.doubleddoge.splithappens.SplashScreen
 import io.github.doubleddoge.splithappens.SplitHappensApp
 import kotlinx.coroutines.flow.first
@@ -73,6 +49,7 @@ fun AppNavigation(
         }
 
         composable(Screen.Home.route) {
+            val context = LocalContext.current
             val db = remember(context.applicationContext) { (context.applicationContext as SplitHappensApp).database }
             val homeViewModel: HomeViewModel = viewModel(
                 factory = HomeViewModelFactory(
@@ -82,7 +59,6 @@ fun AppNavigation(
             )
             HomeScreen(
                 viewModel = homeViewModel,
-                isDarkTheme = isDarkTheme,
                 onPlayClick = {
                     navController.navigate(Screen.Game.route)
                 },
@@ -115,7 +91,26 @@ fun AppNavigation(
             )
         }
 
+
+        // --- MENU SCREEN DESTINATION ---
+        composable(Screen.Menu.route) {
+            MenuScreen(
+                onNavigateHome = { navController.navigate(Screen.Home.route) },
+                onNavigateGame = { navController.navigate(Screen.Game.route) },
+                onNavigateToProfile = {navController.navigate(Screen.Profile.route)},
+                onNavigateToSettings = {navController.navigate(Screen.Settings.route)}
+            )
+        }
+
+        // --- SETTINGS SCREEN DESTINATION ---
+        composable(Screen.Settings.route) {
+            ScreenSettings (
+                onNavigateHome = { navController.navigate(Screen.Home.route) }
+            )
+        }
+
         composable(Screen.Profile.route) {
+            val context = LocalContext.current
             val db = remember(context.applicationContext) { (context.applicationContext as SplitHappensApp).database }
 
             val userId by produceState("") {
@@ -128,8 +123,6 @@ fun AppNavigation(
                 )
                 ProfileScreen(
                     viewModel = vm,
-                    isDarkTheme = isDarkTheme,
-                    onNavigateBack = { navController.popBackStack() },
                     onNavigateHome = { navController.navigate(Screen.Home.route) },
                     onNavigateGame = { navController.navigate(Screen.Game.route) },
                     onNavigateMenu = { navController.navigate(Screen.Menu.route) }
