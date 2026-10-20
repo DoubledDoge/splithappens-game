@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -101,6 +102,10 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshProfilePicture()
+    }
+
     HomeScreenContent(
         uiState = uiState,
         modifier = modifier,
@@ -108,7 +113,8 @@ fun HomeScreen(
         onPlayClick = onPlayClick,
         onNavigateSettings = onNavigateSettings,
         onNavigateMenu = onNavigateMenu,
-        onNavigateGame = onNavigateGame
+        onNavigateGame = onNavigateGame,
+        onNavigateProfile = onNavigateProfile
     )
 }
 
@@ -142,6 +148,7 @@ fun HomeScreenContent(
                 UserHeaderCard(
                     displayName = uiState.displayName,
                     chipsOwned = uiState.chipsOwned,
+                    profilePictureBytes = uiState.profilePictureBytes,
                     onProfileClick = onNavigateProfile
                 )
             }
