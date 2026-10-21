@@ -12,17 +12,53 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val userId: String = "",
     val displayName: String = "Player 1",
     val chipsOwned: Long = 2500,
+    val profilePictureBytes: ByteArray? = null,
     val totalGamesPlayed: Int = 0,
     val totalWins: Int = 0,
     val netChipsEarned: Long = 0,
     val isLoading: Boolean = true,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is HomeUiState) return false
+
+        return userId == other.userId &&
+                displayName == other.displayName &&
+                chipsOwned == other.chipsOwned &&
+                profilePictureBytes.contentEqualsNullable(other.profilePictureBytes) &&
+                totalGamesPlayed == other.totalGamesPlayed &&
+                totalWins == other.totalWins &&
+                netChipsEarned == other.netChipsEarned &&
+                isLoading == other.isLoading
+    }
+
+    override fun hashCode(): Int {
+        var result = userId.hashCode()
+        result = 31 * result + displayName.hashCode()
+        result = 31 * result + chipsOwned.hashCode()
+        result = 31 * result + (profilePictureBytes?.contentHashCode() ?: 0)
+        result = 31 * result + totalGamesPlayed
+        result = 31 * result + totalWins
+        result = 31 * result + netChipsEarned.hashCode()
+        result = 31 * result + isLoading.hashCode()
+        return result
+    }
+}
+
+private fun ByteArray?.contentEqualsNullable(other: ByteArray?): Boolean {
+    return when {
+        this == null && other == null -> true
+        this == null || other == null -> false
+        else -> this.contentEquals(other)
+    }
+}
 
 class HomeViewModel(
     private val userDao: UserDao,
@@ -46,28 +82,39 @@ class HomeViewModel(
                     flowOf(users.firstOrNull())
                 }
             }
-
-            userFlow.flatMapLatest { user ->
-                if (user == null) {
-                    flowOf(HomeUiState(isLoading = true))
-                } else {
-                    combine(
-                        gameHistoryDao.observeForUser(user.userId),
-                        gameHistoryDao.observeNetChips(user.userId),
-                    ) { historyList, totalNetChips ->
-                        HomeUiState(
-                            userId = user.userId,
-                            displayName = user.displayName,
-                            chipsOwned = user.chipsOwned,
-                            totalGamesPlayed = historyList.size,
-                            totalWins = historyList.count { it.netChips > 0 },
-                            netChipsEarned = totalNetChips,
-                            isLoading = false,
-                        )
+                    if (user == null) {
+                        flowOf(HomeUiState(isLoading = true))
+                    } else {
+                        val picture = userDao.getPicture(user.userId)
+                        combine(
+                            gameHistoryDao.observeForUser(user.userId),
+                            gameHistoryDao.observeNetChips(user.userId),
+                        ) { historyList, totalNetChips ->
+                            HomeUiState(
+                                userId = user.userId,
+                                displayName = user.displayName,
+                                chipsOwned = user.chipsOwned,
+                                profilePictureBytes = picture,
+                                totalGamesPlayed = historyList.size,
+                                totalWins = historyList.count { it.netChips > 0 },
+                                netChipsEarned = totalNetChips,
+                                isLoading = false,
+                            )
+                        }
                     }
                 }
             }.collect { state ->
                 _uiState.value = state
+            }
+        }
+    }
+
+    fun refreshProfilePicture() {
+        val currentUserId = _uiState.value.userId
+        if (currentUserId.isNotEmpty()) {
+            viewModelScope.launch {
+                val picture = userDao.getPicture(currentUserId)
+                _uiState.update { it.copy(profilePictureBytes = picture) }
             }
         }
     }
