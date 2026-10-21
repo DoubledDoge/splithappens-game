@@ -20,6 +20,9 @@ class Shoe(
         return cards.removeFirst()
     }
 
+    //Tests the next deal to come out in this order (player, dealer up, player, dealer hole, draws)
+    fun stackTop(top: List<Card>) {cards.addAll(0,top)}
+
     fun reshuffle(){
         cards.clear()
         repeat(deckCount) {

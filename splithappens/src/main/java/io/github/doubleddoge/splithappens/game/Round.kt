@@ -90,7 +90,6 @@ class Round(
         }
     }
 
-
     fun startBetting(amount: Long) {
         check(phase == Phase.BETTING) { "Bet already placed" }
         require(amount in minBet..bankroll) { "Bet must be between $minBet and $bankroll" }
