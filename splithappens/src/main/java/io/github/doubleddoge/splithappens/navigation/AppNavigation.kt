@@ -22,7 +22,6 @@ import io.github.doubleddoge.splithappens.LoginViewModelFactory
 import io.github.doubleddoge.splithappens.MenuScreen
 import io.github.doubleddoge.splithappens.MenuViewModel
 import io.github.doubleddoge.splithappens.MenuViewModelFactory
-import io.github.doubleddoge.splithappens.MenuScreen
 import io.github.doubleddoge.splithappens.ProfileScreen
 import io.github.doubleddoge.splithappens.ProfileViewModel
 import io.github.doubleddoge.splithappens.ProfileViewModelFactory
@@ -151,27 +150,6 @@ fun AppNavigation(
                 onNavigateMenu = { navController.navigate(Screen.Menu.route) { launchSingleTop = true } }
             )
         }
-
-        // --- MENU SCREEN DESTINATION ---
-        composable(Screen.Menu.route) {
-            MenuScreen(
-                onNavigateHome = { navController.navigate(Screen.Home.route) },
-                onNavigateGame = { navController.navigate(Screen.Game.route) },
-                onNavigateToProfile = {navController.navigate(Screen.Profile.route)},
-                onNavigateToSettings = {navController.navigate(Screen.Settings.route)}
-            )
-        }
-
-        // --- SETTINGS SCREEN DESTINATION ---
-        composable(Screen.Settings.route) {
-            ScreenSettings (
-                onNavigateHome = { navController.navigate(Screen.Home.route) }
-            )
-        }
-
-        composable(Screen.Profile.route) {
-            val context = LocalContext.current
-            val db = remember(context.applicationContext) { (context.applicationContext as SplitHappensApp).database }
 
         // 7. Profile Screen
         composable(Screen.Profile.route) {

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -78,42 +79,57 @@ class HomeViewModel(
             val userFlow = if (currentUserId.isNotBlank()) {
                 userDao.observeById(currentUserId)
             } else {
-                userDao.observeAll().flatMapLatest { users ->
-                    flowOf(users.firstOrNull())
+                userDao.observeAll().map { users ->
+                    users.firstOrNull()
                 }
             }
-                    if (user == null) {
-                        flowOf(HomeUiState(isLoading = true))
-                    } else {
-                        val picture = userDao.getPicture(user.userId)
-                        combine(
-                            gameHistoryDao.observeForUser(user.userId),
-                            gameHistoryDao.observeNetChips(user.userId),
-                        ) { historyList, totalNetChips ->
-                            HomeUiState(
-                                userId = user.userId,
-                                displayName = user.displayName,
-                                chipsOwned = user.chipsOwned,
-                                profilePictureBytes = picture,
-                                totalGamesPlayed = historyList.size,
-                                totalWins = historyList.count { it.netChips > 0 },
-                                netChipsEarned = totalNetChips,
-                                isLoading = false,
-                            )
-                        }
+
+            userFlow.flatMapLatest { user ->
+                if (user == null) {
+                    flowOf(
+                        HomeUiState(
+                            userId = currentUserId,
+                            displayName = "Player 1",
+                            chipsOwned = 2500L,
+                            isLoading = false,
+                        )
+                    )
+                } else {
+                    combine(
+                        gameHistoryDao.observeForUser(user.userId),
+                        gameHistoryDao.observeNetChips(user.userId),
+                    ) { historyList, totalNetChips ->
+                        HomeUiState(
+                            userId = user.userId,
+                            displayName = user.displayName,
+                            chipsOwned = user.chipsOwned,
+                            totalGamesPlayed = historyList.size,
+                            totalWins = historyList.count { it.netChips > 0 },
+                            netChipsEarned = totalNetChips,
+                            isLoading = false,
+                        )
                     }
                 }
             }.collect { state ->
-                _uiState.value = state
+                val existingPicture = if (state.userId == _uiState.value.userId) {
+                    _uiState.value.profilePictureBytes
+                } else {
+                    null
+                }
+                _uiState.value = state.copy(profilePictureBytes = existingPicture)
+
+                if (state.userId.isNotBlank() && existingPicture == null) {
+                    refreshProfilePicture()
+                }
             }
         }
     }
 
     fun refreshProfilePicture() {
-        val currentUserId = _uiState.value.userId
-        if (currentUserId.isNotEmpty()) {
+        val activeUserId = _uiState.value.userId
+        if (activeUserId.isNotEmpty()) {
             viewModelScope.launch {
-                val picture = userDao.getPicture(currentUserId)
+                val picture = userDao.getPicture(activeUserId)
                 _uiState.update { it.copy(profilePictureBytes = picture) }
             }
         }
