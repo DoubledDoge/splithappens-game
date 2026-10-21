@@ -80,22 +80,13 @@ class LoginViewModel(
         _uiState.value = _uiState.value.copy(isSwitchProfileDialogOpen = false)
     }
 
-    fun selectProfile(user: UserEntity, onSuccess: () -> Unit) {
+    fun selectProfile(user: UserEntity) {
         _uiState.value =
             _uiState.value.copy(
                 username = user.displayName,
+                errorMessage = null,
                 isSwitchProfileDialogOpen = false,
             )
-
-        prefs.edit {
-            if (_uiState.value.rememberMe) {
-                putBoolean("remember_me", true)
-                putString("saved_username", user.displayName)
-                putString("saved_user_id", user.userId)
-            }
-        }
-
-        onSuccess()
     }
 
     fun promptDeleteUser(user: UserEntity) {
@@ -182,16 +173,11 @@ class LoginViewModel(
                         newUser
                     }
 
+                // Always write the current active user ID so HomeViewModel and GameScreen bind to them
                 prefs.edit {
-                    if (_uiState.value.rememberMe) {
-                        putBoolean("remember_me", true)
-                        putString("saved_username", user.displayName)
-                        putString("saved_user_id", user.userId)
-                    } else {
-                        remove("remember_me")
-                        remove("saved_username")
-                        remove("saved_user_id")
-                    }
+                    putBoolean("remember_me", _uiState.value.rememberMe)
+                    putString("saved_username", user.displayName)
+                    putString("saved_user_id", user.userId)
                 }
 
                 _uiState.value = _uiState.value.copy(isLoading = false)

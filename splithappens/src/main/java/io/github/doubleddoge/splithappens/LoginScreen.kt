@@ -86,7 +86,7 @@ fun LoginScreen(
         onLogin = { viewModel.login { onLoginSuccess() } },
         onOpenProfilesDialog = viewModel::openSwitchProfileDialog,
         onCloseProfilesDialog = viewModel::closeSwitchProfileDialog,
-        onSelectProfile = { user -> viewModel.selectProfile(user) { onLoginSuccess() } },
+        onSelectProfile = viewModel::selectProfile,
         onPromptDeleteUser = viewModel::promptDeleteUser,
         onConfirmDeleteUser = viewModel::confirmDeleteUser,
         onCancelDeleteUser = viewModel::cancelDeleteUser
@@ -348,7 +348,7 @@ fun LoginScreenContent(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = "Select a profile to jump straight in",
+                        text = "Select a profile to populate username",
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 12.sp,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
