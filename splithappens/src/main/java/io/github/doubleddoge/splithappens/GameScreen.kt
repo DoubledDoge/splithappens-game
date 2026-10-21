@@ -1,8 +1,5 @@
 package io.github.doubleddoge.splithappens
 
-import android.graphics.Paint as AndroidPaint
-import android.graphics.Path as AndroidPath
-import android.graphics.PathMeasure as AndroidPathMeasure
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.compose.foundation.BorderStroke
@@ -58,8 +55,12 @@ import io.github.doubleddoge.splithappens.components.GameActionBar
 import io.github.doubleddoge.splithappens.components.HandRow
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 
 // Theme Palettes
 private val GameBgDarkCenter = Color(0xFF0F3022)
@@ -74,7 +75,7 @@ private val WoodRailOuter = Color(0xFF332014)
 private val WoodRailInner = Color(0xFF5A3924)
 private val GoldFoil = Color(0xFFE5B036)
 
-private const val ARC_SWEEP = 110f
+private const val ArcSweep = 110f
 
 @Composable
 fun GameScreen(
@@ -193,8 +194,8 @@ fun GameScreen(
               fun arc(radius: Float, alpha: Float, strokeWidth: Float) =
                   drawArc(
                       color = GoldFoil.copy(alpha = alpha),
-                      startAngle = 90f - ARC_SWEEP / 2f,
-                      sweepAngle = ARC_SWEEP,
+                      startAngle = 90f - ArcSweep / 2f,
+                      sweepAngle = ArcSweep,
                       useCenter = false,
                       topLeft = Offset(center.x - radius, center.y - radius),
                       size = Size(radius * 2, radius * 2),
@@ -230,7 +231,7 @@ fun GameScreen(
                   text = "DEALER",
                   total =
                       if (uiState.dealerCards.isNotEmpty() && !uiState.hideHoleCard) {
-                        uiState.dealerCards.sumOf { it.value }
+                        uiState.dealerCards.evaluateHand().total
                       } else {
                         null
                       },
@@ -328,6 +329,7 @@ fun GameScreen(
 
             // Insurance overlay prompt (Direct child of the Felt Box so Alignment.Center works)
             if (uiState.stage == GameStage.INSURANCE) {
+              val canAffordInsurance = uiState.chipsOwned >= uiState.currentBet / 2
               Surface(
                   shape = RoundedCornerShape(16.dp),
                   color = Color(0xFF092016),
@@ -350,6 +352,7 @@ fun GameScreen(
                   Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(
                         onClick = { gameViewModel.resolveInsurance(true) },
+                        enabled = canAffordInsurance,
                         colors =
                             ButtonDefaults.buttonColors(
                                 contentColor = GoldFoil,
@@ -394,7 +397,7 @@ private fun DrawScope.drawArcText(
           center.x + radius,
           center.y + radius,
       )
-  val androidPath = AndroidPath().apply { arcTo(oval, 90f + ARC_SWEEP / 2f, -ARC_SWEEP, true) }
+  val androidPath = AndroidPath().apply { arcTo(oval, 90f + ArcSweep / 2f, -ArcSweep, true) }
   val paint =
       AndroidPaint().apply {
         isAntiAlias = true

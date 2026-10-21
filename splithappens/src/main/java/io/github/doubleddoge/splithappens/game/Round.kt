@@ -47,7 +47,17 @@ class PlayerHand(
         value.isBlackjack -> HandStatus.BLACKJACK
         else -> HandStatus.STOOD
       }
+
+  fun snapshot(): PlayerHand =
+      PlayerHand(cards.toMutableList(), bet, parentIndex).also {
+        it.afterSplit = afterSplit
+        it.isDoubled = isDoubled
+        it.stood = stood
+        it.surrendered = surrendered
+      }
 }
+
+fun List<PlayerHand>.snapshot(): List<PlayerHand> = map { it.snapshot() }
 
 // One Round. Bets do NOT deduct funds on placement, Bankroll is the balance at round start.
 // Reshuffles between rounds.

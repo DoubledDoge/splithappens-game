@@ -11,6 +11,8 @@ import io.github.doubleddoge.splithappens.game.Card
 import io.github.doubleddoge.splithappens.game.Phase
 import io.github.doubleddoge.splithappens.game.PlayerHand
 import io.github.doubleddoge.splithappens.game.Round
+import io.github.doubleddoge.splithappens.game.snapshot
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 private val DEAL_DELAY = 350.milliseconds
 private val DEALER_TURN_DELAY = 600.milliseconds
@@ -135,7 +136,7 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
       it.copy(
           stage = GameStage.DEALING,
           statusText = "Dealing...",
-          playerHands = round.hands.toList(),
+          playerHands = round.hands.snapshot(),
           dealerCards = emptyList(),
           hideHoleCard = true,
       )
@@ -172,6 +173,9 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
                 } else {
                   GameStage.PLAYER_TURN
                 },
+            playerHands = round.hands.snapshot(),
+            dealerCards = round.dealerCards.toList(),
+            hideHoleCard = round.holeHidden,
             activeHandIndex = round.activeIndex,
             legalActions = round.legalActions(),
             statusText =
@@ -190,7 +194,7 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
   private fun updateDealState(round: Round) {
     _uiState.update {
       it.copy(
-          playerHands = round.hands.toList(),
+          playerHands = round.hands.snapshot(),
           dealerCards = round.dealerCards.toList(),
           hideHoleCard = round.holeHidden,
       )
@@ -199,18 +203,29 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
 
   fun performAction(action: Action) {
     val round = currentRound ?: return
-    if (round.phase != Phase.PLAYER_TURN) return
+    if (round.phase != Phase.PLAYER_TURN || action !in round.legalActions()) return
+
+    val extraStake =
+        if (action == Action.DOUBLE || action == Action.SPLIT) {
+          round.hands[round.activeIndex].bet
+        } else {
+          0L
+        }
 
     round.act(action)
+
     _uiState.update {
       it.copy(
-          playerHands = round.hands.toList(),
+          chipsOwned = it.chipsOwned - extraStake,
+          currentBet = it.currentBet + extraStake,
+          playerHands = round.hands.snapshot(),
           activeHandIndex = round.activeIndex,
           dealerCards = round.dealerCards.toList(),
           hideHoleCard = round.holeHidden,
           legalActions = round.legalActions(),
       )
     }
+
     if (round.phase == Phase.FINISHED) {
       roundJob = viewModelScope.launch {
         _uiState.update {
@@ -229,17 +244,20 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
     val round = currentRound ?: return
     if (round.phase != Phase.INSURANCE) return
 
-    val amount = if (accept) _uiState.value.currentBet / 2 else 0L
+    val maxInsurance = _uiState.value.currentBet / 2
+    val amount = if (accept && _uiState.value.chipsOwned >= maxInsurance) maxInsurance else 0L
     round.resolveInsurance(amount)
 
     _uiState.update {
       it.copy(
+          chipsOwned = it.chipsOwned - amount,
           stage =
               if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
-          playerHands = round.hands.toList(),
+          playerHands = round.hands.snapshot(),
           dealerCards = round.dealerCards.toList(),
           hideHoleCard = round.holeHidden,
           legalActions = round.legalActions(),
+          statusText = if (round.phase == Phase.FINISHED) it.statusText else "Hit or Stand?",
       )
     }
 
@@ -254,12 +272,19 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
     round.hands.forEachIndexed { i, hand ->
       totalPayout += (hand.bet * results[i].multiplier).toLong()
     }
+    if (round.insuranceBet > 0L && round.dealerValue.isBlackjack) {
+      // Insurance pays 2:1
+      totalPayout += round.insuranceBet * 3L
+    }
+
     val updateChips = _uiState.value.chipsOwned + totalPayout
 
     _uiState.update {
       it.copy(
           chipsOwned = updateChips,
           stage = GameStage.ROUND_OVER,
+          playerHands = round.hands.snapshot(),
+          dealerCards = round.dealerCards.toList(),
           hideHoleCard = false,
           results = results,
           legalActions = emptySet(),
