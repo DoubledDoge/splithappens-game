@@ -208,7 +208,7 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
           hideHoleCard = false,
           results = result,
           legalActions = emptySet(),
-          statusText = "Round Finished7",
+          statusText = "Round Finished",
       )
     }
     persistUserChips(updateChips)
