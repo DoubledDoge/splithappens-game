@@ -78,7 +78,7 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private var dailyRewardChecked = false
+    private var lastCheckedUserId: String = ""
 
     init {
         observeUserDataAndStats()
@@ -130,8 +130,8 @@ class HomeViewModel(
     }
 
     private fun checkAndClaimDailyReward(userId: String) {
-        if (dailyRewardChecked || userId.isBlank()) return
-        dailyRewardChecked = true
+        if (userId.isBlank() || lastCheckedUserId == userId) return
+        lastCheckedUserId = userId
 
         viewModelScope.launch {
             val prefs = getApplication<Application>().getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)

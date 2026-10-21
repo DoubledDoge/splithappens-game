@@ -40,6 +40,15 @@ fun AppNavigation(
     )
     val settingUiState by settingViewModel.uiState.collectAsState()
 
+    // Helper for top-level navigation (Home, Game, Menu) to clear transient screens and collect memory
+    val primaryNavOptions: androidx.navigation.NavOptionsBuilder.() -> Unit = {
+        popUpTo(Screen.Home.route) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+
     SplitHappensTheme(darkTheme = settingUiState.darkTheme) {
         NavHost(
             navController = navController,
@@ -58,6 +67,7 @@ fun AppNavigation(
                 val db = remember(context.applicationContext) { (context.applicationContext as SplitHappensApp).database }
                 val homeViewModel: HomeViewModel = viewModel(
                     factory = HomeViewModelFactory(
+                        application = context.applicationContext as Application,
                         userDao = db.userDao(),
                         gameHistoryDao = db.gameHistoryDao()
                     )
@@ -66,7 +76,7 @@ fun AppNavigation(
                     viewModel = homeViewModel,
                     isDarkTheme = settingUiState.darkTheme,
                     onPlayClick = {
-                        navController.navigate(Screen.Game.route)
+                        navController.navigate(Screen.Game.route, primaryNavOptions)
                     },
                     onNavigateSettings = {
                         navController.navigate(Screen.Settings.route) {
@@ -76,18 +86,10 @@ fun AppNavigation(
                         }
                     },
                     onNavigateMenu = {
-                        navController.navigate(Screen.Menu.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navController.navigate(Screen.Menu.route, primaryNavOptions)
                     },
                     onNavigateGame = {
-                        navController.navigate(Screen.Game.route) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navController.navigate(Screen.Game.route, primaryNavOptions)
                     },
                     onNavigateProfile = {
                         navController.navigate(Screen.Profile.route) {
@@ -109,6 +111,7 @@ fun AppNavigation(
                 val db = remember(context.applicationContext) { (context.applicationContext as SplitHappensApp).database }
                 val homeViewModel: HomeViewModel = viewModel(
                     factory = HomeViewModelFactory(
+                        application = context.applicationContext as Application,
                         userDao = db.userDao(),
                         gameHistoryDao = db.gameHistoryDao()
                     )
@@ -130,10 +133,16 @@ fun AppNavigation(
                             }
                         }
                     },
-                    onNavigateHome = { navController.navigate(Screen.Home.route) },
-                    onNavigateGame = { navController.navigate(Screen.Game.route) },
-                    onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
-                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+                    onNavigateHome = { navController.navigate(Screen.Home.route, primaryNavOptions) },
+                    onNavigateGame = { navController.navigate(Screen.Game.route, primaryNavOptions) },
+                    onNavigateToProfile = { navController.navigate(Screen.Profile.route) { launchSingleTop = true } },
+                    onNavigateToSettings = {
+                        navController.navigate(Screen.Settings.route) {
+                            popUpTo(Screen.Menu.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
 
@@ -154,23 +163,19 @@ fun AppNavigation(
                     onToggleFastDeal = { settingViewModelModal.toggleFastDeal(it) },
                     onToggleAutoStandOn21 = { settingViewModelModal.toggleAutoStandOn21(it) },
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateHome = { navController.navigate(Screen.Home.route) },
-                    onNavigateGame = { navController.navigate(Screen.Game.route) },
-                    onNavigateMenu = { navController.navigate(Screen.Menu.route) }
+                    onNavigateHome = { navController.navigate(Screen.Home.route, primaryNavOptions) },
+                    onNavigateGame = { navController.navigate(Screen.Game.route, primaryNavOptions) },
+                    onNavigateMenu = { navController.navigate(Screen.Menu.route, primaryNavOptions) }
                 )
             }
             composable(Screen.Game.route) {
                 GameScreen(
                     isDarkTheme = settingUiState.darkTheme,
                     onNavigateHome = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
-                        }
+                        navController.navigate(Screen.Home.route, primaryNavOptions)
                     },
                     onNavigateMenu = {
-                        navController.navigate(Screen.Menu.route) {
-                            launchSingleTop = true
-                        }
+                        navController.navigate(Screen.Menu.route, primaryNavOptions)
                     }
                 )
             }
@@ -191,9 +196,9 @@ fun AppNavigation(
                         viewModel = vm,
                         isDarkTheme = settingUiState.darkTheme,
                         onNavigateBack = { navController.popBackStack() },
-                        onNavigateHome = { navController.navigate(Screen.Home.route) },
-                        onNavigateGame = { navController.navigate(Screen.Game.route) },
-                        onNavigateMenu = { navController.navigate(Screen.Menu.route) }
+                        onNavigateHome = { navController.navigate(Screen.Home.route, primaryNavOptions) },
+                        onNavigateGame = { navController.navigate(Screen.Game.route, primaryNavOptions) },
+                        onNavigateMenu = { navController.navigate(Screen.Menu.route, primaryNavOptions) }
                     )
                 }
             }
