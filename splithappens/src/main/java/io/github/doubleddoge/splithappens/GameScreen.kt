@@ -473,6 +473,7 @@ private fun TableLabel(
 fun GameScreenPreview() {
     SplitHappensTheme {
         GameScreen(
+            displayName = "Player 1",
             isDarkTheme = true
         )
     }
