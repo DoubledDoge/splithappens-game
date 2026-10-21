@@ -13,7 +13,7 @@ class HandResultTest {
         assertEquals(0L, HandResult.LOSS.payoutFor(100))
         assertEquals(100L, HandResult.PUSH.payoutFor(100))
         assertEquals(200L, HandResult.WIN.payoutFor(100))
-        assertEquals(300L, HandResult.BLACKJACK.payoutFor(100))
+        assertEquals(250L, HandResult.BLACKJACK.payoutFor(100))
     }
 
     @Test
