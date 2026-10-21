@@ -12,7 +12,6 @@ import io.github.doubleddoge.splithappens.game.Phase
 import io.github.doubleddoge.splithappens.game.PlayerHand
 import io.github.doubleddoge.splithappens.game.Round
 import io.github.doubleddoge.splithappens.game.snapshot
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 private val DEAL_DELAY = 350.milliseconds
 private val DEALER_TURN_DELAY = 600.milliseconds
@@ -52,7 +52,11 @@ data class GameUiState(
     val legalActions: Set<Action> = emptySet(),
     val results: List<HandResult> = emptyList(),
     val statusText: String = "Place your bets",
-)
+    val hasActiveHand: Boolean = false,
+) {
+  val isGameInProgress: Boolean
+    get() = stage != GameStage.BETTING || currentBet > 0L || hasActiveHand
+}
 
 class GameViewModel(private val userDao: UserDao) : ViewModel() {
 
@@ -314,6 +318,23 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
     val userId = _uiState.value.userId
     if (userId.isNotEmpty()) {
       viewModelScope.launch { userDao.setChips(userId, newChips) }
+    }
+  }
+
+  fun forfeitRound() {
+    roundJob?.cancel()
+    currentRound = null
+    _uiState.update {
+      it.copy(
+          currentBet = 0L,
+          playerHands = emptyList(),
+          dealerCards = emptyList(),
+          hideHoleCard = true,
+          stage = GameStage.BETTING,
+          results = emptyList(),
+          statusText = "Place your bets",
+          hasActiveHand = false,
+      )
     }
   }
 
