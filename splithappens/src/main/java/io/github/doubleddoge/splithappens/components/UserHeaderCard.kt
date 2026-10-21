@@ -35,17 +35,23 @@ fun UserHeaderCard(
     displayName: String,
     chipsOwned: Long,
     modifier: Modifier = Modifier,
+    isDarkTheme: Boolean = true,
     profilePictureBytes: ByteArray? = null,
     onProfileClick: () -> Unit = {}
 ) {
+    val cardBg = if (isDarkTheme) Color(0xFF072C1E) else Color(0xFF1C6349)
+    val avatarBg = if (isDarkTheme) Color(0xFF0F4D35) else Color(0xFF288160)
+    val chipBg = if (isDarkTheme) Color(0xFF041910) else Color(0xFF124B37)
+    val borderColor = BorderGold
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(horizontal = 10.dp, vertical = 8.dp)
-            .border(2.dp, BorderGold, RoundedCornerShape(16.dp))
+            .border(2.dp, borderColor, RoundedCornerShape(16.dp))
             .background(
-                color = Color(0xFF072C1E), // Dark green background
+                color = cardBg,
                 shape = RoundedCornerShape(16.dp)
             )
             .clickable { onProfileClick() }
@@ -57,8 +63,8 @@ fun UserHeaderCard(
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .border(1.dp, BorderGold, CircleShape)
-                .background(Color(0xFF0F4D35), shape = CircleShape),
+                .border(1.dp, borderColor, CircleShape)
+                .background(avatarBg, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
             if (profilePictureBytes != null && profilePictureBytes.isNotEmpty()) {
@@ -70,7 +76,7 @@ fun UserHeaderCard(
                 )
             } else {
                 Text(
-                    text = displayName.take(1).uppercase(),
+                    text = displayName.take(1).uppercase().ifBlank { "?" },
                     color = Color(0xFFFFD700),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -83,7 +89,7 @@ fun UserHeaderCard(
         // Player details
         Column {
             Text(
-                text = displayName,
+                text = displayName.ifBlank { "..." },
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp
@@ -91,7 +97,7 @@ fun UserHeaderCard(
             Row(
                 modifier = Modifier
                     .background(
-                        color = Color(0xFF041910),
+                        color = chipBg,
                         shape = RoundedCornerShape(50.dp)
                     )
                     .padding(horizontal = 12.dp),
@@ -119,7 +125,8 @@ fun UserHeaderCardPreview() {
         ) {
             UserHeaderCard(
                 displayName = "Player 1",
-                chipsOwned = 2500L
+                chipsOwned = 2500L,
+                isDarkTheme = true
             )
         }
     }
