@@ -1,5 +1,8 @@
 package io.github.doubleddoge.splithappens
 
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -14,6 +17,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import androidx.core.content.edit
 
 data class HomeUiState(
     val userId: String = "",
@@ -67,11 +71,14 @@ private fun ByteArray?.contentEqualsNullable(other: ByteArray?): Boolean {
 }
 
 class HomeViewModel(
+    application: Application,
     private val userDao: UserDao,
     private val gameHistoryDao: GameHistoryDao,
-) : ViewModel() {
+) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    private var dailyRewardChecked = false
 
     init {
         observeUserDataAndStats()
@@ -89,6 +96,7 @@ class HomeViewModel(
                         flowOf(HomeUiState(isLoading = true))
                     } else {
                         val picture = userDao.getPicture(user.userId)
+                        checkAndClaimDailyReward(user.userId)
                         combine(
                             gameHistoryDao.observeForUser(user.userId),
                             gameHistoryDao.observeNetChips(user.userId),
@@ -121,6 +129,24 @@ class HomeViewModel(
         }
     }
 
+    private fun checkAndClaimDailyReward(userId: String) {
+        if (dailyRewardChecked || userId.isBlank()) return
+        dailyRewardChecked = true
+
+        viewModelScope.launch {
+            val prefs = getApplication<Application>().getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
+            val lastClaim = prefs.getLong("pref_last_daily_claim_$userId", 0L)
+            val now = System.currentTimeMillis()
+            // 24 hours in milliseconds
+            val interval = 24 * 60 * 60 * 1000L
+
+            if (lastClaim == 0L || (now - lastClaim) >= interval) {
+                prefs.edit { putLong("pref_last_daily_claim_$userId", now) }
+                addDailyReward(500L)
+            }
+        }
+    }
+
     fun refreshProfilePicture() {
         val currentUserId = _uiState.value.userId
         if (currentUserId.isNotEmpty()) {
@@ -143,6 +169,7 @@ class HomeViewModel(
 }
 
 class HomeViewModelFactory(
+    private val application: Application,
     private val userDao: UserDao,
     private val gameHistoryDao: GameHistoryDao,
 ) : ViewModelProvider.Factory {
@@ -150,7 +177,7 @@ class HomeViewModelFactory(
         when {
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
                 @Suppress("UNCHECKED_CAST")
-                HomeViewModel(userDao, gameHistoryDao) as T
+                HomeViewModel(application, userDao, gameHistoryDao) as T
             }
 
             else -> {
