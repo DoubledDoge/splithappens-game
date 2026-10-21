@@ -1,5 +1,7 @@
 package io.github.doubleddoge.splithappens.components
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,39 +19,57 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import io.github.doubleddoge.splithappens.BorderGold
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+
+// Dark Theme Colors
+private val CardBgDark = Color(0xFF072C1E)
+private val AvatarBgDark = Color(0xFF0F4D35)
+private val ChipBadgeBgDark = Color(0xFF041910)
+
+// Light Theme Colors
+private val CardBgLight = Color(0xFF1B6349)
+private val AvatarBgLight = Color(0xFF237D5D)
+private val ChipBadgeBgLight = Color(0xFF124533)
+
+private val ChipGold = Color(0xFFFFD700)
 
 @Composable
 fun UserHeaderCard(
     displayName: String,
     chipsOwned: Long,
     modifier: Modifier = Modifier,
-    isDarkTheme: Boolean = true,
     profilePictureBytes: ByteArray? = null,
+    isDarkTheme: Boolean = true,
     onProfileClick: () -> Unit = {}
 ) {
-    val cardBg = if (isDarkTheme) Color(0xFF072C1E) else Color(0xFF1B634A)
-    val avatarBg = if (isDarkTheme) Color(0xFF0F4D35) else Color(0xFF288160)
-    val chipBg = if (isDarkTheme) Color(0xFF041910) else Color(0xFF124B37)
-    val borderColor = if (isDarkTheme) BorderGold else Color(0xFFFFD54F)
+    val cardBg = if (isDarkTheme) CardBgDark else CardBgLight
+    val avatarBg = if (isDarkTheme) AvatarBgDark else AvatarBgLight
+    val chipBadgeBg = if (isDarkTheme) ChipBadgeBgDark else ChipBadgeBgLight
+
+    val bitmap = remember(profilePictureBytes) {
+        profilePictureBytes?.let {
+            BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap()
+        }
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(horizontal = 10.dp, vertical = 8.dp)
-            .border(2.dp, borderColor, RoundedCornerShape(16.dp))
+            .border(2.dp, BorderGold, RoundedCornerShape(16.dp))
             .background(
                 color = cardBg,
                 shape = RoundedCornerShape(16.dp)
@@ -58,26 +78,26 @@ fun UserHeaderCard(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Profile Picture / Avatar Icon
+        // Profile Picture Avatar
         Box(
             modifier = Modifier
                 .size(44.dp)
+                .border(1.dp, BorderGold, CircleShape)
                 .clip(CircleShape)
-                .border(1.dp, borderColor, CircleShape)
-                .background(avatarBg, shape = CircleShape),
+                .background(avatarBg),
             contentAlignment = Alignment.Center
         ) {
-            if (profilePictureBytes != null && profilePictureBytes.isNotEmpty()) {
-                AsyncImage(
-                    model = profilePictureBytes,
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap,
                     contentDescription = "Profile Picture",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
             } else {
                 Text(
-                    text = displayName.take(1).uppercase().ifBlank { "?" },
-                    color = Color(0xFFFFD700),
+                    text = displayName.take(1).uppercase(),
+                    color = ChipGold,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -97,7 +117,7 @@ fun UserHeaderCard(
             Row(
                 modifier = Modifier
                     .background(
-                        color = chipBg,
+                        color = chipBadgeBg,
                         shape = RoundedCornerShape(50.dp)
                     )
                     .padding(horizontal = 12.dp),
@@ -105,7 +125,7 @@ fun UserHeaderCard(
             ) {
                 Text(
                     text = "🪙 R$chipsOwned",
-                    color = Color(0xFFFFD700), // Gold chips color
+                    color = ChipGold,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -120,13 +140,13 @@ fun UserHeaderCardPreview() {
     SplitHappensTheme {
         Box(
             modifier = Modifier
-                .background(Color(0xFF0B1B15)) // Dark background to match app theme
+                .background(Color(0xFF0B1B15))
                 .padding(16.dp)
         ) {
             UserHeaderCard(
                 displayName = "Player 1",
                 chipsOwned = 2500L,
-                //change this to check in preview what the modes look like
+                profilePictureBytes = null,
                 isDarkTheme = true
             )
         }

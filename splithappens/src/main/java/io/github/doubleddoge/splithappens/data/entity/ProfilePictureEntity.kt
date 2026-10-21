@@ -7,17 +7,18 @@ import androidx.room3.PrimaryKey
 // Keeps image raw data out of every profile-list query
 @Suppress("ArrayInDataClass") // never compared by value
 @Entity(
-	tableName = "ProfilePictures",
-	foreignKeys = [
-		ForeignKey(
-			entity = UserEntity::class,
-			parentColumns = ["userId"],
-			childColumns = ["userId"],
-			onDelete = ForeignKey.CASCADE //
-		)
-	]
+    tableName = "ProfilePictures",
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = UserEntity::class,
+                parentColumns = ["userId"],
+                childColumns = ["userId"],
+                onDelete = ForeignKey.CASCADE,
+            )
+        ],
 )
 data class ProfilePictureEntity(
-	@PrimaryKey val userId: String,
-	val image: ByteArray
+    @PrimaryKey val userId: String,
+    val image: ByteArray,
 )

@@ -28,7 +28,11 @@ fun triggerDeviceVibration(context: Context, durationMillis: Long = 35L) {
             )
             vibrator.vibrate(effect)
         }
-    } catch (e: Exception) {
-        // Exception caught gracefully without crashing UI interactions
+    } catch (_: SecurityException) {
+        // Missing VIBRATE permission
+    } catch (_: IllegalArgumentException) {
+        // Invalid vibration duration or amplitude parameter
+    } catch (_: UnsupportedOperationException) {
+        // Vibration effect unsupported on device
     }
 }

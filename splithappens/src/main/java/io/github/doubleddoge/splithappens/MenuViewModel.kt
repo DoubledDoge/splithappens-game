@@ -25,6 +25,9 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs: SharedPreferences =
         application.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
 
+    private val authPrefs: SharedPreferences =
+        application.getSharedPreferences("split_happens_auth", Context.MODE_PRIVATE)
+
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
             "pref_sound_effects", "pref_haptic_vibration" -> {
@@ -67,6 +70,11 @@ class MenuViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun logout(onLoggedOut: () -> Unit) {
+        authPrefs.edit {
+            remove("saved_user_id")
+            remove("saved_username")
+            putBoolean("remember_me", false)
+        }
         prefs.edit {
             remove("active_user_id")
         }
