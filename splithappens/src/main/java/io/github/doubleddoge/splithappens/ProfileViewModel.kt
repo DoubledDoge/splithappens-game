@@ -98,7 +98,8 @@ class ProfileViewModel(
       combine(
               userDao.observeById(targetUserId),
               gameHistoryDao.observeForUser(targetUserId),
-          ) { user, history ->
+              gameHistoryDao.observeNetChips(targetUserId),
+          ) { user, history, totalNetChips ->
             if (user == null) {
               ProfileUiState(
                   userId = targetUserId,
@@ -125,6 +126,7 @@ class ProfileViewModel(
                   wins = wins,
                   losses = losses,
                   winRate = winRate,
+                  netChipsEarned = totalNetChips,
                   isLoading = false,
               )
             }

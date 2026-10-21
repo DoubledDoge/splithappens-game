@@ -173,6 +173,7 @@ fun HomeScreenContent(
           UserHeaderCard(
               displayName = uiState.displayName,
               chipsOwned = uiState.chipsOwned,
+              isDarkTheme = isDarkTheme,
               profilePictureBytes = uiState.profilePictureBytes,
               onProfileClick = onNavigateProfile,
           )

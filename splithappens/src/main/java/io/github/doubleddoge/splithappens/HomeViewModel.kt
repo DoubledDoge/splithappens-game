@@ -23,6 +23,8 @@ data class HomeUiState(
     val profilePictureBytes: ByteArray? = null,
     val totalGamesPlayed: Int = 0,
     val totalWins: Int = 0,
+    val totalLosses: Int = 0,
+    val winRate: Double = 0.0,
     val netChipsEarned: Long = 0,
     val isLoading: Boolean = true,
 ) {
@@ -36,6 +38,8 @@ data class HomeUiState(
                 profilePictureBytes.contentEqualsNullable(other.profilePictureBytes) &&
                 totalGamesPlayed == other.totalGamesPlayed &&
                 totalWins == other.totalWins &&
+                totalLosses == other.totalLosses &&
+                winRate == other.winRate &&
                 netChipsEarned == other.netChipsEarned &&
                 isLoading == other.isLoading
     }
@@ -47,6 +51,8 @@ data class HomeUiState(
         result = 31 * result + (profilePictureBytes?.contentHashCode() ?: 0)
         result = 31 * result + totalGamesPlayed
         result = 31 * result + totalWins
+        result = 31 * result + totalLosses
+        result = 31 * result + winRate.hashCode()
         result = 31 * result + netChipsEarned.hashCode()
         result = 31 * result + isLoading.hashCode()
         return result
@@ -99,12 +105,23 @@ class HomeViewModel(
                         gameHistoryDao.observeForUser(user.userId),
                         gameHistoryDao.observeNetChips(user.userId),
                     ) { historyList, totalNetChips ->
+                        val gamesPlayed = historyList.size
+                        val wins = historyList.count { it.netChips > 0 }
+                        val losses = historyList.count { it.netChips < 0 }
+                        val winRate = if (gamesPlayed > 0) {
+                            (wins.toDouble() / gamesPlayed) * 100
+                        } else {
+                            0.0
+                        }
                         HomeUiState(
                             userId = user.userId,
                             displayName = user.displayName,
                             chipsOwned = user.chipsOwned,
-                            totalGamesPlayed = historyList.size,
-                            totalWins = historyList.count { it.netChips > 0 },
+                            profilePictureBytes = null,
+                            totalGamesPlayed = gamesPlayed,
+                            totalWins = wins,
+                            totalLosses = losses,
+                            winRate = winRate,
                             netChipsEarned = totalNetChips,
                             isLoading = false,
                         )

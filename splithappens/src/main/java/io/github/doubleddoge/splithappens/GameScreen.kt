@@ -1,11 +1,9 @@
 package io.github.doubleddoge.splithappens
 
+import android.app.Application
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -62,7 +60,6 @@ import io.github.doubleddoge.splithappens.components.HandRow
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
 import io.github.doubleddoge.splithappens.game.evaluateHand
-import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import android.graphics.Paint as AndroidPaint
@@ -87,6 +84,7 @@ private const val ArcSweep = 110f
 @Composable
 fun GameScreen(
     modifier: Modifier = Modifier,
+    userId: String = "",
     displayName: String = "Player 1",
     chipsOwned: Long = 2500L,
     isDarkTheme: Boolean = true,
@@ -95,7 +93,17 @@ fun GameScreen(
 ) {
   val context = LocalContext.current
   val db = remember(context) { buildSplitHappensDatabase(context) }
-  val gameViewModel: GameViewModel = viewModel(factory = GameViewModelFactory(db.userDao()))
+  val gameViewModel: GameViewModel =
+      viewModel(
+          key = "game_$userId",
+          factory = GameViewModelFactory(
+              application = context.applicationContext as Application,
+              userDao = db.userDao(),
+              sessionDao = db.sessionDao(),
+              roundDao = db.roundDao(),
+              targetUserId = userId
+          )
+      )
   val uiState by gameViewModel.uiState.collectAsState()
   val isGameInProgress = uiState.isGameInProgress
 
@@ -114,8 +122,12 @@ fun GameScreen(
     }
   }
 
-  BackHandler(enabled = isGameInProgress) {
-    pendingNavigation = onNavigateHome
+  BackHandler {
+    if (isGameInProgress) {
+      pendingNavigation = onNavigateHome
+    } else {
+      onNavigateHome()
+    }
   }
 
   if (pendingNavigation != null) {
@@ -152,7 +164,7 @@ fun GameScreen(
       },
       bottomBar = {
         AppBottomBar(
-            currentRoute = Screen.route,
+            currentRoute = Screen.Game.route,
             isDarkTheme = isDarkTheme,
             onNavigateHome = { safeNavigate(onNavigateHome) },
             onNavigateGame = { /* Already on Game */ },

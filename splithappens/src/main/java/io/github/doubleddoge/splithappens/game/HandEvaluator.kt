@@ -11,11 +11,11 @@ object HandEvaluator{
         if (hand.isBust) return null
         val candidates = buildList {
             if (hand.isBlackjack) add(HandResult.BLACKJACK)
-                if (hand.isQueenAce) add(HandResult.QUEEN_JACK)
-                    if (hand.isJackAce) add(HandResult.NATURAL_BLACKJACK)
-                        if (hand.isTripleSeven) add(HandResult.TRIPLE_SEVEN)
-                            if (hand.isSixCard) add(HandResult.SIX_CARD)
-                                if (hand.isSevenCard) add(HandResult.SEVEN_CARD)
+            if (hand.isQueenAce) add(HandResult.QUEEN_JACK)
+            if (hand.isJackAce) add(HandResult.NATURAL_BLACKJACK)
+            if (hand.isTripleSeven) add(HandResult.TRIPLE_SEVEN)
+            if (hand.isSixCard) add(HandResult.SIX_CARD)
+            if (hand.isSevenCard) add(HandResult.SEVEN_CARD)
         }
         return candidates.filter { it in mode.allowedResults }.maxByOrNull { it.multiplier }
     }

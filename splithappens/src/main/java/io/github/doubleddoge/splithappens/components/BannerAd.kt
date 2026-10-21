@@ -1,5 +1,6 @@
 package io.github.doubleddoge.splithappens.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -21,6 +22,7 @@ import com.google.android.gms.ads.LoadAdError
 //this would be replaced by the organization Google AdMob ID.
 private const val TEST_BANNER_ID = "ca-app-pub-3940256099942544/9214589741"
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun BannerAd(modifier: Modifier = Modifier) {
     val context = LocalContext.current

@@ -54,6 +54,7 @@ import coil.compose.AsyncImage
 import io.github.doubleddoge.splithappens.components.AppBottomBar
 import java.io.ByteArrayOutputStream
 import java.util.Locale
+import kotlin.math.abs
 
 @Composable
 fun ProfileScreen(
@@ -405,48 +406,23 @@ fun ProfileScreenContent(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.Black.copy(alpha = 0.18f))
-                                .border(
-                                    width = 1.dp,
-                                    color = BorderGold.copy(alpha = 0.15f),
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "WIN RATE",
-                                    color = Color.White.copy(alpha = 0.5f),
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.2.sp
-                                )
-                                Spacer(modifier = Modifier.height(3.dp))
-                                Text(
-                                    text = String.format(Locale.US, "%.1f%%", uiState.winRate),
-                                    color = BorderGold,
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                            ProfileStatCard(
+                                title = "WIN RATE",
+                                value = String.format(Locale.US, "%.1f%%", uiState.winRate),
+                                modifier = Modifier.weight(1f)
+                            )
+                            val netChipsFormatted = if (uiState.netChipsEarned >= 0) {
+                                "+R${uiState.netChipsEarned}"
+                            } else {
+                                "-R${abs(uiState.netChipsEarned)}"
                             }
-
-                            val performanceText = when {
-                                uiState.gamesPlayed == 0 -> "NO GAMES"
-                                uiState.winRate >= 60 -> "EXCELLENT"
-                                uiState.winRate >= 50 -> "GOOD FORM"
-                                else -> "KEEP PLAYING"
-                            }
-
-                            Text(
-                                text = performanceText,
-                                color = BorderGold,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                            ProfileStatCard(
+                                title = "NET CHIPS",
+                                value = netChipsFormatted,
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
