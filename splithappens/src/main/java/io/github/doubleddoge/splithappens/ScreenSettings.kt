@@ -1,5 +1,10 @@
 package io.github.doubleddoge.splithappens
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,18 +16,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -30,19 +29,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.components.AppBottomBar
-import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+
+// Local Color Palette fallbacks to guarantee no unresolved color symbols
+private val SettingsDarkBg = Color(0xFF0F3022)
+private val SettingsLightBg = Color(0xFF144D38)
+private val SettingsCardDark = Color(0xFF133827)
+private val SettingsCardLight = Color(0xFF1C6349)
+private val SettingsGold = Color(0xFFE5B036)
 
 @Composable
 fun ScreenSettings(
-    uiState: SettingUiState = SettingUiState(darkTheme = true),
+    uiState: SettingUiState,
     onToggleDarkTheme: (Boolean) -> Unit = {},
     onToggleShowCardTotal: (Boolean) -> Unit = {},
     onToggleDealerRuleBanner: (Boolean) -> Unit = {},
@@ -50,25 +53,20 @@ fun ScreenSettings(
     onToggleHapticVibration: (Boolean) -> Unit = {},
     onToggleFastDeal: (Boolean) -> Unit = {},
     onToggleAutoStandOn21: (Boolean) -> Unit = {},
-    onNavigateBack: () -> Unit = {},
     onNavigateHome: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
-    onNavigateMenu: () -> Unit = onNavigateBack
+    onNavigateMenu: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
-    // Screen colors
-    val currentBackground = if (uiState.darkTheme) DarkBackground else Color(0xFF144D38)
-    val currentCardBg = if (uiState.darkTheme) CardBackground else Color(0xFF1C6349)
+    val currentBackground = if (uiState.darkTheme) SettingsDarkBg else SettingsLightBg
+    val currentCardBg = if (uiState.darkTheme) SettingsCardDark else SettingsCardLight
     val currentCardBorder = if (uiState.darkTheme) Color(0xFF134530) else Color(0xFF288160)
     val currentSubtitle = if (uiState.darkTheme) Color(0xFF8BA697) else Color(0xFFBCE0CF)
     val currentCategoryTitle = if (uiState.darkTheme) Color(0xFF789D8B) else Color(0xFFA5D6BD)
     val currentDivider = if (uiState.darkTheme) Color(0xFF133B29) else Color(0xFF247053)
 
-    // Dynamic Switch Color Palette:
-    // Dark ON: Rich deep gold track, dark thumb
-    // Dark OFF: Deeper warm yellow track, pure white thumb
-    val activeTrackColor = if (uiState.darkTheme) BorderGold else Color(0xFFFFD54F)
+    val activeTrackColor = if (uiState.darkTheme) SettingsGold else Color(0xFFFFD54F)
     val activeThumbColor = if (uiState.darkTheme) Color(0xFF0C2419) else Color.White
     val inactiveTrackColor = if (uiState.darkTheme) Color(0xFF435A50) else Color(0xFF1B4E3A)
     val inactiveThumbColor = if (uiState.darkTheme) Color(0xFF8BA697) else Color(0xFFBCE0CF)
@@ -92,37 +90,19 @@ fun ScreenSettings(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // Header
-            Row(
+            // Centered Header (No back button)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(top = 8.dp, bottom = 20.dp),
+                contentAlignment = Alignment.Center
             ) {
-                IconButton(
-                    onClick = { onNavigateBack() },
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(currentCardBg)
-                        .border(1.dp, currentCardBorder, CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
                 Text(
                     text = "SETTINGS",
-                    color = BorderGold,
-                    fontSize = 22.sp,
+                    color = SettingsGold,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp
+                    letterSpacing = 3.sp
                 )
             }
 
@@ -176,12 +156,7 @@ fun ScreenSettings(
                     subtitle = "Card deals, chip stacks, and win fanfare",
                     subtitleColor = currentSubtitle,
                     checked = uiState.soundEffects,
-                    onCheckedChange = { enabled ->
-                        onToggleSoundEffects(enabled)
-                        if (enabled) {
-                            runCatching { triggerClickSound() }
-                        }
-                    },
+                    onCheckedChange = onToggleSoundEffects,
                     activeTrack = activeTrackColor,
                     activeThumb = activeThumbColor,
                     inactiveTrack = inactiveTrackColor,
@@ -196,7 +171,17 @@ fun ScreenSettings(
                     onCheckedChange = { enabled ->
                         onToggleHapticVibration(enabled)
                         if (enabled) {
-                            runCatching { triggerDeviceVibration(context, durationMillis = 40L) }
+                            runCatching {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                                    vibratorManager?.defaultVibrator?.vibrate(VibrationEffect.createOneShot(40L, VibrationEffect.DEFAULT_AMPLITUDE))
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                                    @Suppress("DEPRECATION")
+                                    vibrator?.vibrate(40L)
+                                }
+                            }
                         }
                     },
                     activeTrack = activeTrackColor,
@@ -341,12 +326,4 @@ private fun SettingItemDivider(dividerColor: Color) {
             .height(1.dp)
             .background(dividerColor)
     )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ScreenSettingsPreview() {
-    SplitHappensTheme {
-        ScreenSettings()
-    }
 }

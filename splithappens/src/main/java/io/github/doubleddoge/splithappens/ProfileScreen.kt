@@ -24,15 +24,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -52,12 +48,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import io.github.doubleddoge.splithappens.components.AppBottomBar
-import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import java.io.ByteArrayOutputStream
 import java.util.Locale
 
@@ -156,37 +150,19 @@ fun ProfileScreenContent(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header matching ScreenSettings
-            Row(
+            // Centered Header (Top-left back button completely removed)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(top = 8.dp, bottom = 20.dp),
+                contentAlignment = Alignment.Center
             ) {
-                IconButton(
-                    onClick = { onNavigateBack() },
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(currentCardBg)
-                        .border(1.dp, currentCardBorder, CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
                 Text(
                     text = "PROFILE",
                     color = BorderGold,
-                    fontSize = 22.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp
+                    letterSpacing = 3.sp
                 )
             }
 
@@ -511,35 +487,6 @@ private fun ProfileStatCard(
             color = BorderGold,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ProfileScreenPreview() {
-    val mockUiState = ProfileUiState(
-        userId = "user_001",
-        displayName = "Andriaan",
-        chipsOwned = 2500L,
-        profilePictureBytes = null,
-        gamesPlayed = 24,
-        wins = 15,
-        losses = 9,
-        winRate = 62.5,
-        isLoading = false
-    )
-
-    SplitHappensTheme {
-        ProfileScreenContent(
-            uiState = mockUiState,
-            isDarkTheme = true,
-            onNavigateBack = {},
-            onUpdateDisplayName = {},
-            onUpdateProfilePicture = {},
-            onNavigateHome = {},
-            onNavigateGame = {},
-            onNavigateMenu = {}
         )
     }
 }

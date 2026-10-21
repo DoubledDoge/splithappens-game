@@ -149,6 +149,7 @@ fun HomeScreenContent(
                     displayName = uiState.displayName,
                     chipsOwned = uiState.chipsOwned,
                     profilePictureBytes = uiState.profilePictureBytes,
+                    isDarkTheme = isDarkTheme,
                     onProfileClick = onNavigateProfile
                 )
             }
@@ -171,7 +172,10 @@ fun HomeScreenContent(
                 .padding(horizontal = 12.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-            AdBannerPlaceholder(isDarkTheme = isDarkTheme)
+            AdBannerPlaceholder(
+                modifier = Modifier.clickable { onNavigateSettings() },
+                isDarkTheme = isDarkTheme
+            )
             Spacer(modifier = Modifier.height(12.dp))
 
             // STATS & RULES Buttons

@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -51,7 +49,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlin.math.abs
@@ -82,7 +79,6 @@ fun MenuScreen(
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
     var showStatsDialog by remember { mutableStateOf(false) }
-
 
     // Dynamic color palette based on theme
     val bgGlowCenter = if (isDarkTheme) MenuTheme_GlowCenter else Color(0xFF1B634A)
@@ -159,7 +155,18 @@ fun MenuScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // 2. Stats
+                // 2. Settings
+                MenuButton(
+                    text = "SETTINGS",
+                    icon = "⚙️",
+                    surfaceColor = surfaceColor,
+                    borderColor = surfaceBorder,
+                    onClick = { runFeedback(onNavigateToSettings) }
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 3. Stats
                 MenuButton(
                     text = "STATS",
                     icon = "📊",
@@ -170,24 +177,13 @@ fun MenuScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // 3. Rules & Strategy
+                // 4. Rules & Strategy
                 MenuButton(
                     text = "RULES & STRATEGY",
                     icon = "📖",
                     surfaceColor = surfaceColor,
                     borderColor = surfaceBorder,
                     onClick = { runFeedback(onOpenRules) }
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // 4. Settings
-                MenuButton(
-                    text = "SETTINGS",
-                    icon = "⚙️",
-                    surfaceColor = surfaceColor,
-                    borderColor = surfaceBorder,
-                    onClick = { runFeedback(onNavigateToSettings) }
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -214,7 +210,7 @@ fun MenuScreen(
         )
     }
 
-    // Modal In-Screen Rules Booklet (Dismissed only via top-right ✕)
+    // Modal In-Screen Rules Booklet (Dismissed via bottom CLOSE button)
     if (uiState.isRulesBookletOpen) {
         RulesBookletDialog(
             surfaceColor = surfaceColor,
@@ -296,7 +292,7 @@ private fun MenuButton(
                     text = icon,
                     fontSize = 18.sp
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.size(16.dp))
                 Text(
                     text = text,
                     color = if (isPrimary) MenuTheme_BackgroundDark else Color.White,
@@ -443,7 +439,7 @@ private fun MenuStatsDialog(
                         color = BorderGold
                     )
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.size(12.dp))
 
                     Column {
                         Text(
@@ -544,98 +540,116 @@ private fun RulesBookletDialog(
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Basics", "Wildcards", "Strategy")
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Box(
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.75f))
-                .padding(20.dp),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = surfaceColor,
+            border = BorderStroke(1.dp, BorderGold),
+            tonalElevation = 8.dp
         ) {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = surfaceColor),
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.5.dp, BorderGold, RoundedCornerShape(20.dp))
+                    .padding(20.dp)
             ) {
+                // Header (Centered, matching Stats dialog)
                 Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "♠  RULEBOOK  ♠",
+                        color = BorderGold,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "RULES & PLAYING STRATEGY",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 1.5.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                HorizontalDivider(
+                    color = BorderGold.copy(alpha = 0.45f),
+                    thickness = 1.dp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SecondaryTabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = backgroundColor,
+                    contentColor = BorderGold,
+                    indicator = {
+                        TabRowDefaults.SecondaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(selectedTab),
+                            color = BorderGold
+                        )
+                    }
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = {
+                                Text(
+                                    text = title,
+                                    color = if (selectedTab == index) BorderGold else mutedTextColor,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp)
+                        .height(260.dp)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "RULEBOOK",
-                            color = BorderGold,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.1f))
-                                .clickable { onDismiss() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = "✕", color = Color.White, fontSize = 14.sp)
-                        }
+                    when (selectedTab) {
+                        0 -> RulesBasicsContent(mutedTextColor)
+                        1 -> RulesWildcardsContent(mutedTextColor)
+                        2 -> RulesStrategyContent(mutedTextColor)
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                    SecondaryTabRow(
-                        selectedTabIndex = selectedTab,
-                        containerColor = backgroundColor,
-                        contentColor = BorderGold,
-                        indicator = {
-                            TabRowDefaults.SecondaryIndicator(
-                                modifier = Modifier.tabIndicatorOffset(selectedTab),
-                                color = BorderGold
-                            )
-                        }
-                    ) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(
-                                selected = selectedTab == index,
-                                onClick = { selectedTab = index },
-                                text = {
-                                    Text(
-                                        text = title,
-                                        color = if (selectedTab == index) BorderGold else mutedTextColor,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp
-                                    )
-                                }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        when (selectedTab) {
-                            0 -> RulesBasicsContent(mutedTextColor)
-                            1 -> RulesWildcardsContent(mutedTextColor)
-                            2 -> RulesStrategyContent(mutedTextColor)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                // Bottom Yellow / Gold Close Button
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BorderGold,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = "CLOSE",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
                 }
             }
         }
