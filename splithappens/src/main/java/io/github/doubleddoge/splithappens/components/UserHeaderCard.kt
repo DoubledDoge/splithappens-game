@@ -39,10 +39,10 @@ fun UserHeaderCard(
     profilePictureBytes: ByteArray? = null,
     onProfileClick: () -> Unit = {}
 ) {
-    val cardBg = if (isDarkTheme) Color(0xFF072C1E) else Color(0xFF1C6349)
+    val cardBg = if (isDarkTheme) Color(0xFF072C1E) else Color(0xFF1B634A)
     val avatarBg = if (isDarkTheme) Color(0xFF0F4D35) else Color(0xFF288160)
     val chipBg = if (isDarkTheme) Color(0xFF041910) else Color(0xFF124B37)
-    val borderColor = BorderGold
+    val borderColor = if (isDarkTheme) BorderGold else Color(0xFFFFD54F)
 
     Row(
         modifier = modifier
@@ -126,6 +126,7 @@ fun UserHeaderCardPreview() {
             UserHeaderCard(
                 displayName = "Player 1",
                 chipsOwned = 2500L,
+                //change this to check in preview what the modes look like
                 isDarkTheme = true
             )
         }

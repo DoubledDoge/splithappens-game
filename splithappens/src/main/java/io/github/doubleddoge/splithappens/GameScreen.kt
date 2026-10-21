@@ -81,8 +81,8 @@ private const val ArcSweep = 110f
 @Composable
 fun GameScreen(
     modifier: Modifier = Modifier,
-    displayName: String = "Player 1",
-    chipsOwned: Long = 2500L,
+    displayName: String = "",
+
     isDarkTheme: Boolean = true,
     onNavigateHome: () -> Unit = {},
     onNavigateMenu: () -> Unit = {}
@@ -105,7 +105,9 @@ fun GameScreen(
         topBar = {
             UserHeaderCard(
                 displayName = uiState.displayName.ifBlank { displayName },
-                chipsOwned = uiState.chipsOwned
+                chipsOwned = uiState.chipsOwned,
+                modifier,
+                isDarkTheme
             )
         },
         bottomBar = {
@@ -471,8 +473,6 @@ private fun TableLabel(
 fun GameScreenPreview() {
     SplitHappensTheme {
         GameScreen(
-            displayName = "Player 1",
-            chipsOwned = 2500L,
             isDarkTheme = true
         )
     }

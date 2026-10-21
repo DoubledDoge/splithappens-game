@@ -46,7 +46,6 @@ import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.components.BannerAd
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
-import java.util.Locale
 import kotlin.math.abs
 
 // Color Palette
@@ -150,6 +149,8 @@ fun HomeScreenContent(
                 UserHeaderCard(
                     displayName = uiState.displayName,
                     chipsOwned = uiState.chipsOwned,
+                    modifier,
+                    isDarkTheme,
                     profilePictureBytes = uiState.profilePictureBytes,
                     onProfileClick = onNavigateProfile
                 )
