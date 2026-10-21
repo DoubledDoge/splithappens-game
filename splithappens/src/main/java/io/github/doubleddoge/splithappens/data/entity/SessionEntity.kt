@@ -18,7 +18,7 @@ import io.github.doubleddoge.splithappens.data.enum.SessionStatus
                 onDelete = ForeignKey.CASCADE,
             ),
         ],
-    indices = [Index("userId")], //
+    indices = [Index("userId")],
 )
 data class SessionEntity(
     @PrimaryKey(autoGenerate = true) val sessionId: Long = 0,

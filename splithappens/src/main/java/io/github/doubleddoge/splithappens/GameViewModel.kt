@@ -1,6 +1,5 @@
 package io.github.doubleddoge.splithappens
 
-import android.app.ProgressDialog.show
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -12,6 +11,7 @@ import io.github.doubleddoge.splithappens.game.Card
 import io.github.doubleddoge.splithappens.game.Phase
 import io.github.doubleddoge.splithappens.game.PlayerHand
 import io.github.doubleddoge.splithappens.game.Round
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,13 +19,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
-enum class DealerEmotion { NEUTRAL, SMUG, BUSTED }
+enum class DealerEmotion {
+  NEUTRAL,
+  SMUG,
+  BUSTED,
+}
 
-enum class GameStage { BETTING, INSURANCE, PLAYER_TURN, DEALER_TURN, ROUND_OVER }
-
-
+enum class GameStage {
+  BETTING,
+  INSURANCE,
+  PLAYER_TURN,
+  DEALER_TURN,
+  ROUND_OVER,
+}
 
 data class GameUiState(
     val userId: String = "default_player",
@@ -39,206 +46,207 @@ data class GameUiState(
     val hideHoleCard: Boolean = true,
     val legalActions: Set<Action> = emptySet(),
     val results: List<HandResult> = emptyList(),
-    val statusText: String = "Place your bets"
+    val statusText: String = "Place your bets",
 )
 
-class GameViewModel(
-    private val userDao: UserDao
-) : ViewModel() {
+class GameViewModel(private val userDao: UserDao) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(GameUiState())
-    val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(GameUiState())
+  val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
-    private val shoe = io.github.doubleddoge.splithappens.game.Shoe(deckCount = 6)
-    private var roundJob: Job? = null
+  private val shoe = io.github.doubleddoge.splithappens.game.Shoe(deckCount = 6)
+  private var roundJob: Job? = null
 
-    private var currentRound: Round? = null
+  private var currentRound: Round? = null
 
-    init {
-        observeUserData()
-    }
+  init {
+    observeUserData()
+  }
 
-    private fun observeUserData() {
-        viewModelScope.launch {
-            userDao.observeAll().collect { users ->
-                val user = users.firstOrNull()
-                if (user != null) {
-                    _uiState.update { current ->
-                        val idle = current.stage == GameStage.BETTING && current.currentBet == 0L
-                        current.copy(
-                            userId = user.userId,
-                            displayName = user.displayName,
-                            chipsOwned = if (idle) user.chipsOwned else current.chipsOwned
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    // --- BETTING ---
-
-    fun addBet(amount: Long) {
-        val s = _uiState.value
-        if (s.stage != GameStage.BETTING || s.chipsOwned < amount) return
-
-
-        val newBet = s.currentBet + amount
-        _uiState.update {
-            it.copy(
-                chipsOwned = it.chipsOwned - amount,
-                currentBet = newBet,
-                statusText = "Bet: R$newBet"
+  private fun observeUserData() {
+    viewModelScope.launch {
+      userDao.observeAll().collect { users ->
+        val user = users.firstOrNull()
+        if (user != null) {
+          _uiState.update { current ->
+            val idle = current.stage == GameStage.BETTING && current.currentBet == 0L
+            current.copy(
+                userId = user.userId,
+                displayName = user.displayName,
+                chipsOwned = if (idle) user.chipsOwned else current.chipsOwned,
             )
+          }
         }
+      }
     }
+  }
 
-    fun clearBet() {
-        val s = _uiState.value
-        if (s.stage != GameStage.BETTING || s.currentBet == 0L) return
-        _uiState.update {
-            it.copy(
-                chipsOwned = it.chipsOwned + it.currentBet,
-                currentBet = 0L,
-                statusText = "Place your bets"
-            )
-        }
+  // --- BETTING ---
+
+  fun addBet(amount: Long) {
+    val s = _uiState.value
+    if (s.stage != GameStage.BETTING || s.chipsOwned < amount) return
+
+    val newBet = s.currentBet + amount
+    _uiState.update {
+      it.copy(
+          chipsOwned = it.chipsOwned - amount,
+          currentBet = newBet,
+          statusText = "Bet: R$newBet",
+      )
     }
+  }
 
-    // --- DEAL ---
+  fun clearBet() {
+    val s = _uiState.value
+    if (s.stage != GameStage.BETTING || s.currentBet == 0L) return
+    _uiState.update {
+      it.copy(
+          chipsOwned = it.chipsOwned + it.currentBet,
+          currentBet = 0L,
+          statusText = "Place your bets",
+      )
+    }
+  }
 
-    fun deal() {
-        val s = _uiState.value
-        if (s.stage != GameStage.BETTING || s.currentBet <= 0L) return
+  // --- DEAL ---
 
-        if (shoe.needsReshuffle) shoe.reshuffle()
+  fun deal() {
+    val s = _uiState.value
+    if (s.stage != GameStage.BETTING || s.currentBet <= 0L) return
 
-        val round = Round(
+    if (shoe.needsReshuffle) shoe.reshuffle()
+
+    val round =
+        Round(
             shoe = shoe,
             mode = GameMode.TRADITIONAL,
             bankroll = s.chipsOwned + s.currentBet,
-            minBet = 5L
+            minBet = 5L,
         )
-        currentRound = round
-        round.placeBet(s.currentBet)
+    currentRound = round
+    round.placeBet(s.currentBet)
 
+    _uiState.update {
+      it.copy(
+          stage =
+              if (round.phase == Phase.INSURANCE) GameStage.INSURANCE else GameStage.PLAYER_TURN,
+          playerHands = round.hands.toList(),
+          activeHandIndex = round.activeIndex,
+          dealerCards = round.dealerCards.toList(),
+          hideHoleCard = round.holeHidden,
+          legalActions = round.legalActions(),
+          statusText = if (round.phase == Phase.INSURANCE) "Insurance Offered" else "Your turn",
+      )
+    }
+
+    if (round.phase == Phase.FINISHED) finishRound()
+  }
+
+  fun performAction(action: Action) {
+    val round = currentRound ?: return
+    if (round.phase != Phase.PLAYER_TURN) return
+
+    round.act(action)
+    _uiState.update {
+      it.copy(
+          playerHands = round.hands.toList(),
+          activeHandIndex = round.activeIndex,
+          dealerCards = round.dealerCards.toList(),
+          hideHoleCard = round.holeHidden,
+          legalActions = round.legalActions(),
+      )
+    }
+    if (round.phase == Phase.FINISHED) {
+      roundJob = viewModelScope.launch {
         _uiState.update {
-            it.copy(
-                stage = if (round.phase == Phase.INSURANCE) GameStage.INSURANCE else GameStage.PLAYER_TURN,
-                playerHands = round.hands.toList(),
-                activeHandIndex = round.activeIndex,
-                dealerCards = round.dealerCards.toList(),
-                hideHoleCard = round.holeHidden,
-                legalActions = round.legalActions(),
-                statusText = if (round.phase == Phase.INSURANCE) "Insurance Offered" else "Your turn"
-            )
+          it.copy(
+              stage = GameStage.DEALER_TURN,
+              statusText = "Dealer drawing...",
+          )
         }
+        delay(600.milliseconds)
+        finishRound()
+      }
+    }
+  }
 
-        if (round.phase == Phase.FINISHED) finishRound()
+  fun resolveInsurance(accept: Boolean) {
+    val round = currentRound ?: return
+    if (round.phase != Phase.INSURANCE) return
+
+    val amount = if (accept) _uiState.value.currentBet / 2 else 0L
+    round.resolveInsurance(amount)
+
+    _uiState.update {
+      it.copy(
+          stage =
+              if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
+          playerHands = round.hands.toList(),
+          dealerCards = round.dealerCards.toList(),
+          hideHoleCard = round.holeHidden,
+          legalActions = round.legalActions(),
+      )
     }
 
-    fun performAction(action: Action) {
-        val round = currentRound ?: return
-        if (round.phase != Phase.PLAYER_TURN) return
+    if (round.phase == Phase.FINISHED) finishRound()
+  }
 
-        round.act(action)
-        _uiState.update {
-            it.copy(
-                playerHands = round.hands.toList(),
-                activeHandIndex = round.activeIndex,
-                dealerCards = round.dealerCards.toList(),
-                hideHoleCard = round.holeHidden,
-                legalActions = round.legalActions()
-            )
-        }
-        if (round.phase == Phase.FINISHED) {
-            roundJob = viewModelScope.launch {
-                _uiState.update {
-                    it.copy(
-                        stage = GameStage.DEALER_TURN,
-                        statusText = "Dealer drawing..."
-                    )
-                }
-                delay(600.milliseconds)
-                finishRound()
-            }
-        }
+  private fun finishRound() {
+    val round = currentRound ?: return
+    val result = round.results()
+
+    var totalPayout = 0L
+    round.hands.forEachIndexed { i, hand ->
+      totalPayout += (hand.bet * result[i].multiplier).toLong()
     }
-
-    fun resolveInsurance(accept: Boolean) {
-        val round = currentRound ?: return
-        if (round.phase != Phase.INSURANCE) return
-
-        val amount = if (accept) _uiState.value.currentBet / 2 else 0L
-        round.resolveInsurance(amount)
-
-        _uiState.update {
-            it.copy(
-                stage = if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
-                playerHands = round.hands.toList(),
-                dealerCards = round.dealerCards.toList(),
-                hideHoleCard = round.holeHidden,
-                legalActions = round.legalActions()
-            )
-        }
-
-        if (round.phase == Phase.FINISHED) finishRound()
+    val updateChips = _uiState.value.chipsOwned + totalPayout
+    _uiState.update {
+      it.copy(
+          chipsOwned = updateChips,
+          stage = GameStage.ROUND_OVER,
+          hideHoleCard = false,
+          results = result,
+          legalActions = emptySet(),
+          statusText = "Round Finished7",
+      )
     }
+    persistUserChips(updateChips)
+  }
 
-    private fun finishRound() {
-        val round = currentRound ?: return
-        val result = round.results()
-
-        var totalPayout = 0L
-        round.hands.forEachIndexed { i, hand ->
-            totalPayout += (hand.bet * result[i].multiplier).toLong()
-        }
-        val updateChips = _uiState.value.chipsOwned + totalPayout
-        _uiState.update {
-            it.copy(
-                chipsOwned = updateChips,
-                stage = GameStage.ROUND_OVER,
-                hideHoleCard = false,
-                results = result,
-                legalActions = emptySet(),
-                statusText = "Round Finished7"
-
-            )
-        }
-        persistUserChips(updateChips)
+  private fun persistUserChips(newChips: Long) {
+    val userId = _uiState.value.userId
+    if (userId.isNotEmpty()) {
+      viewModelScope.launch { userDao.setChips(userId, newChips) }
     }
+  }
 
-    private fun persistUserChips(newChips: Long) {
-        val userId = _uiState.value.userId
-        if (userId.isNotEmpty()) {
-            viewModelScope.launch { userDao.setChips(userId, newChips) }
-        }
+  fun resetForNextRound() {
+    currentRound = null
+    _uiState.update {
+      it.copy(
+          currentBet = 0L,
+          playerHands = emptyList(),
+          dealerCards = emptyList(),
+          hideHoleCard = true,
+          stage = GameStage.BETTING,
+          results = emptyList(),
+          statusText = "Place your bets",
+      )
     }
-
-    fun resetForNextRound() {
-        currentRound = null
-        _uiState.update {
-            it.copy(
-                currentBet = 0L,
-                playerHands = emptyList(),
-                dealerCards = emptyList(),
-                hideHoleCard = true,
-                stage = GameStage.BETTING,
-                results = emptyList(),
-                statusText = "Place your bets"
-            )
-        }
-    }
+  }
 }
 
-class GameViewModelFactory(
-    private val userDao: UserDao
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(GameViewModel::class.java)) {
-            return GameViewModel(userDao) as T
+class GameViewModelFactory(private val userDao: UserDao) : ViewModelProvider.Factory {
+  @Suppress("UNCHECKED_CAST")
+  override fun <T : ViewModel> create(modelClass: Class<T>): T =
+      when {
+        modelClass.isAssignableFrom(GameViewModel::class.java) -> {
+          GameViewModel(userDao) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-    }
+
+        else -> {
+          throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        }
+      }
 }

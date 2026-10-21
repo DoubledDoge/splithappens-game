@@ -38,68 +38,131 @@ import io.github.doubleddoge.splithappens.isRed
 import io.github.doubleddoge.splithappens.label
 import io.github.doubleddoge.splithappens.symbol
 
+// Colors
 private val GoldFoil = Color(0xFFE5B036)
+private val RedSuitColor = Color(0xFFC62828)
+private val BlackSuitColor = Color(0xFF1A1A1A)
+private val CardFaceBackgroundColor = Color(0xFFFAF7F0)
+private val CardBackPrimaryColor = Color(0xFF7A1424)
+private val CardBackSecondaryColor = Color(0xFF4A0B16)
+
+// Animation parameters
+private const val CARD_FLY_DURATION_MS = 450
+private const val CARD_FLIP_DURATION_MS = 400
+private const val FLY_ROTATION_Z_DEG = -25f
+private const val FLY_ALPHA_MULTIPLIER = 4f
+private const val CARD_CAMERA_DISTANCE = 12f
+private const val FLIP_MIDPOINT_DEG = 90f
+private const val FACE_DOWN_FLIP_DEG = 180f
+private const val FACE_UP_FLIP_DEG = 0f
+
+// Card layout & shape dimensions
+private val DefaultCardWidth = 64.dp
+private val DefaultCardHeight = 92.dp
+private val DefaultHandOverlap = 38.dp
+private val DefaultDealFromOffset = DpOffset(140.dp, (-80).dp)
+
+private val CardCornerRadius = 8.dp
+private val CardInnerCornerRadius = 4.dp
+private val CardShadowElevation = 4.dp
+
+// Borders & Padding
+private val CardFaceBorderWidth = 0.5.dp
+private val CardBackOuterBorderWidth = 3.dp
+private val CardBackInnerBorderWidth = 1.dp
+private val CardFacePadding = 5.dp
+private val CardBackPadding = 6.dp
+
+private const val CARD_FACE_BORDER_ALPHA = 0.25f
+private const val CARD_BACK_INNER_BORDER_ALPHA = 0.6f
+
+// Typography
+private val CornerRankFontSize = 15.sp
+private val CornerSuitFontSize = 13.sp
+private val CenterSuitFontSize = 30.sp
+
+// Section label styling
+private val SectionLabelLineLength = 28.dp
+private val SectionLabelLineWidth = 1.dp
+private val SectionLabelTextPadding = 10.dp
+private val SectionLabelFontSize = 12.sp
+private val SectionLabelLetterSpacing = 2.sp
+private const val SECTION_LINE_ALPHA = 0.55f
+private const val SECTION_TEXT_ALPHA = 0.75f
 
 @Composable
 fun PlayingCard(
     card: TableCard,
     modifier: Modifier = Modifier,
-    dealFrom: DpOffset = DpOffset(140.dp, (-80).dp)
+    dealFrom: DpOffset = DefaultDealFromOffset,
 ) {
     val fly = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        fly.animateTo(1f, tween(450, easing = FastOutSlowInEasing))
+        fly.animateTo(1f, tween(CARD_FLY_DURATION_MS, easing = FastOutSlowInEasing))
     }
     val flip by animateFloatAsState(
-        targetValue = if (card.isFaceUp) 0f else 180f,
-        animationSpec = tween(400),
-        label = "cardFlip"
+        targetValue = if (card.isFaceUp) FACE_UP_FLIP_DEG else FACE_DOWN_FLIP_DEG,
+        animationSpec = tween(CARD_FLIP_DURATION_MS),
+        label = "cardFlip",
     )
 
     Box(
         modifier
-            .size(width = 64.dp, height = 92.dp)
+            .size(width = DefaultCardWidth, height = DefaultCardHeight)
             .graphicsLayer {
                 val t = fly.value
                 translationX = (1f - t) * dealFrom.x.toPx()
                 translationY = (1f - t) * dealFrom.y.toPx()
-                rotationZ = (1f - t) * -25f
-                alpha = (t * 4f).coerceAtMost(1f)
+                rotationZ = (1f - t) * FLY_ROTATION_Z_DEG
+                alpha = (t * FLY_ALPHA_MULTIPLIER).coerceAtMost(1f)
                 rotationY = flip
-                cameraDistance = 12f * density
+                cameraDistance = CARD_CAMERA_DISTANCE * density
             }
-            .shadow(4.dp, RoundedCornerShape(8.dp))
+            .shadow(CardShadowElevation, RoundedCornerShape(CardCornerRadius)),
     ) {
-        if (flip <= 90f) {
+        if (flip <= FLIP_MIDPOINT_DEG) {
             CardFace(card)
         } else {
-            CardBack(Modifier.graphicsLayer { rotationY = 180f })
+            CardBack(Modifier.graphicsLayer { rotationY = FACE_DOWN_FLIP_DEG })
         }
     }
 }
 
 @Composable
 private fun CardFace(card: TableCard) {
-    val ink = if (card.suit.isRed) Color(0xFFC62828) else Color(0xFF1A1A1A)
+    val ink = if (card.suit.isRed) RedSuitColor else BlackSuitColor
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color(0xFFFAF7F0), RoundedCornerShape(8.dp))
-            .border(0.5.dp, Color.Black.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
-            .padding(5.dp)
+            .background(CardFaceBackgroundColor, RoundedCornerShape(CardCornerRadius))
+            .border(
+                CardFaceBorderWidth,
+                Color.Black.copy(alpha = CARD_FACE_BORDER_ALPHA),
+                RoundedCornerShape(CardCornerRadius),
+            )
+            .padding(CardFacePadding),
     ) {
         Column(
             Modifier.align(Alignment.TopStart),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(card.rank.label, color = ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            Text(card.suit.symbol, color = ink, fontSize = 13.sp)
+            Text(
+                card.rank.label,
+                color = ink,
+                fontSize = CornerRankFontSize,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                card.suit.symbol,
+                color = ink,
+                fontSize = CornerSuitFontSize,
+            )
         }
         Text(
             card.suit.symbol,
             color = ink,
-            fontSize = 30.sp,
-            modifier = Modifier.align(Alignment.Center)
+            fontSize = CenterSuitFontSize,
+            modifier = Modifier.align(Alignment.Center),
         )
     }
 }
@@ -110,12 +173,20 @@ private fun CardBack(modifier: Modifier = Modifier) {
         modifier
             .fillMaxSize()
             .background(
-                Brush.linearGradient(listOf(Color(0xFF7A1424), Color(0xFF4A0B16))),
-                RoundedCornerShape(8.dp)
+                Brush.linearGradient(listOf(CardBackPrimaryColor, CardBackSecondaryColor)),
+                RoundedCornerShape(CardCornerRadius),
             )
-            .border(3.dp, Color(0xFFFAF7F0), RoundedCornerShape(8.dp))
-            .padding(6.dp)
-            .border(1.dp, GoldFoil.copy(alpha = 0.6f), RoundedCornerShape(4.dp))
+            .border(
+                CardBackOuterBorderWidth,
+                CardFaceBackgroundColor,
+                RoundedCornerShape(CardCornerRadius),
+            )
+            .padding(CardBackPadding)
+            .border(
+                CardBackInnerBorderWidth,
+                GoldFoil.copy(alpha = CARD_BACK_INNER_BORDER_ALPHA),
+                RoundedCornerShape(CardInnerCornerRadius),
+            ),
     )
 }
 
@@ -123,16 +194,17 @@ private fun CardBack(modifier: Modifier = Modifier) {
 fun HandRow(
     hand: List<TableCard>,
     modifier: Modifier = Modifier,
-    overlap: Dp = 38.dp,
-    dealFrom: DpOffset = DpOffset(140.dp, (-80).dp)
+    overlap: Dp = DefaultHandOverlap,
+    dealFrom: DpOffset = DefaultDealFromOffset,
 ) {
-    Box(modifier.width(64.dp + overlap * (hand.size - 1).coerceAtLeast(0)).height(92.dp)) {
+    val totalWidth = DefaultCardWidth + (overlap * (hand.size - 1).coerceAtLeast(0))
+    Box(modifier.width(totalWidth).height(DefaultCardHeight)) {
         hand.forEachIndexed { i, card ->
             key(card.uid) {
                 PlayingCard(
                     card = card,
                     modifier = Modifier.offset(x = overlap * i),
-                    dealFrom = dealFrom
+                    dealFrom = dealFrom,
                 )
             }
         }
@@ -144,31 +216,31 @@ fun SectionLabel(title: String, total: Int?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             Modifier
-                .width(28.dp)
-                .height(1.dp)
+                .width(SectionLabelLineLength)
+                .height(SectionLabelLineWidth)
                 .background(
                     Brush.horizontalGradient(
-                        listOf(Color.Transparent, GoldFoil.copy(alpha = 0.55f))
-                    )
-                )
+                        listOf(Color.Transparent, GoldFoil.copy(alpha = SECTION_LINE_ALPHA)),
+                    ),
+                ),
         )
         Text(
             text = if (total != null) "$title · $total" else title,
-            color = GoldFoil.copy(alpha = 0.75f),
-            fontSize = 12.sp,
+            color = GoldFoil.copy(alpha = SECTION_TEXT_ALPHA),
+            fontSize = SectionLabelFontSize,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 2.sp,
-            modifier = Modifier.padding(horizontal = 10.dp)
+            letterSpacing = SectionLabelLetterSpacing,
+            modifier = Modifier.padding(horizontal = SectionLabelTextPadding),
         )
         Box(
             Modifier
-                .width(28.dp)
-                .height(1.dp)
+                .width(SectionLabelLineLength)
+                .height(SectionLabelLineWidth)
                 .background(
                     Brush.horizontalGradient(
-                        listOf(GoldFoil.copy(alpha = 0.55f), Color.Transparent)
-                    )
-                )
+                        listOf(GoldFoil.copy(alpha = SECTION_LINE_ALPHA), Color.Transparent),
+                    ),
+                ),
         )
     }
 }
