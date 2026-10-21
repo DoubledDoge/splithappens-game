@@ -2,6 +2,7 @@ package io.github.doubleddoge.splithappens
 
 import android.graphics.RectF
 import android.graphics.Typeface
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -17,11 +18,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -90,12 +93,49 @@ fun GameScreen(
   val db = remember(context) { buildSplitHappensDatabase(context) }
   val gameViewModel: GameViewModel = viewModel(factory = GameViewModelFactory(db.userDao()))
   val uiState by gameViewModel.uiState.collectAsState()
+  val isGameInProgress = uiState.isGameInProgress
 
   var betChipsList by remember { mutableStateOf(listOf<Int>()) }
+  var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
 
   val bgCenter = if (isDarkTheme) GameBgDarkCenter else GameBgLightCenter
   val bgOuter = if (isDarkTheme) GameBgDarkOuter else GameBgLightOuter
   val feltColor = if (isDarkTheme) FeltDarkSurface else FeltLightSurface
+
+  val safeNavigate: (() -> Unit) -> Unit = { destinationAction ->
+    if (isGameInProgress) {
+      pendingNavigation = destinationAction
+    } else {
+      destinationAction()
+    }
+  }
+
+  BackHandler(enabled = isGameInProgress) {
+    pendingNavigation = onNavigateHome
+  }
+
+  if (pendingNavigation != null) {
+    AlertDialog(
+        onDismissRequest = { pendingNavigation = null },
+        title = { Text("Quit Game?") },
+        text = { Text("You have an active bet in progress. Leaving now will forfeit your bet.") },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                val action = pendingNavigation
+                pendingNavigation = null
+                gameViewModel.forfeitRound()
+                action?.invoke()
+              }
+          ) {
+            Text("Quit & Forfeit")
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = { pendingNavigation = null }) { Text("Cancel") }
+        },
+    )
+  }
 
   Scaffold(
       modifier = modifier,
@@ -110,9 +150,9 @@ fun GameScreen(
         AppBottomBar(
             currentRoute = Screen.Game.route,
             isDarkTheme = isDarkTheme,
-            onNavigateHome = onNavigateHome,
+            onNavigateHome = { safeNavigate(onNavigateHome) },
             onNavigateGame = { /* Already on Game */ },
-            onNavigateMenu = onNavigateMenu,
+            onNavigateMenu = { safeNavigate(onNavigateMenu) },
         )
       },
       containerColor = bgOuter,

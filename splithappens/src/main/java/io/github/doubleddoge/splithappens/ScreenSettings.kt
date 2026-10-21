@@ -222,15 +222,6 @@ fun ScreenSettings(
             }
 
             Spacer(modifier = Modifier.height(28.dp))
-
-            Text(
-                text = "Split Happens v1.0.0 • Double Doge",
-                color = currentSubtitle.copy(alpha = 0.6f),
-                fontSize = 11.sp,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
