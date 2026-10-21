@@ -11,6 +11,7 @@ import io.github.doubleddoge.splithappens.game.Card
 import io.github.doubleddoge.splithappens.game.Phase
 import io.github.doubleddoge.splithappens.game.PlayerHand
 import io.github.doubleddoge.splithappens.game.Round
+import io.github.doubleddoge.splithappens.game.snapshot
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,6 +21,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private val DEAL_DELAY = 350.milliseconds
+private val DEALER_TURN_DELAY = 600.milliseconds
+
 enum class DealerEmotion {
   NEUTRAL,
   SMUG,
@@ -28,6 +32,7 @@ enum class DealerEmotion {
 
 enum class GameStage {
   BETTING,
+  DEALING,
   INSURANCE,
   PLAYER_TURN,
   DEALER_TURN,
@@ -125,38 +130,102 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
             minBet = 5L,
         )
     currentRound = round
-    round.placeBet(s.currentBet)
+    round.startBetting(s.currentBet)
 
     _uiState.update {
       it.copy(
-          stage =
-              if (round.phase == Phase.INSURANCE) GameStage.INSURANCE else GameStage.PLAYER_TURN,
-          playerHands = round.hands.toList(),
-          activeHandIndex = round.activeIndex,
-          dealerCards = round.dealerCards.toList(),
-          hideHoleCard = round.holeHidden,
-          legalActions = round.legalActions(),
-          statusText = if (round.phase == Phase.INSURANCE) "Insurance Offered" else "Your turn",
+          stage = GameStage.DEALING,
+          statusText = "Dealing...",
+          playerHands = round.hands.snapshot(),
+          dealerCards = emptyList(),
+          hideHoleCard = true,
       )
     }
 
-    if (round.phase == Phase.FINISHED) finishRound()
+    roundJob = viewModelScope.launch {
+      // 1. Card to Player
+      round.dealOneToPlayer()
+      updateDealState(round)
+      delay(DEAL_DELAY)
+
+      // 2. Up-card to Dealer
+      round.dealOneToDealer()
+      updateDealState(round)
+      delay(DEAL_DELAY)
+
+      // 3. Card to Player
+      round.dealOneToPlayer()
+      updateDealState(round)
+      delay(DEAL_DELAY)
+
+      // 4. Hole-card to Dealer
+      round.dealOneToDealer()
+      updateDealState(round)
+      delay(DEAL_DELAY)
+
+      round.finalizeDeal()
+
+      _uiState.update {
+        it.copy(
+            stage =
+                if (round.phase == Phase.INSURANCE) {
+                  GameStage.INSURANCE
+                } else {
+                  GameStage.PLAYER_TURN
+                },
+            playerHands = round.hands.snapshot(),
+            dealerCards = round.dealerCards.toList(),
+            hideHoleCard = round.holeHidden,
+            activeHandIndex = round.activeIndex,
+            legalActions = round.legalActions(),
+            statusText =
+                if (round.phase == Phase.INSURANCE) {
+                  "Insurance Offered"
+                } else {
+                  "Hit or Stand?"
+                },
+        )
+      }
+
+      if (round.phase == Phase.FINISHED) finishRound()
+    }
+  }
+
+  private fun updateDealState(round: Round) {
+    _uiState.update {
+      it.copy(
+          playerHands = round.hands.snapshot(),
+          dealerCards = round.dealerCards.toList(),
+          hideHoleCard = round.holeHidden,
+      )
+    }
   }
 
   fun performAction(action: Action) {
     val round = currentRound ?: return
-    if (round.phase != Phase.PLAYER_TURN) return
+    if (round.phase != Phase.PLAYER_TURN || action !in round.legalActions()) return
+
+    val extraStake =
+        if (action == Action.DOUBLE || action == Action.SPLIT) {
+          round.hands[round.activeIndex].bet
+        } else {
+          0L
+        }
 
     round.act(action)
+
     _uiState.update {
       it.copy(
-          playerHands = round.hands.toList(),
+          chipsOwned = it.chipsOwned - extraStake,
+          currentBet = it.currentBet + extraStake,
+          playerHands = round.hands.snapshot(),
           activeHandIndex = round.activeIndex,
           dealerCards = round.dealerCards.toList(),
           hideHoleCard = round.holeHidden,
           legalActions = round.legalActions(),
       )
     }
+
     if (round.phase == Phase.FINISHED) {
       roundJob = viewModelScope.launch {
         _uiState.update {
@@ -165,7 +234,7 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
               statusText = "Dealer drawing...",
           )
         }
-        delay(600.milliseconds)
+        delay(DEALER_TURN_DELAY)
         finishRound()
       }
     }
@@ -175,17 +244,20 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
     val round = currentRound ?: return
     if (round.phase != Phase.INSURANCE) return
 
-    val amount = if (accept) _uiState.value.currentBet / 2 else 0L
+    val maxInsurance = _uiState.value.currentBet / 2
+    val amount = if (accept && _uiState.value.chipsOwned >= maxInsurance) maxInsurance else 0L
     round.resolveInsurance(amount)
 
     _uiState.update {
       it.copy(
+          chipsOwned = it.chipsOwned - amount,
           stage =
               if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
-          playerHands = round.hands.toList(),
+          playerHands = round.hands.snapshot(),
           dealerCards = round.dealerCards.toList(),
           hideHoleCard = round.holeHidden,
           legalActions = round.legalActions(),
+          statusText = if (round.phase == Phase.FINISHED) it.statusText else "Hit or Stand?",
       )
     }
 
@@ -194,25 +266,49 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
 
   private fun finishRound() {
     val round = currentRound ?: return
-    val result = round.results()
+    val results = round.results()
 
     var totalPayout = 0L
     round.hands.forEachIndexed { i, hand ->
-      totalPayout += (hand.bet * result[i].multiplier).toLong()
+      totalPayout += (hand.bet * results[i].multiplier).toLong()
     }
+    if (round.insuranceBet > 0L && round.dealerValue.isBlackjack) {
+      // Insurance pays 2:1
+      totalPayout += round.insuranceBet * 3L
+    }
+
     val updateChips = _uiState.value.chipsOwned + totalPayout
+
     _uiState.update {
       it.copy(
           chipsOwned = updateChips,
           stage = GameStage.ROUND_OVER,
+          playerHands = round.hands.snapshot(),
+          dealerCards = round.dealerCards.toList(),
           hideHoleCard = false,
-          results = result,
+          results = results,
           legalActions = emptySet(),
-          statusText = "Round Finished7",
+          statusText = outcomeBanner(round, results.firstOrNull()),
       )
     }
     persistUserChips(updateChips)
   }
+
+  private fun outcomeBanner(round: Round, primary: HandResult?): String =
+      when (primary) {
+        HandResult.BLACKJACK,
+        HandResult.NATURAL_BLACKJACK,
+        HandResult.QUEEN_JACK -> "BLACKJACK! YOU WIN!"
+        HandResult.WIN,
+        HandResult.TRIPLE_SEVEN,
+        HandResult.SIX_CARD,
+        HandResult.SEVEN_CARD -> "YOU WIN!"
+        HandResult.PUSH -> "PUSH - BET RETURNED"
+        HandResult.LOSS ->
+            if (round.hands.firstOrNull()?.value?.isBust == true) "BUSTED!" else "DEALER WINS"
+        HandResult.SURRENDER -> "SURRENDERED"
+        null -> "ROUND OVER"
+      }
 
   private fun persistUserChips(newChips: Long) {
     val userId = _uiState.value.userId
@@ -222,6 +318,7 @@ class GameViewModel(private val userDao: UserDao) : ViewModel() {
   }
 
   fun resetForNextRound() {
+    roundJob?.cancel()
     currentRound = null
     _uiState.update {
       it.copy(

@@ -1,8 +1,5 @@
 package io.github.doubleddoge.splithappens
 
-import android.graphics.Paint as AndroidPaint
-import android.graphics.Path as AndroidPath
-import android.graphics.PathMeasure as AndroidPathMeasure
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.compose.foundation.BorderStroke
@@ -58,8 +55,12 @@ import io.github.doubleddoge.splithappens.components.GameActionBar
 import io.github.doubleddoge.splithappens.components.HandRow
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 
 // Theme Palettes
 private val GameBgDarkCenter = Color(0xFF0F3022)
@@ -83,290 +84,302 @@ fun GameScreen(
     chipsOwned: Long = 2500L,
     isDarkTheme: Boolean = true,
     onNavigateHome: () -> Unit = {},
-    onNavigateMenu: () -> Unit = {}
+    onNavigateMenu: () -> Unit = {},
 ) {
-    val context = LocalContext.current
-    val db = remember(context) { buildSplitHappensDatabase(context) }
-    val gameViewModel: GameViewModel = viewModel(
-        factory = GameViewModelFactory(db.userDao())
-    )
-    val uiState by gameViewModel.uiState.collectAsState()
+  val context = LocalContext.current
+  val db = remember(context) { buildSplitHappensDatabase(context) }
+  val gameViewModel: GameViewModel = viewModel(factory = GameViewModelFactory(db.userDao()))
+  val uiState by gameViewModel.uiState.collectAsState()
 
-    var betChipsList by remember { mutableStateOf(listOf<Int>()) }
+  var betChipsList by remember { mutableStateOf(listOf<Int>()) }
 
-    val bgCenter = if (isDarkTheme) GameBgDarkCenter else GameBgLightCenter
-    val bgOuter = if (isDarkTheme) GameBgDarkOuter else GameBgLightOuter
-    val feltColor = if (isDarkTheme) FeltDarkSurface else FeltLightSurface
+  val bgCenter = if (isDarkTheme) GameBgDarkCenter else GameBgLightCenter
+  val bgOuter = if (isDarkTheme) GameBgDarkOuter else GameBgLightOuter
+  val feltColor = if (isDarkTheme) FeltDarkSurface else FeltLightSurface
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            UserHeaderCard(
-                displayName = uiState.displayName.ifBlank { displayName },
-                chipsOwned = uiState.chipsOwned
-            )
-        },
-        bottomBar = {
-            AppBottomBar(
-                currentRoute = "game",
-                isDarkTheme = isDarkTheme,
-                onNavigateHome = onNavigateHome,
-                onNavigateGame = { /* Already on Game */ },
-                onNavigateMenu = onNavigateMenu
-            )
-        },
-        containerColor = bgOuter
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
+  Scaffold(
+      modifier = modifier,
+      topBar = {
+        UserHeaderCard(
+            displayName = uiState.displayName.ifBlank { displayName },
+            chipsOwned = uiState.chipsOwned,
+            isDarkTheme = isDarkTheme,
+        )
+      },
+      bottomBar = {
+        AppBottomBar(
+            currentRoute = Screen.Game.route,
+            isDarkTheme = isDarkTheme,
+            onNavigateHome = onNavigateHome,
+            onNavigateGame = { /* Already on Game */ },
+            onNavigateMenu = onNavigateMenu,
+        )
+      },
+      containerColor = bgOuter,
+  ) { innerPadding ->
+    Box(
+        modifier =
+            Modifier.fillMaxSize()
                 .padding(innerPadding)
                 .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(bgCenter, bgOuter),
-                        radius = 1200f
-                    )
+                    brush =
+                        Brush.radialGradient(
+                            colors = listOf(bgCenter, bgOuter),
+                            radius = 1200f,
+                        )
                 )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp)
-            ) {
-                // Table Rail Structure
-                val railRadius = 36.dp
-                val railThickness = 10.dp
-                val railShape = RoundedCornerShape(topStart = railRadius, topEnd = railRadius)
-                val feltShape = RoundedCornerShape(
-                    topStart = railRadius - railThickness,
-                        topEnd = railRadius - railThickness
-                )
+    ) {
+      Column(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
+        // Table Rail Structure
+        val railRadius = 36.dp
+        val railThickness = 10.dp
+        val railShape = RoundedCornerShape(topStart = railRadius, topEnd = railRadius)
+        val feltShape =
+            RoundedCornerShape(
+                topStart = railRadius - railThickness,
+                topEnd = railRadius - railThickness,
+            )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(top = 12.dp, bottom = 12.dp)
-                        .shadow(12.dp, railShape)
-                        .background(
-                            brush = Brush.verticalGradient(
+        Box(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .weight(1f)
+                    .padding(top = 12.dp, bottom = 12.dp)
+                    .shadow(12.dp, railShape)
+                    .background(
+                        brush =
+                            Brush.verticalGradient(
                                 colors = listOf(WoodRailInner, WoodRailOuter, WoodRailInner)
                             )
-                        )
-                        .border(
-                            width = 1.dp,
-                            brush = Brush.verticalGradient(
+                    )
+                    .border(
+                        width = 1.dp,
+                        brush =
+                            Brush.verticalGradient(
                                 colors = listOf(Color.White.copy(alpha = 0.22f), Color.Transparent)
                             ),
-                            shape = railShape
-                        )
-                        .padding(top = railThickness, start = railThickness, end = railThickness)
-                ) {
-                    // Inner Felt Playfield
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(feltShape)
-                            .border(1.dp, GoldFoil.copy(alpha = 0.22f), feltShape)
-                    ) {
-                        // Felt Arc Markings Canvas
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            val w = size.width
-                            val h = size.height
+                        shape = railShape,
+                    )
+                    .padding(top = railThickness, start = railThickness, end = railThickness)
+        ) {
+          // Inner Felt Playfield
+          Box(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .clip(feltShape)
+                      .border(1.dp, GoldFoil.copy(alpha = 0.22f), feltShape)
+          ) {
+            // Felt Arc Markings Canvas
+            Canvas(modifier = Modifier.fillMaxSize()) {
+              val w = size.width
+              val h = size.height
 
-                            drawRect(
-                                Brush.radialGradient(
-                                    colors = listOf(
-                                        lerp(feltColor, Color.White, 0.08f),
-                                        feltColor,
-                                        lerp(feltColor, Color.Black, 0.45f)
-                                    ),
-                                    center = Offset(w / 2f, h * 0.45f),
-                                    radius = w * 1.15f
-                                )
-                            )
+              drawRect(
+                  Brush.radialGradient(
+                      colors =
+                          listOf(
+                              lerp(feltColor, Color.White, 0.08f),
+                              feltColor,
+                              lerp(feltColor, Color.Black, 0.45f),
+                          ),
+                      center = Offset(w / 2f, h * 0.45f),
+                      radius = w * 1.15f,
+                  )
+              )
 
-                            val outerR = w * 0.52f
-                            val innerR = outerR - 30.dp.toPx()
-                            val center = Offset(w / 2f, h * 0.50f - outerR)
+              val outerR = w * 0.52f
+              val innerR = outerR - 30.dp.toPx()
+              val center = Offset(w / 2f, h * 0.50f - outerR)
 
-                            fun arc(radius: Float, alpha: Float, strokeWidth: Float) = drawArc(
-                                color = GoldFoil.copy(alpha = alpha),
-                                startAngle = 90f - ArcSweep / 2f,
-                                sweepAngle = ArcSweep,
-                                useCenter = false,
-                                topLeft = Offset(center.x - radius, center.y - radius),
-                                size = Size(radius * 2, radius * 2),
-                                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                            )
+              fun arc(radius: Float, alpha: Float, strokeWidth: Float) =
+                  drawArc(
+                      color = GoldFoil.copy(alpha = alpha),
+                      startAngle = 90f - ArcSweep / 2f,
+                      sweepAngle = ArcSweep,
+                      useCenter = false,
+                      topLeft = Offset(center.x - radius, center.y - radius),
+                      size = Size(radius * 2, radius * 2),
+                      style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+                  )
 
-                            arc(outerR, 0.45f, 1.5.dp.toPx())
-                            arc(innerR, 0.25f, 1.dp.toPx())
+              arc(outerR, 0.45f, 1.5.dp.toPx())
+              arc(innerR, 0.25f, 1.dp.toPx())
 
-                            drawArcText(
-                                "BLACKJACK PAYS 3 TO 2", center, outerR - 8.dp.toPx(),
-                                GoldFoil.copy(alpha = 0.85f), 12.sp.toPx()
-                            )
-                            drawArcText(
-                                "INSURANCE PAYS 2 TO 1", center, innerR - 8.dp.toPx(),
-                                GoldFoil.copy(alpha = 0.55f), 9.sp.toPx(), spacingEm = 0.14f
-                            )
-                        }
-
-                        // DEALER AREA (Top)
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = 10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            TableLabel(
-                                text = "DEALER",
-                                total = if (uiState.dealerCards.isNotEmpty() && !uiState.hideHoleCard) {
-                                    uiState.dealerCards.sumOf { it.value }
-                                } else null
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            HandRow(hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard    ))
-                        }
-
-                        // PLAYER AREA, STATUS BANNER & CONTROLS (Bottom)
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            // OUTCOME BANNER (Positioned directly above Player's Cards with border & solid backdrop)
-                            if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
-                                Text(
-                                    text = uiState.statusText,
-                                    color = Color.White.copy(alpha = 0.9f),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(bottom = 6.dp)
-                                )
-                            }
-                            // PLAYER HAND DISPLAY
-                            val primaryHand = uiState.playerHands.firstOrNull()
-                            if (primaryHand != null ) {
-                                //TODO: Replace single HandRow rendering with side-by-side Row layout when split hands are enabled
-                                HandRow(hand = primaryHand.cards.toTableCards())
-                            }
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            TableLabel(
-                                text = "PLAYER",
-                                total = primaryHand?.value?.total
-                            )
-
-                            if(uiState.stage == GameStage.BETTING){
-                                Spacer(modifier = Modifier.height(6.dp))
-                                    BetChips(
-                                        chips = betChipsList,
-                                        onUndo = {
-                                            if (betChipsList.isNotEmpty()) {
-                                                gameViewModel.clearBet()
-                                                betChipsList = emptyList()
-                                            }
-                                        }
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(8.dp))
-                                    if (uiState.stage == GameStage.ROUND_OVER) {
-                                        Button(
-                                            onClick = {
-                                                betChipsList = emptyList()
-                                                gameViewModel.resetForNextRound()
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(48.dp),
-                                            shape = RoundedCornerShape(12.dp),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = GoldFoil,
-                                                contentColor = Color(0xFF1A1208)
-                                            )
-                                        ) {
-                                            Text(
-                                                text = "PLAY AGAIN",
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp,
-                                                letterSpacing = 1.5.sp
-                                            )
-                                        }
-                                    }else {
-                                        GameActionBar(
-                                            isBetting = uiState.stage == GameStage.BETTING,
-                                            canBet = uiState.currentBet > 0L,
-                                            legalActions = uiState.legalActions,
-                                            onChip = { amount ->
-                                                if(uiState.chipsOwned >= amount) {
-                                                    betChipsList = betChipsList + amount.toInt()
-                                                    gameViewModel.addBet(amount)
-                                                }
-
-                                            },
-                                            onDeal = {gameViewModel.deal()},
-                                            onAction = {action ->
-                                                gameViewModel.performAction(action)
-                                            }
-                                        )
-                                    }
-                                }
-                                //Insurance overlay prompt
-                                if (uiState.stage == GameStage.INSURANCE) {
-                                    Surface(
-                                        shape = RoundedCornerShape(16.dp),
-                                        color = Color(0xFF092016),
-                                        border = BorderStroke(2.dp, GoldFoil),
-                                        shadowElevation = 12.dp,
-                                        modifier = Modifier
-                                            .align(Alignment.Center)
-                                            .padding(24.dp)
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.padding(20.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text(
-                                                text = "INSURANCE OFFERED",
-                                                color = GoldFoil,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                letterSpacing = 1.2.sp
-                                            )
-                                            Spacer(modifier = Modifier.height(12.dp))
-                                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                                Button(
-                                                    onClick = {gameViewModel.resolveInsurance(true)},
-                                                    colors = ButtonDefaults.buttonColors(
-                                                        contentColor = GoldFoil, containerColor = Color.Black)
-                                                ) {
-                                                    Text("ACCEPT")
-                                                }
-                                                Button(
-                                                    onClick = {gameViewModel.resolveInsurance(false)},
-                                                    colors = ButtonDefaults.buttonColors(
-                                                        containerColor = Color(0xFF2A3B32),
-                                                        contentColor = Color.White)
-                                                ) {
-                                                    Text("DECLINE")
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-
-                    }
-                }
+              drawArcText(
+                  "BLACKJACK PAYS 3 TO 2",
+                  center,
+                  outerR - 8.dp.toPx(),
+                  GoldFoil.copy(alpha = 0.85f),
+                  12.sp.toPx(),
+              )
+              drawArcText(
+                  "INSURANCE PAYS 2 TO 1",
+                  center,
+                  innerR - 8.dp.toPx(),
+                  GoldFoil.copy(alpha = 0.55f),
+                  9.sp.toPx(),
+                  spacingEm = 0.14f,
+              )
             }
+
+            // DEALER AREA (Top)
+            Column(
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+              TableLabel(
+                  text = "DEALER",
+                  total =
+                      if (uiState.dealerCards.isNotEmpty() && !uiState.hideHoleCard) {
+                        uiState.dealerCards.evaluateHand().total
+                      } else {
+                        null
+                      },
+              )
+              Spacer(modifier = Modifier.height(6.dp))
+              HandRow(hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard))
+            }
+
+            // PLAYER AREA, STATUS BANNER & CONTROLS (Bottom)
+            Column(
+                modifier =
+                    Modifier.align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+              // OUTCOME BANNER (Positioned directly above Player's Cards)
+              if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
+                Text(
+                    text = uiState.statusText,
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 6.dp),
+                )
+              }
+
+              // PLAYER HAND DISPLAY
+              val primaryHand = uiState.playerHands.firstOrNull()
+              if (primaryHand != null) {
+                // TODO: Replace single HandRow rendering with side-by-side Row layout when split
+                // hands are enabled
+                HandRow(hand = primaryHand.cards.toTableCards())
+              }
+
+              Spacer(modifier = Modifier.height(6.dp))
+
+              TableLabel(
+                  text = "PLAYER",
+                  total = primaryHand?.value?.total,
+              )
+
+              if (uiState.stage == GameStage.BETTING) {
+                Spacer(modifier = Modifier.height(6.dp))
+                BetChips(
+                    chips = betChipsList,
+                    onUndo = {
+                      if (betChipsList.isNotEmpty()) {
+                        gameViewModel.clearBet()
+                        betChipsList = emptyList()
+                      }
+                    },
+                )
+              }
+
+              Spacer(modifier = Modifier.height(8.dp))
+
+              if (uiState.stage == GameStage.ROUND_OVER) {
+                Button(
+                    onClick = {
+                      betChipsList = emptyList()
+                      gameViewModel.resetForNextRound()
+                    },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = GoldFoil,
+                            contentColor = Color(0xFF1A1208),
+                        ),
+                ) {
+                  Text(
+                      text = "PLAY AGAIN",
+                      fontWeight = FontWeight.Bold,
+                      fontSize = 14.sp,
+                      letterSpacing = 1.5.sp,
+                  )
+                }
+              } else {
+                GameActionBar(
+                    isBetting = uiState.stage == GameStage.BETTING,
+                    canBet = uiState.currentBet > 0L,
+                    legalActions = uiState.legalActions,
+                    onChip = { amount ->
+                      if (uiState.chipsOwned >= amount) {
+                        betChipsList = betChipsList + amount.toInt()
+                        gameViewModel.addBet(amount)
+                      }
+                    },
+                    onDeal = { gameViewModel.deal() },
+                    onAction = { action -> gameViewModel.performAction(action) },
+                )
+              }
+            }
+
+            // Insurance overlay prompt (Direct child of the Felt Box so Alignment.Center works)
+            if (uiState.stage == GameStage.INSURANCE) {
+              val canAffordInsurance = uiState.chipsOwned >= uiState.currentBet / 2
+              Surface(
+                  shape = RoundedCornerShape(16.dp),
+                  color = Color(0xFF092016),
+                  border = BorderStroke(2.dp, GoldFoil),
+                  shadowElevation = 12.dp,
+                  modifier = Modifier.align(Alignment.Center).padding(24.dp),
+              ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                  Text(
+                      text = "INSURANCE OFFERED",
+                      color = GoldFoil,
+                      fontSize = 16.sp,
+                      fontWeight = FontWeight.Bold,
+                      letterSpacing = 1.2.sp,
+                  )
+                  Spacer(modifier = Modifier.height(12.dp))
+                  Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(
+                        onClick = { gameViewModel.resolveInsurance(true) },
+                        enabled = canAffordInsurance,
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                contentColor = GoldFoil,
+                                containerColor = Color.Black,
+                            ),
+                    ) {
+                      Text("ACCEPT")
+                    }
+                    Button(
+                        onClick = { gameViewModel.resolveInsurance(false) },
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF2A3B32),
+                                contentColor = Color.White,
+                            ),
+                    ) {
+                      Text("DECLINE")
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
+      }
     }
+  }
 }
 
 private fun DrawScope.drawArcText(
@@ -375,82 +388,80 @@ private fun DrawScope.drawArcText(
     radius: Float,
     color: Color,
     textSizePx: Float,
-    spacingEm: Float = 0.16f
+    spacingEm: Float = 0.16f,
 ) {
-    val oval = RectF(
-        center.x - radius,
-        center.y - radius,
-        center.x + radius,
-        center.y + radius
-    )
-    val androidPath = AndroidPath().apply {
-        arcTo(oval, 90f + ArcSweep / 2f, -ArcSweep, true)
-    }
-    val paint = AndroidPaint().apply {
+  val oval =
+      RectF(
+          center.x - radius,
+          center.y - radius,
+          center.x + radius,
+          center.y + radius,
+      )
+  val androidPath = AndroidPath().apply { arcTo(oval, 90f + ArcSweep / 2f, -ArcSweep, true) }
+  val paint =
+      AndroidPaint().apply {
         isAntiAlias = true
         this.color = color.toArgb()
         textSize = textSizePx
         typeface = Typeface.DEFAULT_BOLD
         letterSpacing = spacingEm
-    }
-    val pathLength = AndroidPathMeasure(androidPath, false).length
-    val textWidth = paint.measureText(text)
+      }
+  val pathLength = AndroidPathMeasure(androidPath, false).length
+  val textWidth = paint.measureText(text)
 
-    drawIntoCanvas { canvas ->
-        canvas.nativeCanvas.drawTextOnPath(
-            text, androidPath, (pathLength - textWidth) / 2f, 0f, paint
-        )
-    }
+  drawIntoCanvas { canvas ->
+    canvas.nativeCanvas.drawTextOnPath(
+        text,
+        androidPath,
+        (pathLength - textWidth) / 2f,
+        0f,
+        paint,
+    )
+  }
 }
 
 @Composable
 private fun TableLabel(
     text: String,
     total: Int? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val labelText = if (total != null) "$text · $total" else text
+  val labelText = if (total != null) "$text · $total" else text
 
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier
-                .width(28.dp)
-                .height(1.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(Color.Transparent, GoldFoil.copy(alpha = 0.55f))
-                    )
-                )
-        )
-        Text(
-            text = labelText,
-            color = GoldFoil.copy(alpha = 0.75f),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 2.sp,
-            modifier = Modifier.padding(horizontal = 10.dp)
-        )
-        Box(
-            Modifier
-                .width(28.dp)
-                .height(1.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(GoldFoil.copy(alpha = 0.55f), Color.Transparent)
-                    )
-                )
-        )
-    }
+  Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Box(
+        Modifier.width(28.dp)
+            .height(1.dp)
+            .background(
+                Brush.horizontalGradient(listOf(Color.Transparent, GoldFoil.copy(alpha = 0.55f)))
+            )
+    )
+    Text(
+        text = labelText,
+        color = GoldFoil.copy(alpha = 0.75f),
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 2.sp,
+        modifier = Modifier.padding(horizontal = 10.dp),
+    )
+    Box(
+        Modifier.width(28.dp)
+            .height(1.dp)
+            .background(
+                Brush.horizontalGradient(listOf(GoldFoil.copy(alpha = 0.55f), Color.Transparent))
+            )
+    )
+  }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun GameScreenPreview() {
-    SplitHappensTheme {
-        GameScreen(
-            displayName = "Player 1",
-            chipsOwned = 2500L,
-            isDarkTheme = true
-        )
-    }
+  SplitHappensTheme {
+    GameScreen(
+        displayName = "Player 1",
+        chipsOwned = 2500L,
+        isDarkTheme = true,
+    )
+  }
 }
