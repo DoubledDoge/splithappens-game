@@ -28,6 +28,11 @@ import io.github.doubleddoge.splithappens.game.Action
 private val Gold = Color(0xFFD4A64A)
 private val GoldDark = Color(0xFF9C7425)
 
+private const val BUTTON_ENABLED_ALPHA = 1f
+private const val BUTTON_DISABLED_ALPHA = 0.35f
+private val BUTTON_SHADOW_ELEVATION = 5.dp
+private val BUTTON_DISABLED_SHADOW = 0.dp
+
 @Composable
 fun GameActionBar(
     modifier: Modifier = Modifier,
@@ -38,18 +43,11 @@ fun GameActionBar(
     onChip: (Long) -> Unit = {},
     onClear: () -> Unit = {},
     onDeal: () -> Unit = {},
-    onHit: () -> Unit = {},
-    onStand: () -> Unit = {},
-    onDouble: () -> Unit = {},
-    doubleEnabled: Boolean = true //
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(64.dp)
-            .padding(vertical = 8.dp),
+        modifier = modifier.fillMaxWidth().height(64.dp).padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         if (isBetting) {
             GameButton(
@@ -57,21 +55,21 @@ fun GameActionBar(
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
-                onClick = { onChip(5) }
+                onClick = { onChip(5) },
             )
             GameButton(
                 label = "25",
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
-                onClick = { onChip(25) }
+                onClick = { onChip(25) },
             )
             GameButton(
                 label = "100",
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
-                onClick = { onChip(100) }
+                onClick = { onChip(100) },
             )
             GameButton(
                 label = "DEAL",
@@ -80,7 +78,7 @@ fun GameActionBar(
                 modifier = Modifier.weight(1.4f),
                 textColor = Color(0xFF1A1208),
                 enabled = canBet,
-                onClick = onDeal
+                onClick = onDeal,
             )
         } else {
             GameButton(
@@ -88,32 +86,42 @@ fun GameActionBar(
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
-                onClick = onHit
+                enabled = Action.HIT in legalActions,
+                onClick = { onAction(Action.HIT) },
             )
             GameButton(
                 label = "STAND",
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
-                onClick = onStand
+                enabled = Action.STAND in legalActions,
+                onClick = { onAction(Action.STAND) },
             )
-            if(Action.DOUBLE in legalActions){
-                GameButton(label = "DOUBLE", topColor = Gold, bottomColor = GoldDark, modifier = Modifier.weight(1f), onClick = { onAction(Action.DOUBLE) })
+            if (Action.DOUBLE in legalActions) {
+                GameButton(
+                    label = "DOUBLE",
+                    topColor = Gold,
+                    bottomColor = GoldDark,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onAction(Action.DOUBLE) },
+                )
             }
-            //if(Action.SPLIT in legalActions){
-               // TODO(//Do the Split feature)
-           // }
-            if(Action.SURRENDER in legalActions){
-                GameButton(label = "SURRENDER", topColor = Gold, bottomColor = GoldDark, modifier = Modifier.weight(1f), onClick = { onAction(Action.SURRENDER) })
-
+            // if (Action.SPLIT in legalActions) {
+            //   TODO("Do the Split feature")
+            // }
+            if (Action.SURRENDER in legalActions) {
+                GameButton(
+                    label = "SURRENDER",
+                    topColor = Gold,
+                    bottomColor = GoldDark,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onAction(Action.SURRENDER) },
+                )
             }
         }
     }
 }
-private const val BUTTON_ENABLED_ALPHA = 1f
-private const val BUTTON_DISABLED_ALPHA = 0.35f
-private val BUTTON_SHADOW_ELEVATION = 5.dp
-private val BUTTON_DISABLED_SHADOW = 0.dp
+
 @Composable
 private fun GameButton(
     label: String,
@@ -123,30 +131,31 @@ private fun GameButton(
     textColor: Color = Color.White,
     height: Dp = 46.dp,
     enabled: Boolean = true,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(12.dp)
-    val buttonAlpha = if(enabled) BUTTON_ENABLED_ALPHA else BUTTON_DISABLED_ALPHA
-    val shadowElevation = if(enabled) BUTTON_SHADOW_ELEVATION else BUTTON_DISABLED_SHADOW
+    val buttonAlpha = if (enabled) BUTTON_ENABLED_ALPHA else BUTTON_DISABLED_ALPHA
+    val shadowElevation = if (enabled) BUTTON_SHADOW_ELEVATION else BUTTON_DISABLED_SHADOW
     Box(
-        modifier = modifier
-            .height(height)
-            .alpha(buttonAlpha)
-            .shadow(shadowElevation, shape)
-            .clip(shape)
-            .background(
-                brush = Brush.verticalGradient(listOf(topColor, bottomColor)),
-                shape = shape
-            )
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .height(height)
+                .alpha(buttonAlpha)
+                .shadow(shadowElevation, shape)
+                .clip(shape)
+                .background(
+                    brush = Brush.verticalGradient(listOf(topColor, bottomColor)),
+                    shape = shape,
+                )
+                .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
             color = textColor,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 2.sp
+            letterSpacing = 2.sp,
         )
     }
 }
