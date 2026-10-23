@@ -38,6 +38,7 @@ fun GameActionBar(
     modifier: Modifier = Modifier,
     isBetting: Boolean = false,
     canBet: Boolean = true,
+    availableChips: Long = 0L,
     legalActions: Set<Action> = emptySet(),
     onAction: (Action) -> Unit = {},
     onChip: (Long) -> Unit = {},
@@ -55,6 +56,7 @@ fun GameActionBar(
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
+                enabled = availableChips >= 5L,
                 onClick = { onChip(5) },
             )
             GameButton(
@@ -62,6 +64,7 @@ fun GameActionBar(
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
+                enabled = availableChips >= 25L,
                 onClick = { onChip(25) },
             )
             GameButton(
@@ -69,6 +72,7 @@ fun GameActionBar(
                 topColor = Gold,
                 bottomColor = GoldDark,
                 modifier = Modifier.weight(1f),
+                enabled = availableChips >= 100L,
                 onClick = { onChip(100) },
             )
             GameButton(
@@ -103,12 +107,10 @@ fun GameActionBar(
                     topColor = Gold,
                     bottomColor = GoldDark,
                     modifier = Modifier.weight(1f),
+                    enabled = availableChips >= 0L, // handled by game logic / available chips
                     onClick = { onAction(Action.DOUBLE) },
                 )
             }
-            // if (Action.SPLIT in legalActions) {
-            //   TODO("Do the Split feature")
-            // }
             if (Action.SURRENDER in legalActions) {
                 GameButton(
                     label = "SURRENDER",

@@ -370,9 +370,10 @@ fun GameScreen(
                 GameActionBar(
                     isBetting = uiState.stage == GameStage.BETTING,
                     canBet = uiState.currentBet > 0L,
+                    availableChips = uiState.chipsOwned - uiState.currentBet,
                     legalActions = uiState.legalActions,
                     onChip = { amount ->
-                      if (uiState.chipsOwned >= amount) {
+                      if ((uiState.chipsOwned - uiState.currentBet) >= amount) {
                         betChipsList = betChipsList + amount.toInt()
                         gameViewModel.addBet(amount)
                       }
