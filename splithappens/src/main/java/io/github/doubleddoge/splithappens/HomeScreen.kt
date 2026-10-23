@@ -1,5 +1,8 @@
 package io.github.doubleddoge.splithappens
 
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,39 +59,42 @@ val BorderGold = Color(0xFFD4A311)
 val ButtonBackground = Color(0xFFD8D8D8)
 val ButtonTextColor = Color(0xFF1E1E1E)
 
+private const val TWO_SECONDS = 2000
+
 @Composable
 fun AdBannerPlaceholder(
     modifier: Modifier = Modifier,
-    isDarkTheme: Boolean = true
+    isDarkTheme: Boolean = true,
 ) {
-    val bgColor = if (isDarkTheme) Color(0xFF08251D) else Color(0xFF144D38)
+  val bgColor = if (isDarkTheme) Color(0xFF08251D) else Color(0xFF144D38)
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(bgColor)
-            .border(
-                width = 1.dp,
-                color = BorderGold.copy(alpha = 0.25f),
-                shape = RoundedCornerShape(8.dp)
-            ),
-        contentAlignment = Alignment.Center
+  Box(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .height(50.dp)
+              .clip(RoundedCornerShape(8.dp))
+              .background(bgColor)
+              .border(
+                  width = 1.dp,
+                  color = BorderGold.copy(alpha = 0.25f),
+                  shape = RoundedCornerShape(8.dp),
+              ),
+      contentAlignment = Alignment.Center,
+  ) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "ADVERTISEMENT",
-                color = Color.White.copy(alpha = 0.45f),
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 1.2.sp
-            )
-        }
+      Text(
+          text = "ADVERTISEMENT",
+          color = Color.White.copy(alpha = 0.45f),
+          fontSize = 9.sp,
+          fontWeight = FontWeight.Medium,
+          letterSpacing = 1.2.sp,
+      )
     }
+  }
 }
 
 @Composable
@@ -98,24 +106,24 @@ fun HomeScreen(
     onNavigateSettings: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {}
+    onNavigateProfile: () -> Unit = {},
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+  val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.refreshProfilePicture()
-    }
+  LaunchedEffect(Unit) {
+    viewModel.refreshProfilePicture()
+  }
 
-    HomeScreenContent(
-        uiState = uiState,
-        modifier = modifier,
-        isDarkTheme = isDarkTheme,
-        onPlayClick = onPlayClick,
-        onNavigateSettings = onNavigateSettings,
-        onNavigateMenu = onNavigateMenu,
-        onNavigateGame = onNavigateGame,
-        onNavigateProfile = onNavigateProfile
-    )
+  HomeScreenContent(
+      uiState = uiState,
+      modifier = modifier,
+      isDarkTheme = isDarkTheme,
+      onPlayClick = onPlayClick,
+      onNavigateSettings = onNavigateSettings,
+      onNavigateMenu = onNavigateMenu,
+      onNavigateGame = onNavigateGame,
+      onNavigateProfile = onNavigateProfile,
+  )
 }
 
 @Composable
@@ -127,569 +135,553 @@ fun HomeScreenContent(
     onNavigateSettings: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {}
+    onNavigateProfile: () -> Unit = {},
 ) {
-    var showStatsDialog by remember { mutableStateOf(false) }
-    var showRulesDialog by remember { mutableStateOf(false) }
+  val context = LocalContext.current
+  var lastBackPressTime by remember { mutableLongStateOf(0L) }
 
-    // Dynamic emerald colors based on isDarkTheme
-    val currentBackground = if (isDarkTheme) DarkBackground else Color(0xFF144D38)
-    val currentCardBg = if (isDarkTheme) CardBackground else Color(0xFF1C6349)
-    val currentCardBorder = if (isDarkTheme) Color(0xFF1A5243) else Color(0xFF288160)
+  var showStatsDialog by remember { mutableStateOf(false) }
+  var showRulesDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(horizontal = 12.dp)
-            ) {
-                UserHeaderCard(
-                    displayName = uiState.displayName,
-                    chipsOwned = uiState.chipsOwned,
-                    profilePictureBytes = uiState.profilePictureBytes,
-                    onProfileClick = onNavigateProfile
-                )
-            }
-        },
-        bottomBar = {
-            AppBottomBar(
-                currentRoute = "home",
-                isDarkTheme = isDarkTheme,
-                onNavigateHome = { /* Currently on Home */ },
-                onNavigateGame = onNavigateGame,
-                onNavigateMenu = onNavigateMenu
-            )
-        },
-        containerColor = currentBackground
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .padding(horizontal = 12.dp)
-        ) {
-            Spacer(modifier = Modifier.height(12.dp))
-            AdBannerPlaceholder(isDarkTheme = isDarkTheme)
-            Spacer(modifier = Modifier.height(12.dp))
+  val hasOpenDialog = showStatsDialog || showRulesDialog
 
-            // STATS & RULES Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(40.dp)
-                        .clickable { showStatsDialog = true },
-                    shape = RoundedCornerShape(8.dp),
-                    color = currentCardBg,
-                    border = BorderStroke(1.dp, currentCardBorder)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "📊", fontSize = 14.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "STATS",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+  BackHandler(enabled = true) {
+    if (hasOpenDialog) {
+      showStatsDialog = false
+      showRulesDialog = false
+    } else {
+      val currentTime = System.currentTimeMillis()
+      if (currentTime - lastBackPressTime < TWO_SECONDS) {
+        (context as? Activity)?.finish()
+      } else {
+        lastBackPressTime = currentTime
+        Toast.makeText(context, "Press back again to exit Split Happens", Toast.LENGTH_SHORT).show()
+      }
+    }
+  }
 
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(40.dp)
-                        .clickable { showRulesDialog = true },
-                    shape = RoundedCornerShape(8.dp),
-                    color = currentCardBg,
-                    border = BorderStroke(1.dp, currentCardBorder)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "📖", fontSize = 14.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "RULES",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
+  // Dynamic emerald colors based on isDarkTheme
+  val currentBackground = if (isDarkTheme) DarkBackground else Color(0xFF144D38)
+  val currentCardBg = if (isDarkTheme) CardBackground else Color(0xFF1C6349)
+  val currentCardBorder = if (isDarkTheme) Color(0xFF1A5243) else Color(0xFF288160)
 
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Classic Table Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = currentCardBg)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp)
-                ) {
-                    Text(
-                        text = "Classic Table",
-                        color = BorderGold,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Standard Rules • Minimum Bet R100",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 11.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Button(
-                        onClick = onPlayClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ButtonBackground,
-                            contentColor = ButtonTextColor
-                        )
-                    ) {
-                        Text(
-                            text = "PLAY NOW",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
-                }
-            }
+  Scaffold(
+      modifier = modifier,
+      topBar = {
+        Column(modifier = Modifier.statusBarsPadding().padding(horizontal = 12.dp)) {
+          UserHeaderCard(
+              displayName = uiState.displayName,
+              chipsOwned = uiState.chipsOwned,
+              profilePictureBytes = uiState.profilePictureBytes,
+              onProfileClick = onNavigateProfile,
+          )
         }
-    }
-
-    if (showStatsDialog) {
-        StatsDialog(
-            uiState = uiState,
-            containerColor = currentCardBg,
-            onDismiss = { showStatsDialog = false }
+      },
+      bottomBar = {
+        AppBottomBar(
+            currentRoute = "home",
+            isDarkTheme = isDarkTheme,
+            onNavigateHome = { /* Currently on Home */ },
+            onNavigateGame = onNavigateGame,
+            onNavigateMenu = onNavigateMenu,
         )
-    }
+      },
+      containerColor = currentBackground,
+  ) { innerPadding ->
+    Column(modifier = Modifier.padding(innerPadding).fillMaxSize().padding(horizontal = 12.dp)) {
+      Spacer(modifier = Modifier.height(12.dp))
+      AdBannerPlaceholder(isDarkTheme = isDarkTheme)
+      Spacer(modifier = Modifier.height(12.dp))
 
-    if (showRulesDialog) {
-        RulesDialog(
-            containerColor = currentCardBg,
-            onDismiss = { showRulesDialog = false }
-        )
+      // STATS & RULES Buttons
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(10.dp),
+      ) {
+        Surface(
+            modifier = Modifier.weight(1f).height(40.dp).clickable { showStatsDialog = true },
+            shape = RoundedCornerShape(8.dp),
+            color = currentCardBg,
+            border = BorderStroke(1.dp, currentCardBorder),
+        ) {
+          Row(
+              modifier = Modifier.fillMaxSize(),
+              horizontalArrangement = Arrangement.Center,
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(text = "📊", fontSize = 14.sp)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "STATS",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+            )
+          }
+        }
+
+        Surface(
+            modifier = Modifier.weight(1f).height(40.dp).clickable { showRulesDialog = true },
+            shape = RoundedCornerShape(8.dp),
+            color = currentCardBg,
+            border = BorderStroke(1.dp, currentCardBorder),
+        ) {
+          Row(
+              modifier = Modifier.fillMaxSize(),
+              horizontalArrangement = Arrangement.Center,
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(text = "📖", fontSize = 14.sp)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "RULES",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+            )
+          }
+        }
+      }
+
+      Spacer(modifier = Modifier.height(14.dp))
+
+      // Classic Table Card
+      Card(
+          modifier = Modifier.fillMaxWidth().border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = currentCardBg),
+      ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+          Text(
+              text = "Classic Table",
+              color = BorderGold,
+              fontSize = 17.sp,
+              fontWeight = FontWeight.Bold,
+          )
+          Spacer(modifier = Modifier.height(4.dp))
+          Text(
+              text = "Standard Rules • Minimum Bet R100",
+              color = Color.White.copy(alpha = 0.7f),
+              fontSize = 11.sp,
+          )
+
+          Spacer(modifier = Modifier.height(12.dp))
+
+          Button(
+              onClick = onPlayClick,
+              modifier = Modifier.fillMaxWidth().height(44.dp),
+              shape = RoundedCornerShape(8.dp),
+              colors =
+                  ButtonDefaults.buttonColors(
+                      containerColor = ButtonBackground,
+                      contentColor = ButtonTextColor,
+                  ),
+          ) {
+            Text(
+                text = "PLAY NOW",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp,
+            )
+          }
+        }
+      }
     }
+  }
+
+  if (showStatsDialog) {
+    StatsDialog(
+        uiState = uiState,
+        containerColor = currentCardBg,
+        onDismiss = { showStatsDialog = false },
+    )
+  }
+
+  if (showRulesDialog) {
+    RulesDialog(
+        containerColor = currentCardBg,
+        onDismiss = { showRulesDialog = false },
+    )
+  }
 }
 
 @Composable
 fun StatsDialog(
     uiState: HomeUiState,
     containerColor: Color = CardBackground,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
-    val winRate = if (uiState.totalGamesPlayed > 0) {
+  val winRate =
+      if (uiState.totalGamesPlayed > 0) {
         (uiState.totalWins.toDouble() / uiState.totalGamesPlayed * 100).toInt()
-    } else {
+      } else {
         0
-    }
+      }
 
-    val netChipsFormatted = if (uiState.netChipsEarned >= 0) {
+  val netChipsFormatted =
+      if (uiState.netChipsEarned >= 0) {
         "+R${uiState.netChipsEarned}"
-    } else {
+      } else {
         "-R${abs(uiState.netChipsEarned)}"
-    }
+      }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp),
-            shape = RoundedCornerShape(20.dp),
-            color = containerColor,
-            border = BorderStroke(1.dp, BorderGold),
-            tonalElevation = 8.dp
+  Dialog(onDismissRequest = onDismiss) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = containerColor,
+        border = BorderStroke(1.dp, BorderGold),
+        tonalElevation = 8.dp,
+    ) {
+      Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "♠  PLAYER STATS  ♠",
-                        color = BorderGold,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp
-                    )
+          Text(
+              text = "♠  PLAYER STATS  ♠",
+              color = BorderGold,
+              fontSize = 20.sp,
+              fontWeight = FontWeight.Bold,
+              letterSpacing = 1.5.sp,
+          )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+          Spacer(modifier = Modifier.height(4.dp))
 
-                    Text(
-                        text = "YOUR BLACKJACK PERFORMANCE",
-                        color = Color.White.copy(alpha = 0.65f),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium,
-                        letterSpacing = 1.5.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                HorizontalDivider(
-                    color = BorderGold.copy(alpha = 0.45f),
-                    thickness = 1.dp
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    StatCard(
-                        title = "GAMES",
-                        value = uiState.totalGamesPlayed.toString(),
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    StatCard(
-                        title = "WINS",
-                        value = uiState.totalWins.toString(),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    StatCard(
-                        title = "WIN RATE",
-                        value = "$winRate%",
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    StatCard(
-                        title = "NET CHIPS",
-                        value = netChipsFormatted,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Text(
-                    text = "PERFORMANCE",
-                    color = BorderGold,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.04f))
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (winRate >= 50) "♛" else "♟",
-                        fontSize = 28.sp,
-                        color = BorderGold
-                    )
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column {
-                        Text(
-                            text = when {
-                                uiState.totalGamesPlayed == 0 -> "NO GAMES YET"
-                                winRate >= 50 -> "STRONG PERFORMANCE"
-                                else -> "KEEP PLAYING"
-                            },
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(modifier = Modifier.height(3.dp))
-
-                        Text(
-                            text = when {
-                                uiState.totalGamesPlayed == 0 ->
-                                    "Play your first game to see your stats."
-                                else ->
-                                    "Your current win rate is $winRate%."
-                            },
-                            color = Color.White.copy(alpha = 0.65f),
-                            fontSize = 11.sp
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BorderGold,
-                        contentColor = Color.Black
-                    )
-                ) {
-                    Text(
-                        text = "CLOSE",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                }
-            }
+          Text(
+              text = "YOUR BLACKJACK PERFORMANCE",
+              color = Color.White.copy(alpha = 0.65f),
+              fontSize = 10.sp,
+              fontWeight = FontWeight.Medium,
+              letterSpacing = 1.5.sp,
+          )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        HorizontalDivider(
+            color = BorderGold.copy(alpha = 0.45f),
+            thickness = 1.dp,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          StatCard(
+              title = "GAMES",
+              value = uiState.totalGamesPlayed.toString(),
+              modifier = Modifier.weight(1f),
+          )
+
+          StatCard(
+              title = "WINS",
+              value = uiState.totalWins.toString(),
+              modifier = Modifier.weight(1f),
+          )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          StatCard(
+              title = "WIN RATE",
+              value = "$winRate%",
+              modifier = Modifier.weight(1f),
+          )
+
+          StatCard(
+              title = "NET CHIPS",
+              value = netChipsFormatted,
+              modifier = Modifier.weight(1f),
+          )
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Text(
+            text = "PERFORMANCE",
+            color = BorderGold,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.2.sp,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.04f))
+                    .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+              text = if (winRate >= 50) "♛" else "♟",
+              fontSize = 28.sp,
+              color = BorderGold,
+          )
+
+          Spacer(modifier = Modifier.width(12.dp))
+
+          Column {
+            Text(
+                text =
+                    when {
+                      uiState.totalGamesPlayed == 0 -> "NO GAMES YET"
+                      winRate >= 50 -> "STRONG PERFORMANCE"
+                      else -> "KEEP PLAYING"
+                    },
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(modifier = Modifier.height(3.dp))
+
+            Text(
+                text =
+                    when {
+                      uiState.totalGamesPlayed == 0 -> "Play your first game to see your stats."
+                      else -> "Your current win rate is $winRate%."
+                    },
+                color = Color.White.copy(alpha = 0.65f),
+                fontSize = 11.sp,
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Button(
+            onClick = onDismiss,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = BorderGold,
+                    contentColor = Color.Black,
+                ),
+        ) {
+          Text(
+              text = "CLOSE",
+              fontSize = 14.sp,
+              fontWeight = FontWeight.Bold,
+              letterSpacing = 1.sp,
+          )
+        }
+      }
     }
+  }
 }
 
 @Composable
 private fun StatCard(
     title: String,
     value: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.04f))
-            .border(
-                width = 1.dp,
-                color = BorderGold.copy(alpha = 0.18f),
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(vertical = 14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = title,
-            color = Color.White.copy(alpha = 0.55f),
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp
-        )
+  Column(
+      modifier =
+          modifier
+              .clip(RoundedCornerShape(12.dp))
+              .background(Color.White.copy(alpha = 0.04f))
+              .border(
+                  width = 1.dp,
+                  color = BorderGold.copy(alpha = 0.18f),
+                  shape = RoundedCornerShape(12.dp),
+              )
+              .padding(vertical = 14.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Text(
+        text = title,
+        color = Color.White.copy(alpha = 0.55f),
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.sp,
+    )
 
-        Spacer(modifier = Modifier.height(5.dp))
+    Spacer(modifier = Modifier.height(5.dp))
 
-        Text(
-            text = value,
-            color = BorderGold,
-            fontSize = 21.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
+    Text(
+        text = value,
+        color = BorderGold,
+        fontSize = 21.sp,
+        fontWeight = FontWeight.Bold,
+    )
+  }
 }
 
 @Composable
 fun RulesDialog(
     containerColor: Color = CardBackground,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp),
-            shape = RoundedCornerShape(20.dp),
-            color = containerColor,
-            border = BorderStroke(1.dp, BorderGold),
-            tonalElevation = 8.dp
+  Dialog(onDismissRequest = onDismiss) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = containerColor,
+        border = BorderStroke(1.dp, BorderGold),
+        tonalElevation = 8.dp,
+    ) {
+      Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "♠  BLACKJACK  ♠",
-                        color = BorderGold,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp
-                    )
+          Text(
+              text = "♠  BLACKJACK  ♠",
+              color = BorderGold,
+              fontSize = 20.sp,
+              fontWeight = FontWeight.Bold,
+              letterSpacing = 1.5.sp,
+          )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+          Spacer(modifier = Modifier.height(4.dp))
 
-                    Text(
-                        text = "HOW TO PLAY",
-                        color = Color.White.copy(alpha = 0.65f),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        letterSpacing = 2.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                HorizontalDivider(
-                    color = BorderGold.copy(alpha = 0.45f),
-                    thickness = 1.dp
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                RuleItem(
-                    icon = "🎯",
-                    title = "OBJECTIVE",
-                    description = "Get closer to 21 than the dealer without going over."
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                RuleItem(
-                    icon = "🃏",
-                    title = "CARD VALUES",
-                    description = "Face cards are worth 10. Aces count as 1 or 11."
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                RuleItem(
-                    icon = "✋",
-                    title = "YOUR TURN",
-                    description = "Hit to take another card or Stand to keep your current hand."
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                RuleItem(
-                    icon = "♣",
-                    title = "DEALER RULES",
-                    description = "The dealer must Hit on 16 or below and Stand on 17 or higher."
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BorderGold,
-                        contentColor = Color.Black
-                    )
-                ) {
-                    Text(
-                        text = "GOT IT",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                }
-            }
+          Text(
+              text = "HOW TO PLAY",
+              color = Color.White.copy(alpha = 0.65f),
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Medium,
+              letterSpacing = 2.sp,
+          )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        HorizontalDivider(
+            color = BorderGold.copy(alpha = 0.45f),
+            thickness = 1.dp,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RuleItem(
+            icon = "🎯",
+            title = "OBJECTIVE",
+            description = "Get closer to 21 than the dealer without going over.",
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        RuleItem(
+            icon = "🃏",
+            title = "CARD VALUES",
+            description = "Face cards are worth 10. Aces count as 1 or 11.",
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        RuleItem(
+            icon = "✋",
+            title = "YOUR TURN",
+            description = "Hit to take another card or Stand to keep your current hand.",
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        RuleItem(
+            icon = "♣",
+            title = "DEALER RULES",
+            description = "The dealer must Hit on 16 or below and Stand on 17 or higher.",
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Button(
+            onClick = onDismiss,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = BorderGold,
+                    contentColor = Color.Black,
+                ),
+        ) {
+          Text(
+              text = "GOT IT",
+              fontSize = 14.sp,
+              fontWeight = FontWeight.Bold,
+              letterSpacing = 1.sp,
+          )
+        }
+      }
     }
+  }
 }
 
 @Composable
 private fun RuleItem(
     icon: String,
     title: String,
-    description: String
+    description: String,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.04f))
-            .padding(12.dp),
-        verticalAlignment = Alignment.Top
+  Row(
+      modifier =
+          Modifier.fillMaxWidth()
+              .clip(RoundedCornerShape(12.dp))
+              .background(Color.White.copy(alpha = 0.04f))
+              .padding(12.dp),
+      verticalAlignment = Alignment.Top,
+  ) {
+    Box(
+        modifier =
+            Modifier.size(38.dp).clip(CircleShape).background(BorderGold.copy(alpha = 0.12f)),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(BorderGold.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = icon,
-                fontSize = 17.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                color = BorderGold,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-
-            Spacer(modifier = Modifier.height(3.dp))
-
-            Text(
-                text = description,
-                color = Color.White.copy(alpha = 0.82f),
-                fontSize = 13.sp,
-                lineHeight = 18.sp
-            )
-        }
+      Text(
+          text = icon,
+          fontSize = 17.sp,
+      )
     }
+
+    Spacer(modifier = Modifier.width(12.dp))
+
+    Column(modifier = Modifier.weight(1f)) {
+      Text(
+          text = title,
+          color = BorderGold,
+          fontSize = 11.sp,
+          fontWeight = FontWeight.Bold,
+          letterSpacing = 1.sp,
+      )
+
+      Spacer(modifier = Modifier.height(3.dp))
+
+      Text(
+          text = description,
+          color = Color.White.copy(alpha = 0.82f),
+          fontSize = 13.sp,
+          lineHeight = 18.sp,
+      )
+    }
+  }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
-    SplitHappensTheme {
-        HomeScreenContent(
-            uiState = HomeUiState(
+  SplitHappensTheme {
+    HomeScreenContent(
+        uiState =
+            HomeUiState(
                 displayName = "Player 1",
                 chipsOwned = 2500L,
                 totalGamesPlayed = 12,
                 totalWins = 7,
                 netChipsEarned = 1400L,
-                isLoading = false
+                isLoading = false,
             ),
-            isDarkTheme = true
-        )
-    }
+        isDarkTheme = true,
+    )
+  }
 }
