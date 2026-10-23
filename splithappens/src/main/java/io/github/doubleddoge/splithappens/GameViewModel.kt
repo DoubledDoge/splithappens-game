@@ -52,6 +52,7 @@ data class GameUiState(
     val chipsOwned: Long = 0L,
     val currentBet: Long = 0L,
     val insuranceBet: Long = 0L,
+    val gameMode: GameMode = GameMode.TRADITIONAL,
     val stage: GameStage = GameStage.BETTING,
     val playerHands: List<PlayerHand> = emptyList(),
     val activeHandIndex: Int = 0,
@@ -72,9 +73,12 @@ class GameViewModel(
     private val sessionDao: SessionDao,
     private val roundDao: RoundDao,
     private val targetUserId: String = "",
+    initialMode: GameMode = GameMode.TRADITIONAL,
 ) : AndroidViewModel(application) {
 
-  private val _uiState = MutableStateFlow(GameUiState())
+  private val _uiState = MutableStateFlow(
+      GameUiState(gameMode = initialMode)
+  )
   val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
   private val shoe = io.github.doubleddoge.splithappens.game.Shoe(deckCount = 6)
@@ -107,7 +111,7 @@ class GameViewModel(
                     roundDao = roundDao,
                     userId = user.userId,
                     stakes = 100L,
-                    mode = GameMode.TRADITIONAL,
+                    mode = _uiState.value.gameMode,
                 )
                     .apply { startSession() }
           }
@@ -119,6 +123,27 @@ class GameViewModel(
                 chipsOwned = user.chipsOwned,
             )
           }
+        }
+      }
+    }
+  }
+
+  fun setGameMode(mode: GameMode) {
+    _uiState.update { it.copy(gameMode = mode) }
+    if (_uiState.value.stage == GameStage.BETTING) {
+      val userId = _uiState.value.userId
+      if (userId.isNotBlank()) {
+        viewModelScope.launch {
+          sessionManager?.endSession(SessionStatus.COMPLETED)
+          sessionManager =
+              GameSessionManager(
+                  sessionDao = sessionDao,
+                  roundDao = roundDao,
+                  userId = userId,
+                  stakes = 100L,
+                  mode = mode,
+              )
+                  .apply { startSession() }
         }
       }
     }
@@ -154,16 +179,20 @@ class GameViewModel(
 
   fun deal() {
     val s = _uiState.value
-    if (s.stage != GameStage.BETTING || s.currentBet <= 0L) return
+    if (s.stage != GameStage.BETTING) return
+    if (s.currentBet < 100L) {
+      _uiState.update { it.copy(statusText = "Minimum bet is R100") }
+      return
+    }
 
     if (shoe.needsReshuffle) shoe.reshuffle()
 
     val round =
         Round(
             shoe = shoe,
-            mode = GameMode.TRADITIONAL,
+            mode = s.gameMode,
             bankroll = s.chipsOwned,
-            minBet = 5L,
+            minBet = 100L,
         )
     currentRound = round
     round.startBetting(s.currentBet)
@@ -370,11 +399,12 @@ class GameViewModelFactory(
     private val sessionDao: SessionDao,
     private val roundDao: RoundDao,
     private val targetUserId: String = "",
+    private val mode: GameMode = GameMode.TRADITIONAL,
 ) : ViewModelProvider.Factory {
   @Suppress("UNCHECKED_CAST")
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(GameViewModel::class.java)) {
-      return GameViewModel(application, userDao, sessionDao, roundDao, targetUserId) as T
+      return GameViewModel(application, userDao, sessionDao, roundDao, targetUserId, mode) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
   }
