@@ -51,6 +51,7 @@ data class GameUiState(
     val displayName: String = "",
     val chipsOwned: Long = 0L,
     val currentBet: Long = 0L,
+    val insuranceBet: Long = 0L,
     val stage: GameStage = GameStage.BETTING,
     val playerHands: List<PlayerHand> = emptyList(),
     val activeHandIndex: Int = 0,
@@ -169,6 +170,7 @@ class GameViewModel(
 
     _uiState.update {
       it.copy(
+          insuranceBet = 0L,
           stage = GameStage.DEALING,
           statusText = "Dealing...",
           playerHands = round.hands.snapshot(),
@@ -261,6 +263,7 @@ class GameViewModel(
 
     _uiState.update {
       it.copy(
+          insuranceBet = amount,
           stage =
               if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
           playerHands = round.hands.snapshot(),
@@ -291,6 +294,7 @@ class GameViewModel(
           statusText = outcomeMessage,
           hasActiveHand = false,
           currentBet = 0L,
+          insuranceBet = 0L,
       )
     }
 
@@ -310,6 +314,7 @@ class GameViewModel(
     _uiState.update {
       it.copy(
           currentBet = 0L,
+          insuranceBet = 0L,
           playerHands = emptyList(),
           dealerCards = emptyList(),
           hideHoleCard = true,
@@ -326,6 +331,7 @@ class GameViewModel(
     _uiState.update {
       it.copy(
           currentBet = 0L,
+          insuranceBet = 0L,
           playerHands = emptyList(),
           dealerCards = emptyList(),
           hideHoleCard = true,

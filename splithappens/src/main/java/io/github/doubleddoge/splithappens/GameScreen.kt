@@ -156,9 +156,13 @@ fun GameScreen(
   Scaffold(
       modifier = modifier,
       topBar = {
+        val displayedChips = when (uiState.stage) {
+            GameStage.ROUND_OVER -> uiState.chipsOwned
+            else -> uiState.chipsOwned - uiState.currentBet - uiState.insuranceBet
+        }
         UserHeaderCard(
             displayName = uiState.displayName.ifBlank { displayName },
-            chipsOwned = uiState.chipsOwned,
+            chipsOwned = displayedChips,
             isDarkTheme = isDarkTheme,
         )
       },
