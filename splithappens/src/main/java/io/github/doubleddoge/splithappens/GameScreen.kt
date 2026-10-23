@@ -57,6 +57,7 @@ import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.components.BetChips
 import io.github.doubleddoge.splithappens.components.GameActionBar
 import io.github.doubleddoge.splithappens.components.HandRow
+import io.github.doubleddoge.splithappens.components.OutcomeBanner
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
 import io.github.doubleddoge.splithappens.game.evaluateHand
@@ -309,15 +310,13 @@ fun GameScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
               // OUTCOME BANNER (Positioned directly above Player's Cards)
-              if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
-                Text(
-                    text = uiState.statusText,
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 6.dp),
-                )
-              }
+                if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
+                    OutcomeBanner(
+                        text = uiState.statusText,
+                        results = uiState.results,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
 
               // PLAYER HAND DISPLAY
               val primaryHand = uiState.playerHands.firstOrNull()
