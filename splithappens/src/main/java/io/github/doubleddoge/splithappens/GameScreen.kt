@@ -1,5 +1,6 @@
 package io.github.doubleddoge.splithappens
 
+import android.app.Application
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
@@ -56,6 +57,7 @@ import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.components.BetChips
 import io.github.doubleddoge.splithappens.components.GameActionBar
 import io.github.doubleddoge.splithappens.components.HandRow
+import io.github.doubleddoge.splithappens.components.OutcomeBanner
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
 import io.github.doubleddoge.splithappens.game.evaluateHand
@@ -83,6 +85,7 @@ private const val ArcSweep = 110f
 @Composable
 fun GameScreen(
     modifier: Modifier = Modifier,
+    userId: String = "",
     displayName: String = "Player 1",
     chipsOwned: Long = 2500L,
     isDarkTheme: Boolean = true,
@@ -91,7 +94,17 @@ fun GameScreen(
 ) {
   val context = LocalContext.current
   val db = remember(context) { buildSplitHappensDatabase(context) }
-  val gameViewModel: GameViewModel = viewModel(factory = GameViewModelFactory(db.userDao()))
+  val gameViewModel: GameViewModel =
+      viewModel(
+          key = "game_$userId",
+          factory = GameViewModelFactory(
+              application = context.applicationContext as Application,
+              userDao = db.userDao(),
+              sessionDao = db.sessionDao(),
+              roundDao = db.roundDao(),
+              targetUserId = userId
+          )
+      )
   val uiState by gameViewModel.uiState.collectAsState()
   val isGameInProgress = uiState.isGameInProgress
 
@@ -110,8 +123,12 @@ fun GameScreen(
     }
   }
 
-  BackHandler(enabled = isGameInProgress) {
-    pendingNavigation = onNavigateHome
+  BackHandler {
+    if (isGameInProgress) {
+      pendingNavigation = onNavigateHome
+    } else {
+      onNavigateHome()
+    }
   }
 
   if (pendingNavigation != null) {
@@ -140,9 +157,13 @@ fun GameScreen(
   Scaffold(
       modifier = modifier,
       topBar = {
+        val displayedChips = when (uiState.stage) {
+            GameStage.ROUND_OVER -> uiState.chipsOwned
+            else -> uiState.chipsOwned - uiState.currentBet - uiState.insuranceBet
+        }
         UserHeaderCard(
             displayName = uiState.displayName.ifBlank { displayName },
-            chipsOwned = uiState.chipsOwned,
+            chipsOwned = displayedChips,
             isDarkTheme = isDarkTheme,
         )
       },
@@ -289,15 +310,13 @@ fun GameScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
               // OUTCOME BANNER (Positioned directly above Player's Cards)
-              if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
-                Text(
-                    text = uiState.statusText,
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 6.dp),
-                )
-              }
+                if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
+                    OutcomeBanner(
+                        text = uiState.statusText,
+                        results = uiState.results,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
 
               // PLAYER HAND DISPLAY
               val primaryHand = uiState.playerHands.firstOrNull()
@@ -354,9 +373,10 @@ fun GameScreen(
                 GameActionBar(
                     isBetting = uiState.stage == GameStage.BETTING,
                     canBet = uiState.currentBet > 0L,
+                    availableChips = uiState.chipsOwned - uiState.currentBet,
                     legalActions = uiState.legalActions,
                     onChip = { amount ->
-                      if (uiState.chipsOwned >= amount) {
+                      if ((uiState.chipsOwned - uiState.currentBet) >= amount) {
                         betChipsList = betChipsList + amount.toInt()
                         gameViewModel.addBet(amount)
                       }

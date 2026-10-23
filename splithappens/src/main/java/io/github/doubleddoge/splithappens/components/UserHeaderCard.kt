@@ -109,7 +109,7 @@ fun UserHeaderCard(
         // Player details
         Column {
             Text(
-                text = displayName,
+                text = displayName.ifBlank { "..." },
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp

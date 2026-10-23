@@ -153,15 +153,26 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                 val homeVm: HomeViewModel =
                     viewModel(
                         factory = HomeViewModelFactory(db.userDao(), db.gameHistoryDao(), activeUserId),
-                        key = "game_$activeUserId"
+                        key = "game_header_$activeUserId"
                     )
                 val homeUiState by homeVm.uiState.collectAsState()
                 GameScreen(
+                    userId = activeUserId,
                     displayName = homeUiState.displayName,
                     chipsOwned = homeUiState.chipsOwned,
                     isDarkTheme = settingsUiState.darkTheme,
-                    onNavigateHome = { navController.navigate(Screen.Home.route) { popUpTo(0) } },
-                    onNavigateMenu = { navController.navigate(Screen.Menu.route) { launchSingleTop = true } },
+                    onNavigateHome = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateMenu = {
+                        navController.navigate(Screen.Menu.route) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
 

@@ -30,19 +30,43 @@ class SettingViewModel(application: Application) : AndroidViewModel(application)
   private val prefs: SharedPreferences =
       application.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
 
-  private val _uiState =
-      MutableStateFlow(
-          SettingUiState(
-              darkTheme = prefs.getBoolean("pref_dark_theme", true),
-              showCardTotal = prefs.getBoolean("pref_show_card_total", true),
-              dealerRuleBanner = prefs.getBoolean("pref_dealer_rule_banner", true),
-              soundEffects = prefs.getBoolean("pref_sound_effects", true),
-              hapticVibration = prefs.getBoolean("pref_haptic_vibration", true),
-              fastDeal = prefs.getBoolean("pref_fast_deal", false),
-              autoStandOn21 = prefs.getBoolean("pref_auto_stand_21", true),
-          )
-      )
-  val uiState: StateFlow<SettingUiState> = _uiState.asStateFlow()
+    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+        loadPreferences()
+    }
+
+    private val _uiState =
+        MutableStateFlow(
+            SettingUiState(
+                darkTheme = prefs.getBoolean("pref_dark_theme", true),
+                showCardTotal = prefs.getBoolean("pref_show_card_total", true),
+                dealerRuleBanner = prefs.getBoolean("pref_dealer_rule_banner", true),
+                soundEffects = prefs.getBoolean("pref_sound_effects", true),
+                hapticVibration = prefs.getBoolean("pref_haptic_vibration", true),
+                fastDeal = prefs.getBoolean("pref_fast_deal", false),
+                autoStandOn21 = prefs.getBoolean("pref_auto_stand_21", true),
+            )
+        )
+    val uiState: StateFlow<SettingUiState> = _uiState.asStateFlow()
+
+    init {
+        loadPreferences()
+        prefs.registerOnSharedPreferenceChangeListener(preferenceListener)
+    }
+
+    fun loadPreferences() {
+        _uiState.update {
+            it.copy(
+                darkTheme = prefs.getBoolean("pref_dark_theme", true),
+                showCardTotal = prefs.getBoolean("pref_show_card_total", true),
+                dealerRuleBanner = prefs.getBoolean("pref_dealer_rule_banner", true),
+                soundEffects = prefs.getBoolean("pref_sound_effects", true),
+                hapticVibration = prefs.getBoolean("pref_haptic_vibration", true),
+                fastDeal = prefs.getBoolean("pref_fast_deal", false),
+                autoStandOn21 = prefs.getBoolean("pref_auto_stand_21", true)
+            )
+        }
+    }
+
 
   fun toggleDarkTheme(enabled: Boolean) {
     prefs.edit { putBoolean("pref_dark_theme", enabled) }
@@ -90,6 +114,10 @@ class SettingViewModel(application: Application) : AndroidViewModel(application)
     if (!force && !_uiState.value.hapticVibration) return
     triggerDeviceVibration(getApplication(), DURATION_MILLIS)
   }
+
+    override fun onCleared() {
+        prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener)
+    }
 }
 
 @Suppress("unused")

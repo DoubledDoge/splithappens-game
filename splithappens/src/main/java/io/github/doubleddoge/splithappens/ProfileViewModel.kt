@@ -12,18 +12,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
+
 // PROFILE UI STATE
+
 
 data class ProfileUiState(
     val userId: String = "default_player",
     val displayName: String = "Player 1",
     val chipsOwned: Long = 2500L,
     val profilePictureBytes: ByteArray? = null,
+
     val gamesPlayed: Int = 0,
     val wins: Int = 0,
     val losses: Int = 0,
     val winRate: Double = 0.0,
-    val isLoading: Boolean = false,
+    val netChipsEarned: Long = 0L,
+    val isLoading: Boolean = true
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -62,7 +66,10 @@ private fun ByteArray?.contentEqualsNullable(other: ByteArray?): Boolean {
   }
 }
 
+
+
 // PROFILE VIEW MODEL
+
 
 class ProfileViewModel(
     private val userDao: UserDao,
@@ -91,7 +98,8 @@ class ProfileViewModel(
       combine(
               userDao.observeById(targetUserId),
               gameHistoryDao.observeForUser(targetUserId),
-          ) { user, history ->
+              gameHistoryDao.observeNetChips(targetUserId),
+          ) { user, history, totalNetChips ->
             if (user == null) {
               ProfileUiState(
                   userId = targetUserId,
@@ -118,6 +126,7 @@ class ProfileViewModel(
                   wins = wins,
                   losses = losses,
                   winRate = winRate,
+                  netChipsEarned = totalNetChips,
                   isLoading = false,
               )
             }

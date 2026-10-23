@@ -7,7 +7,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.graphics.toColorInt
 import io.github.doubleddoge.splithappens.navigation.AppNavigation
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import com.google.android.gms.ads.MobileAds
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -17,6 +20,7 @@ class MainActivity : ComponentActivity() {
 
 		enableEdgeToEdge()
 
+		CoroutineScope(Dispatchers.IO).launch { MobileAds.initialize(this@MainActivity) {} }
 		setContent {
 			SplitHappensTheme {
 				AppNavigation()

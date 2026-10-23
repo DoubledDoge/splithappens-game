@@ -97,14 +97,12 @@ fun MenuScreen(
         action()
     }
 
-    val hasActiveOverlay =
-        uiState.isRulesBookletOpen || uiState.isLogoutConfirmOpen || showStatsDialog
-
-    BackHandler(enabled = hasActiveOverlay) {
+    BackHandler {
         when {
             uiState.isRulesBookletOpen -> onCloseRules()
             uiState.isLogoutConfirmOpen -> onCloseLogoutConfirm()
             showStatsDialog -> showStatsDialog = false
+            else -> onNavigateHome()
         }
     }
 
