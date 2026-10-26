@@ -78,7 +78,6 @@ private const val CARD_BACK_INNER_BORDER_ALPHA = 0.6f
 
 // Typography
 private val CornerRankFontSize = 15.sp
-private val CornerSuitFontSize = 13.sp
 private val CenterSuitFontSize = 30.sp
 
 // Section label styling
@@ -151,11 +150,6 @@ private fun CardFace(card: TableCard) {
                 color = ink,
                 fontSize = CornerRankFontSize,
                 fontWeight = FontWeight.Bold,
-            )
-            Text(
-                card.suit.symbol,
-                color = ink,
-                fontSize = CornerSuitFontSize,
             )
         }
         Text(
