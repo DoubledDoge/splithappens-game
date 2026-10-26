@@ -224,7 +224,7 @@ fun HomeScreenContent(
         ) {
           Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
             Text(
-                text = "WildCard",
+                text = "Wild Card",
                 color = BorderGold,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
