@@ -66,7 +66,7 @@ class Round(
     private val shoe: Shoe,
     private val mode: GameMode,
     private val bankroll: Long,
-    private val minBet: Long = 100,
+    private val minBet: Long = 0,
     private val maxHands: Int = 4,
 ) {
   var phase = Phase.BETTING

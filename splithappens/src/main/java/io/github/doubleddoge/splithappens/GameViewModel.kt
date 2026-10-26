@@ -180,8 +180,8 @@ class GameViewModel(
   fun deal() {
     val s = _uiState.value
     if (s.stage != GameStage.BETTING) return
-    if (s.currentBet < 100L) {
-      _uiState.update { it.copy(statusText = "Minimum bet is R100") }
+    if (s.currentBet <= 0L) {
+      _uiState.update { it.copy(statusText = "Please place a bet") }
       return
     }
 
@@ -192,7 +192,7 @@ class GameViewModel(
             shoe = shoe,
             mode = s.gameMode,
             bankroll = s.chipsOwned,
-            minBet = 100L,
+            minBet = 0L,
         )
     currentRound = round
     round.startBetting(s.currentBet)
@@ -375,12 +375,12 @@ class GameViewModel(
   private fun outcomeBanner(round: Round, primary: HandResult?): String =
       when (primary) {
         HandResult.BLACKJACK,
-        HandResult.NATURAL_BLACKJACK,
-        HandResult.QUEEN_JACK -> "BLACKJACK! YOU WIN!"
-        HandResult.WIN,
-        HandResult.TRIPLE_SEVEN,
-        HandResult.SIX_CARD,
-        HandResult.SEVEN_CARD -> "YOU WIN!"
+        HandResult.NATURAL_BLACKJACK -> "BLACKJACK! YOU WIN!"
+        HandResult.QUEEN_JACK -> "QUEEN JACK! YOU WIN!"
+        HandResult.TRIPLE_SEVEN -> "7-7-7! YOU WIN!"
+        HandResult.SIX_CARD -> "6-CARD CHARLIE! YOU WIN!"
+        HandResult.SEVEN_CARD -> "7-CARD CHARLIE! YOU WIN!"
+        HandResult.WIN -> "YOU WIN!"
         HandResult.PUSH -> "PUSH - BET RETURNED"
         HandResult.LOSS ->
             if (round.hands.firstOrNull()?.value?.isBust == true) "BUSTED!" else "DEALER WINS"

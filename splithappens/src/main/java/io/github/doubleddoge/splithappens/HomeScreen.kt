@@ -50,6 +50,7 @@ import androidx.compose.ui.window.Dialog
 import io.github.doubleddoge.splithappens.components.AppBottomBar
 import io.github.doubleddoge.splithappens.components.BannerAd
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
+import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlin.math.abs
 
@@ -62,48 +63,12 @@ val ButtonTextColor = Color(0xFF1E1E1E)
 
 private const val TWO_SECONDS = 2000
 
-//@Composable
-//fun AdBannerPlaceholder(
-//    modifier: Modifier = Modifier,
-//    isDarkTheme: Boolean = true,
-//) {
-//  val bgColor = if (isDarkTheme) Color(0xFF08251D) else Color(0xFF144D38)
-//
-//  Box(
-//      modifier =
-//          modifier
-//              .fillMaxWidth()
-//              .height(50.dp)
-//              .clip(RoundedCornerShape(8.dp))
-//              .background(bgColor)
-//              .border(
-//                  width = 1.dp,
-//                  color = BorderGold.copy(alpha = 0.25f),
-//                  shape = RoundedCornerShape(8.dp),
-//              ),
-//      contentAlignment = Alignment.Center,
-//  ) {
-//    Row(
-//        verticalAlignment = Alignment.CenterVertically,
-//        horizontalArrangement = Arrangement.Center,
-//    ) {
-//      Text(
-//          text = "ADVERTISEMENT",
-//          color = Color.White.copy(alpha = 0.45f),
-//          fontSize = 9.sp,
-//          fontWeight = FontWeight.Medium,
-//          letterSpacing = 1.2.sp,
-//      )
-//    }
-//  }
-//}
-
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     modifier: Modifier = Modifier,
     isDarkTheme: Boolean = true,
-    onPlayClick: () -> Unit = {},
+    onPlayClick: (GameMode) -> Unit = {},
     onNavigateSettings: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
@@ -132,7 +97,7 @@ fun HomeScreenContent(
     uiState: HomeUiState,
     modifier: Modifier = Modifier,
     isDarkTheme: Boolean = true,
-    onPlayClick: () -> Unit = {},
+    onPlayClick: (GameMode) -> Unit = {},
     onNavigateSettings: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onNavigateGame: () -> Unit = {},
@@ -247,44 +212,91 @@ fun HomeScreenContent(
 
       Spacer(modifier = Modifier.height(14.dp))
 
-      // Classic Table Card
-      Card(
-          modifier = Modifier.fillMaxWidth().border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
-          shape = RoundedCornerShape(16.dp),
-          colors = CardDefaults.cardColors(containerColor = currentCardBg),
+      Column(
+          modifier = Modifier.fillMaxWidth(),
+          verticalArrangement = Arrangement.spacedBy(14.dp),
       ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
-          Text(
-              text = "Classic Table",
-              color = BorderGold,
-              fontSize = 17.sp,
-              fontWeight = FontWeight.Bold,
-          )
-          Spacer(modifier = Modifier.height(4.dp))
-          Text(
-              text = "Standard Rules • Minimum Bet R100",
-              color = Color.White.copy(alpha = 0.7f),
-              fontSize = 11.sp,
-          )
-
-          Spacer(modifier = Modifier.height(12.dp))
-
-          Button(
-              onClick = onPlayClick,
-              modifier = Modifier.fillMaxWidth().height(44.dp),
-              shape = RoundedCornerShape(8.dp),
-              colors =
-                  ButtonDefaults.buttonColors(
-                      containerColor = ButtonBackground,
-                      contentColor = ButtonTextColor,
-                  ),
-          ) {
+        // WildCard
+        Card(
+            modifier = Modifier.fillMaxWidth().border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = currentCardBg),
+        ) {
+          Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
             Text(
-                text = "PLAY NOW",
-                fontSize = 13.sp,
+                text = "WildCard",
+                color = BorderGold,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp,
             )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Special Payouts • For those who wants special rewards.",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 11.sp,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { onPlayClick(GameMode.WILDCARD) },
+                modifier = Modifier.fillMaxWidth().height(44.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = BorderGold,
+                        contentColor = ButtonTextColor,
+                    ),
+            ) {
+              Text(
+                  text = "PLAY NOW",
+                  fontSize = 13.sp,
+                  fontWeight = FontWeight.Bold,
+                  letterSpacing = 0.5.sp,
+              )
+            }
+          }
+        }
+
+        // Traditional
+        Card(
+            modifier = Modifier.fillMaxWidth().border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = currentCardBg),
+        ) {
+          Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+            Text(
+                text = "Traditional",
+                color = BorderGold,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Standard Rules • Purely by the book for a more simpler experience.",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 11.sp,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { onPlayClick(GameMode.TRADITIONAL) },
+                modifier = Modifier.fillMaxWidth().height(44.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = ButtonBackground,
+                        contentColor = ButtonTextColor,
+                    ),
+            ) {
+              Text(
+                  text = "PLAY NOW",
+                  fontSize = 13.sp,
+                  fontWeight = FontWeight.Bold,
+                  letterSpacing = 0.5.sp,
+              )
+            }
           }
         }
       }

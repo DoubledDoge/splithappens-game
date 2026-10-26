@@ -60,6 +60,7 @@ import io.github.doubleddoge.splithappens.components.HandRow
 import io.github.doubleddoge.splithappens.components.OutcomeBanner
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
@@ -86,6 +87,7 @@ private const val ArcSweep = 110f
 fun GameScreen(
     modifier: Modifier = Modifier,
     userId: String = "",
+    mode: GameMode = GameMode.TRADITIONAL,
     displayName: String = "Player 1",
     chipsOwned: Long = 2500L,
     isDarkTheme: Boolean = true,
@@ -96,13 +98,14 @@ fun GameScreen(
   val db = remember(context) { buildSplitHappensDatabase(context) }
   val gameViewModel: GameViewModel =
       viewModel(
-          key = "game_$userId",
+          key = "game_${userId}_${mode.name}",
           factory = GameViewModelFactory(
               application = context.applicationContext as Application,
               userDao = db.userDao(),
               sessionDao = db.sessionDao(),
               roundDao = db.roundDao(),
-              targetUserId = userId
+              targetUserId = userId,
+              mode = mode
           )
       )
   val uiState by gameViewModel.uiState.collectAsState()

@@ -9,7 +9,9 @@ sealed class Screen(val route: String) {
 
   object Profile : Screen("profile")
 
-  object Game : Screen("game")
+  object Game : Screen("game/{mode}") {
+    fun createRoute(mode: String) = "game/$mode"
+  }
 
   object Settings : Screen("settings")
 
