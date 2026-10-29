@@ -68,6 +68,7 @@ class Round(
     private val bankroll: Long,
     private val minBet: Long = 0,
     private val maxHands: Int = 4,
+    private val autoStandOn21: Boolean = true,
 ) {
   var phase = Phase.BETTING
     private set
@@ -212,8 +213,16 @@ class Round(
     if (dealerValue.isBlackjack) finish() else advance()
   }
 
+  private fun isHandDone(h: PlayerHand): Boolean =
+      h.stood ||
+          h.surrendered ||
+          h.isDoubled ||
+          h.value.isBust ||
+          h.value.isBlackjack ||
+          (autoStandOn21 && h.value.total == 21)
+
   private fun advance() {
-    while (activeIndex < hands.size && hands[activeIndex].isDone) activeIndex++
+    while (activeIndex < hands.size && isHandDone(hands[activeIndex])) activeIndex++
     if (activeIndex >= hands.size) finish()
   }
 

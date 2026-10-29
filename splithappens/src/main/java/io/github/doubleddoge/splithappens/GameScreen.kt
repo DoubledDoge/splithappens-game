@@ -91,22 +91,29 @@ fun GameScreen(
     displayName: String = "Player 1",
     chipsOwned: Long = 2500L,
     isDarkTheme: Boolean = true,
+    settingsUiState: SettingUiState = SettingUiState(),
     onNavigateHome: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
 ) {
   val context = LocalContext.current
+  val triggerFeedback: (Long) -> Unit = { durationMs ->
+    if (settingsUiState.soundEffects) triggerClickSound()
+    if (settingsUiState.hapticVibration) triggerDeviceVibration(context, durationMs)
+  }
+
   val db = remember(context) { buildSplitHappensDatabase(context) }
   val gameViewModel: GameViewModel =
       viewModel(
           key = "game_${userId}_${mode.name}",
-          factory = GameViewModelFactory(
-              application = context.applicationContext as Application,
-              userDao = db.userDao(),
-              sessionDao = db.sessionDao(),
-              roundDao = db.roundDao(),
-              targetUserId = userId,
-              mode = mode
-          )
+          factory =
+              GameViewModelFactory(
+                  application = context.applicationContext as Application,
+                  userDao = db.userDao(),
+                  sessionDao = db.sessionDao(),
+                  roundDao = db.roundDao(),
+                  targetUserId = userId,
+                  mode = mode,
+              ),
       )
   val uiState by gameViewModel.uiState.collectAsState()
   val isGameInProgress = uiState.isGameInProgress
@@ -160,10 +167,11 @@ fun GameScreen(
   Scaffold(
       modifier = modifier,
       topBar = {
-        val displayedChips = when (uiState.stage) {
-            GameStage.ROUND_OVER -> uiState.chipsOwned
-            else -> uiState.chipsOwned - uiState.currentBet - uiState.insuranceBet
-        }
+        val displayedChips =
+            when (uiState.stage) {
+              GameStage.ROUND_OVER -> uiState.chipsOwned
+              else -> uiState.chipsOwned - uiState.currentBet - uiState.insuranceBet
+            }
         UserHeaderCard(
             displayName = uiState.displayName.ifBlank { displayName },
             chipsOwned = displayedChips,
@@ -266,24 +274,26 @@ fun GameScreen(
                       style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
                   )
 
-              arc(outerR, 0.45f, 1.5.dp.toPx())
-              arc(innerR, 0.25f, 1.dp.toPx())
+              if (settingsUiState.dealerRuleBanner) {
+                arc(outerR, 0.45f, 1.5.dp.toPx())
+                arc(innerR, 0.25f, 1.dp.toPx())
 
-              drawArcText(
-                  "BLACKJACK PAYS 3 TO 2",
-                  center,
-                  outerR - 8.dp.toPx(),
-                  GoldFoil.copy(alpha = 0.85f),
-                  12.sp.toPx(),
-              )
-              drawArcText(
-                  "INSURANCE PAYS 2 TO 1",
-                  center,
-                  innerR - 8.dp.toPx(),
-                  GoldFoil.copy(alpha = 0.55f),
-                  9.sp.toPx(),
-                  spacingEm = 0.14f,
-              )
+                drawArcText(
+                    "BLACKJACK PAYS 3 TO 2",
+                    center,
+                    outerR - 8.dp.toPx(),
+                    GoldFoil.copy(alpha = 0.85f),
+                    12.sp.toPx(),
+                )
+                drawArcText(
+                    "INSURANCE PAYS 2 TO 1",
+                    center,
+                    innerR - 8.dp.toPx(),
+                    GoldFoil.copy(alpha = 0.55f),
+                    9.sp.toPx(),
+                    spacingEm = 0.14f,
+                )
+              }
             }
 
             // DEALER AREA (Top)
@@ -294,14 +304,21 @@ fun GameScreen(
               TableLabel(
                   text = "DEALER",
                   total =
-                      if (uiState.dealerCards.isNotEmpty() && !uiState.hideHoleCard) {
+                      if (
+                          settingsUiState.showCardTotal &&
+                              uiState.dealerCards.isNotEmpty() &&
+                              !uiState.hideHoleCard
+                      ) {
                         uiState.dealerCards.evaluateHand().total
                       } else {
                         null
                       },
               )
               Spacer(modifier = Modifier.height(6.dp))
-              HandRow(hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard))
+              HandRow(
+                  hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard),
+                  fastDeal = settingsUiState.fastDeal,
+              )
             }
 
             // PLAYER AREA, STATUS BANNER & CONTROLS (Bottom)
@@ -313,27 +330,28 @@ fun GameScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
               // OUTCOME BANNER (Positioned directly above Player's Cards)
-                if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
-                    OutcomeBanner(
-                        text = uiState.statusText,
-                        results = uiState.results,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
+              if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
+                OutcomeBanner(
+                    text = uiState.statusText,
+                    results = uiState.results,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+              }
 
               // PLAYER HAND DISPLAY
               val primaryHand = uiState.playerHands.firstOrNull()
               if (primaryHand != null) {
-                // TODO: Replace single HandRow rendering with side-by-side Row layout when split
-                // hands are enabled
-                HandRow(hand = primaryHand.cards.toTableCards())
+                HandRow(
+                    hand = primaryHand.cards.toTableCards(),
+                    fastDeal = settingsUiState.fastDeal,
+                ) // TODO: Replace single HandRow rendering with side-by-side Row layout when split?
               }
 
               Spacer(modifier = Modifier.height(6.dp))
 
               TableLabel(
                   text = "PLAYER",
-                  total = primaryHand?.value?.total,
+                  total = if (settingsUiState.showCardTotal) primaryHand?.value?.total else null,
               )
 
               if (uiState.stage == GameStage.BETTING) {
@@ -342,6 +360,7 @@ fun GameScreen(
                     chips = betChipsList,
                     onUndo = {
                       if (betChipsList.isNotEmpty()) {
+                        triggerFeedback(25L)
                         gameViewModel.clearBet()
                         betChipsList = emptyList()
                       }
@@ -380,12 +399,19 @@ fun GameScreen(
                     legalActions = uiState.legalActions,
                     onChip = { amount ->
                       if ((uiState.chipsOwned - uiState.currentBet) >= amount) {
+                        triggerFeedback(25L)
                         betChipsList = betChipsList + amount.toInt()
                         gameViewModel.addBet(amount)
                       }
                     },
-                    onDeal = { gameViewModel.deal() },
-                    onAction = { action -> gameViewModel.performAction(action) },
+                    onDeal = {
+                      triggerFeedback(35L)
+                      gameViewModel.deal()
+                    },
+                    onAction = { action ->
+                      triggerFeedback(35L)
+                      gameViewModel.performAction(action)
+                    },
                 )
               }
             }

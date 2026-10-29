@@ -129,6 +129,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                 factory = HomeViewModelFactory(db.userDao(), db.gameHistoryDao(), activeUserId),
                 key = "home_$activeUserId",
             )
+
         HomeScreen(
             viewModel = homeVm,
             isDarkTheme = settingsUiState.darkTheme,
@@ -160,12 +161,14 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                 key = "game_header_$activeUserId",
             )
         val homeUiState by homeVm.uiState.collectAsState()
+
         GameScreen(
             userId = activeUserId,
             mode = mode,
             displayName = homeUiState.displayName,
             chipsOwned = homeUiState.chipsOwned,
             isDarkTheme = settingsUiState.darkTheme,
+            settingsUiState = settingsUiState,
             onNavigateHome = {
               navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Home.route) { inclusive = true }
