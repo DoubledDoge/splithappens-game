@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -339,20 +341,69 @@ fun GameScreen(
               }
 
               // PLAYER HAND DISPLAY
-              val primaryHand = uiState.playerHands.firstOrNull()
-              if (primaryHand != null) {
-                HandRow(
-                    hand = primaryHand.cards.toTableCards(),
-                    fastDeal = settingsUiState.fastDeal,
-                ) // TODO: Replace single HandRow rendering with side-by-side Row layout when split?
+              if (uiState.playerHands.size <= 1) {
+                val primaryHand = uiState.playerHands.firstOrNull()
+
+                if (primaryHand != null) {
+                  HandRow(
+                      hand = primaryHand.cards.toTableCards(),
+                      fastDeal = settingsUiState.fastDeal,
+                  )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                TableLabel(
+                    text = "PLAYER",
+                    total = if (settingsUiState.showCardTotal) primaryHand?.value?.total else null,
+                )
+              } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement =
+                        Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                  uiState.playerHands.forEachIndexed { index, hand ->
+                    val isActiveHand =
+                        uiState.stage == GameStage.PLAYER_TURN && index == uiState.activeHandIndex
+
+                    Column(
+                        modifier =
+                            Modifier.clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    if (isActiveHand) GoldFoil.copy(alpha = 0.12f)
+                                    else Color.Transparent
+                                )
+                                .border(
+                                    width = if (isActiveHand) 1.5.dp else 0.dp,
+                                    color = if (isActiveHand) GoldFoil else Color.Transparent,
+                                    shape = RoundedCornerShape(10.dp),
+                                )
+                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                      HandRow(
+                          hand =
+                              hand.cards.mapIndexed { cardIdx, card ->
+                                card.toTableCard(
+                                    uid = index * 10000L + cardIdx.toLong() + card.cardId * 100L,
+                                    isFaceUp = true,
+                                )
+                              },
+                          overlap = 26.dp,
+                          fastDeal = settingsUiState.fastDeal,
+                      )
+                      Spacer(modifier = Modifier.height(4.dp))
+
+                      TableLabel(
+                          text = "HAND ${index + 1}",
+                          total = if (settingsUiState.showCardTotal) hand.value.total else null,
+                      )
+                    }
+                  }
+                }
               }
-
-              Spacer(modifier = Modifier.height(6.dp))
-
-              TableLabel(
-                  text = "PLAYER",
-                  total = if (settingsUiState.showCardTotal) primaryHand?.value?.total else null,
-              )
 
               if (uiState.stage == GameStage.BETTING) {
                 Spacer(modifier = Modifier.height(6.dp))

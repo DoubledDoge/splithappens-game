@@ -214,6 +214,7 @@ class GameViewModel(
           stage = GameStage.DEALING,
           statusText = "Dealing...",
           playerHands = round.hands.snapshot(),
+          activeHandIndex = 0,
           dealerCards = emptyList(),
           hideHoleCard = true,
           hasActiveHand = true,
@@ -262,17 +263,27 @@ class GameViewModel(
 
   fun performAction(action: Action) {
     val round = currentRound ?: return
-
     if (round.phase != Phase.PLAYER_TURN) return
 
     round.act(action)
+
+    val totalStaked = round.hands.sumOf { it.bet }
+    val statusPrompt =
+        if (round.hands.size > 1 && round.phase == Phase.PLAYER_TURN) {
+          "Playing Hand ${round.activeIndex + 1} of ${round.hands.size}"
+        } else {
+          _uiState.value.statusText
+        }
+
     _uiState.update {
       it.copy(
+          currentBet = totalStaked,
           playerHands = round.hands.snapshot(),
           activeHandIndex = round.activeIndex,
           dealerCards = round.dealerCards.toList(),
           hideHoleCard = round.holeHidden,
           legalActions = round.legalActions(),
+          statusText = statusPrompt,
       )
     }
 
@@ -284,7 +295,6 @@ class GameViewModel(
               statusText = "Dealer drawing...",
           )
         }
-
         val turnDelay = if (isFastDeal) FAST_DEALER_TURN_DELAY else DEALER_TURN_DELAY
         delay(turnDelay)
         finishRound()
@@ -354,6 +364,7 @@ class GameViewModel(
       it.copy(
           currentBet = 0L,
           insuranceBet = 0L,
+          activeHandIndex = 0,
           playerHands = emptyList(),
           dealerCards = emptyList(),
           hideHoleCard = true,
@@ -371,6 +382,7 @@ class GameViewModel(
       it.copy(
           currentBet = 0L,
           insuranceBet = 0L,
+          activeHandIndex = 0,
           playerHands = emptyList(),
           dealerCards = emptyList(),
           hideHoleCard = true,
@@ -382,21 +394,36 @@ class GameViewModel(
     }
   }
 
-  private fun outcomeBanner(round: Round, primary: HandResult?): String =
-      when (primary) {
-        HandResult.BLACKJACK,
-        HandResult.NATURAL_BLACKJACK -> "BLACKJACK! YOU WIN!"
-        HandResult.QUEEN_JACK -> "QUEEN JACK! YOU WIN!"
-        HandResult.TRIPLE_SEVEN -> "7-7-7! YOU WIN!"
-        HandResult.SIX_CARD -> "6-CARD CHARLIE! YOU WIN!"
-        HandResult.SEVEN_CARD -> "7-CARD CHARLIE! YOU WIN!"
-        HandResult.WIN -> "YOU WIN!"
-        HandResult.PUSH -> "PUSH - BET RETURNED"
-        HandResult.LOSS ->
-            if (round.hands.firstOrNull()?.value?.isBust == true) "BUSTED!" else "DEALER WINS"
-        HandResult.SURRENDER -> "SURRENDERED"
-        null -> "ROUND OVER"
+  private fun outcomeBanner(round: Round, primary: HandResult?): String {
+    val results = round.results()
+
+    if (results.size > 1) {
+      val wins = results.count { it.multiplier > 1.0 }
+      val pushes = results.count { it == HandResult.PUSH }
+      val losses = results.count { it == HandResult.LOSS || it == HandResult.SURRENDER }
+      return when {
+        wins > 0 && losses == 0 -> "WON $wins OF ${results.size} HANDS!"
+        wins > 0 -> "SPLIT: $wins WON, $losses LOST" + if (pushes > 0) ", $pushes PUSH" else ""
+        pushes > 0 && losses == 0 -> "ALL HANDS PUSHED"
+        else -> "DEALER WINS SPLIT HANDS"
       }
+    }
+
+    return when (primary) {
+      HandResult.BLACKJACK,
+      HandResult.NATURAL_BLACKJACK -> "BLACKJACK! YOU WIN!"
+      HandResult.QUEEN_JACK -> "QUEEN JACK! YOU WIN!"
+      HandResult.TRIPLE_SEVEN -> "7-7-7! YOU WIN!"
+      HandResult.SIX_CARD -> "6-CARD CHARLIE! YOU WIN!"
+      HandResult.SEVEN_CARD -> "7-CARD CHARLIE! YOU WIN!"
+      HandResult.WIN -> "YOU WIN!"
+      HandResult.PUSH -> "PUSH - BET RETURNED"
+      HandResult.LOSS ->
+          if (round.hands.firstOrNull()?.value?.isBust == true) "BUSTED!" else "DEALER WINS"
+      HandResult.SURRENDER -> "SURRENDERED"
+      null -> "ROUND OVER"
+    }
+  }
 
   override fun onCleared() {
     viewModelScope.launch { sessionManager?.endSession(SessionStatus.COMPLETED) }
