@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val MAX_NAME_LENGTH = 20
+private const val PERCENTAGE_MULTIPLIER = 100
+
 data class ProfileUiState(
     val userId: String = "default_player",
     val displayName: String = "Player 1",
@@ -55,7 +58,7 @@ data class ProfileUiState(
     result = 31 * result + winRate.hashCode()
     result = 31 * result + netChipsEarned.hashCode()
     result = 31 * result + isLoading.hashCode()
-    result = 31 * result + (errorMessage?.hashCode() ?: 0)
+    result = 31 * result + errorMessage.hashCode()
     return result
   }
 }
@@ -112,7 +115,7 @@ class ProfileViewModel(
               val losses = history.count { it.netChips < 0 }
               val winRate =
                   if (gamesPlayed > 0) {
-                    (wins.toDouble() / gamesPlayed) * 100
+                    (wins.toDouble() / gamesPlayed) * PERCENTAGE_MULTIPLIER
                   } else {
                     0.0
                   }
@@ -166,6 +169,13 @@ class ProfileViewModel(
     val currentUserId = _uiState.value.userId
     val cleanedName = newName.trim()
     if (currentUserId.isBlank() || cleanedName.isBlank()) return
+
+    if (cleanedName.length > MAX_NAME_LENGTH) {
+      _uiState.update {
+        it.copy(errorMessage = "Name must be $MAX_NAME_LENGTH characters or less.")
+      }
+      return
+    }
 
     viewModelScope.launch {
       val allUsers = userDao.observeAll().first()

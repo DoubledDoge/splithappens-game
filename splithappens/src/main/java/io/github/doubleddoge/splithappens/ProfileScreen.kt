@@ -3,6 +3,7 @@ package io.github.doubleddoge.splithappens
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -24,7 +25,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import android.widget.Toast
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -242,7 +242,7 @@ fun ProfileScreenContent(
           ) {
             OutlinedTextField(
                 value = tempName,
-                onValueChange = { tempName = it },
+                onValueChange = { if (it.length <= 20) tempName = it },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(10.dp),

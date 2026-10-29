@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+private const val MAX_NAME_LENGTH = 20
+
 data class UserProfileItem(
     val user: UserEntity,
     val lastUsedFormatted: String = "Recently",
@@ -67,7 +69,11 @@ class LoginViewModel(
   }
 
   fun onUsernameChange(name: String) {
-    _uiState.value = _uiState.value.copy(username = name, errorMessage = null)
+    val trimmed = name.trimStart()
+
+    if (trimmed.length <= MAX_NAME_LENGTH) {
+      _uiState.value = _uiState.value.copy(username = trimmed, errorMessage = null)
+    }
   }
 
   fun onRememberMeChange(checked: Boolean) {
