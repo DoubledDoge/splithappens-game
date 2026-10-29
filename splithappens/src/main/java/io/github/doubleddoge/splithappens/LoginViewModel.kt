@@ -32,6 +32,7 @@ data class LoginUiState(
     val userPendingDelete: UserEntity? = null,
 )
 
+@Suppress("TooManyFunctions")
 class LoginViewModel(
     private val userDao: UserDao,
     context: Context,
@@ -58,14 +59,27 @@ class LoginViewModel(
     viewModelScope.launch {
       userDao.observeAll().collect { users ->
         val items = users.map { user ->
+          val lastUsed = prefs.getLong("last_used_${user.userId}", user.createdAt)
           UserProfileItem(
               user = user,
-              lastUsedFormatted = "Saved",
+              lastUsedFormatted = formatTimeAgo(lastUsed),
           )
-        }
+        }.sortedByDescending { prefs.getLong("last_used_${it.user.userId}", it.user.createdAt) }
         _uiState.value = _uiState.value.copy(existingProfiles = items)
       }
     }
+  }
+
+  private fun formatTimeAgo(timeMs: Long): String {
+    val now = System.currentTimeMillis()
+    if (now - timeMs < android.text.format.DateUtils.MINUTE_IN_MILLIS) {
+      return "Just now"
+    }
+    return android.text.format.DateUtils.getRelativeTimeSpanString(
+        timeMs,
+        now,
+        android.text.format.DateUtils.MINUTE_IN_MILLIS,
+    ).toString()
   }
 
   fun onUsernameChange(name: String) {
@@ -147,6 +161,9 @@ class LoginViewModel(
       viewModelScope.launch {
         val existing = userDao.getById(savedUserId)
         if (existing != null) {
+          prefs.edit {
+            putLong("last_used_${existing.userId}", System.currentTimeMillis())
+          }
           onSuccess(existing)
         }
       }
@@ -189,6 +206,7 @@ class LoginViewModel(
           putBoolean("remember_me", _uiState.value.rememberMe)
           putString("saved_username", user.displayName)
           putString("saved_user_id", user.userId)
+          putLong("last_used_${user.userId}", System.currentTimeMillis())
         }
 
         appPrefs.edit {
