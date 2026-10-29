@@ -1,9 +1,6 @@
 package io.github.doubleddoge.splithappens
 
 import android.app.Application
-import android.graphics.Paint as AndroidPaint
-import android.graphics.Path as AndroidPath
-import android.graphics.PathMeasure as AndroidPathMeasure
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
@@ -66,11 +63,14 @@ import io.github.doubleddoge.splithappens.components.GameActionBar
 import io.github.doubleddoge.splithappens.components.HandRow
 import io.github.doubleddoge.splithappens.components.OutcomeBanner
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
-import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+import io.github.doubleddoge.splithappens.data.buildDatabase
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 
 // Theme Palettes
 private val GameBgDarkCenter = Color(0xFF0F3022)
@@ -107,7 +107,7 @@ fun GameScreen(
     if (settingsUiState.hapticVibration) triggerDeviceVibration(context, durationMs)
   }
 
-  val db = remember(context) { buildSplitHappensDatabase(context) }
+  val db = remember(context) { buildDatabase(context) }
   val gameViewModel: GameViewModel =
       viewModel(
           key = "game_${userId}_${mode.name}",

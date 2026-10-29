@@ -2,8 +2,8 @@ package io.github.doubleddoge.splithappens
 
 import android.app.Application
 import androidx.core.content.edit
-import io.github.doubleddoge.splithappens.data.SplitHappensDatabase
-import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+import io.github.doubleddoge.splithappens.data.Database
+import io.github.doubleddoge.splithappens.data.buildDatabase
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class SplitHappensApp : Application() {
-  val database: SplitHappensDatabase by lazy { buildSplitHappensDatabase(this) }
+  val database: Database by lazy { buildDatabase(this) }
   private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
   lateinit var seedJob: Job
     private set
