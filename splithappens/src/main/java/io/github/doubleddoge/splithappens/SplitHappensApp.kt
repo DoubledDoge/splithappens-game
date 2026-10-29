@@ -5,7 +5,6 @@ import androidx.core.content.edit
 import io.github.doubleddoge.splithappens.data.SplitHappensDatabase
 import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
-import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,11 +27,25 @@ class SplitHappensApp : Application() {
   }
 
   private suspend fun seedDefaults() {
-    database.cardDao().insertAll(CardEntity.standardDeck()) // idempotent (IGNORE)
-
+    database.cardDao().insertAll(CardEntity.standardDeck()) // idempotent (
     val userDao = database.userDao()
-    if (userDao.observeAll().first().isEmpty()) {
-      userDao.insert(UserEntity(displayName = "Player 1", chipsOwned = 2500))
+    val defaultPlayer = userDao.getById("default_player")
+
+    if (defaultPlayer != null) {
+      userDao.delete(defaultPlayer)
+
+      val authPrefs = getSharedPreferences("split_happens_auth", MODE_PRIVATE)
+      val appPrefs = getSharedPreferences("split_happens_prefs", MODE_PRIVATE)
+
+      if (authPrefs.getString("saved_user_id", null) == "default_player") {
+        authPrefs.edit {
+          remove("saved_user_id")
+          remove("saved_username")
+        }
+      }
+      if (appPrefs.getString("active_user_id", null) == "default_player") {
+        appPrefs.edit { remove("active_user_id") }
+      }
     }
   }
 
