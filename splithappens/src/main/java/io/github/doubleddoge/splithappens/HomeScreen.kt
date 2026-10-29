@@ -273,7 +273,7 @@ fun HomeScreenContent(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Standard Rules • Purely by the book for a more simpler experience.",
+                text = "Standard Rules • For those who play purely by the book.",
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 11.sp,
             )

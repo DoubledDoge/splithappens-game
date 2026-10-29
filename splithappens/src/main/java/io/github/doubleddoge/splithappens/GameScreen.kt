@@ -1,6 +1,9 @@
 package io.github.doubleddoge.splithappens
 
 import android.app.Application
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
@@ -8,6 +11,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,9 +71,6 @@ import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
-import android.graphics.Paint as AndroidPaint
-import android.graphics.Path as AndroidPath
-import android.graphics.PathMeasure as AndroidPathMeasure
 
 // Theme Palettes
 private val GameBgDarkCenter = Color(0xFF0F3022)
@@ -83,7 +85,9 @@ private val WoodRailOuter = Color(0xFF332014)
 private val WoodRailInner = Color(0xFF5A3924)
 private val GoldFoil = Color(0xFFE5B036)
 
-private const val ArcSweep = 110f
+private const val ARC_SWEEP = 110f
+
+private const val ROUNDED_PERCENT = 50
 
 @Composable
 fun GameScreen(
@@ -118,6 +122,12 @@ fun GameScreen(
               ),
       )
   val uiState by gameViewModel.uiState.collectAsState()
+  LaunchedEffect(mode) {
+    if (uiState.gameMode != mode && uiState.stage == GameStage.BETTING) {
+      gameViewModel.setGameMode(mode)
+    }
+  }
+
   val isGameInProgress = uiState.isGameInProgress
 
   var betChipsList by remember { mutableStateOf(listOf<Int>()) }
@@ -268,8 +278,8 @@ fun GameScreen(
               fun arc(radius: Float, alpha: Float, strokeWidth: Float) =
                   drawArc(
                       color = GoldFoil.copy(alpha = alpha),
-                      startAngle = 90f - ArcSweep / 2f,
-                      sweepAngle = ArcSweep,
+                      startAngle = 90f - ARC_SWEEP / 2f,
+                      sweepAngle = ARC_SWEEP,
                       useCenter = false,
                       topLeft = Offset(center.x - radius, center.y - radius),
                       size = Size(radius * 2, radius * 2),
@@ -303,6 +313,51 @@ fun GameScreen(
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+              // Mode Selector Pill
+              val canSwitchMode = uiState.stage == GameStage.BETTING
+
+              Row(
+                  modifier =
+                      Modifier.padding(bottom = 6.dp)
+                          .clip(RoundedCornerShape(ROUNDED_PERCENT))
+                          .background(Color.Black.copy(alpha = 0.35f))
+                          .border(
+                              1.dp,
+                              GoldFoil.copy(alpha = 0.45f),
+                              RoundedCornerShape(ROUNDED_PERCENT),
+                          )
+                          .padding(2.dp),
+                  horizontalArrangement = Arrangement.spacedBy(4.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                GameMode.entries.forEach { entry ->
+                  val isSelected = uiState.gameMode == entry
+                  val label = if (entry == GameMode.WILDCARD) "WILDCARD" else "TRADITIONAL"
+
+                  Box(
+                      modifier =
+                          Modifier.clip(RoundedCornerShape(ROUNDED_PERCENT))
+                              .background(if (isSelected) GoldFoil else Color.Transparent)
+                              .clickable(enabled = canSwitchMode && !isSelected) {
+                                triggerFeedback(25L)
+                                gameViewModel.setGameMode(entry)
+                              }
+                              .padding(horizontal = 10.dp, vertical = 4.dp),
+                      contentAlignment = Alignment.Center,
+                  ) {
+                    Text(
+                        text = label,
+                        color =
+                            if (isSelected) Color(0xFF1A1208)
+                            else GoldFoil.copy(alpha = if (canSwitchMode) 0.75f else 0.4f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                    )
+                  }
+                }
+              }
+
               TableLabel(
                   text = "DEALER",
                   total =
@@ -537,7 +592,7 @@ private fun DrawScope.drawArcText(
           center.x + radius,
           center.y + radius,
       )
-  val androidPath = AndroidPath().apply { arcTo(oval, 90f + ArcSweep / 2f, -ArcSweep, true) }
+  val androidPath = AndroidPath().apply { arcTo(oval, 90f + ARC_SWEEP / 2f, -ARC_SWEEP, true) }
   val paint =
       AndroidPaint().apply {
         isAntiAlias = true
