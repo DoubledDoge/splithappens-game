@@ -68,6 +68,7 @@ import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import kotlinx.coroutines.launch
 import android.graphics.Paint as AndroidPaint
 import android.graphics.Path as AndroidPath
 import android.graphics.PathMeasure as AndroidPathMeasure
@@ -386,7 +387,7 @@ fun GameScreen(
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-              // OUTCOME BANNER (Positioned directly above Player's Cards)
+              // OUTCOME BANNER
               if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
                 OutcomeBanner(
                     text = uiState.statusText,
@@ -455,6 +456,59 @@ fun GameScreen(
                           text = "HAND ${index + 1}",
                           total = if (settingsUiState.showCardTotal) hand.value.total else null,
                       )
+                    }
+                  }
+                }
+              }
+
+              if (uiState.stage == GameStage.BETTING && uiState.chipsOwned < 100L) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF3B1C1C),
+                    border = BorderStroke(1.dp, Color(0xFFFF5252)),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                ) {
+                  Column(
+                      modifier = Modifier.padding(12.dp),
+                      horizontalAlignment = Alignment.CenterHorizontally,
+                  ) {
+                    Text(
+                        text = "LOW BALANCE (< R100)",
+                        color = Color(0xFFFF5252),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text =
+                            "Minimum stake is R100. Your daily R500 reward arrives every 24 hours, or you can top up below!",
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 11.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                          // Optional one-time emergency top-up
+                          val activeUserId = userId
+
+                          if (activeUserId.isNotBlank()) {
+                            kotlinx.coroutines
+                                .CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
+                                .launch {
+                                  db.userDao().setChips(activeUserId, 1000L)
+                                }
+                          }
+                        },
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = GoldFoil,
+                                contentColor = Color.Black,
+                            ),
+                        modifier = Modifier.height(36.dp),
+                    ) {
+                      Text("CLAIM R1,000 TOP-UP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                   }
                 }

@@ -32,12 +32,16 @@ private val DEAL_DELAY = 350.milliseconds
 private val FAST_DEAL_DELAY = 100.milliseconds
 private val DEALER_TURN_DELAY = 600.milliseconds
 private val FAST_DEALER_TURN_DELAY = 180.milliseconds
+private const val BALANCE_THRESHOLD = 100L
 
+// TODO: Implement dealer emotions if we may need to
+/*
 enum class DealerEmotion {
   NEUTRAL,
   SMUG,
   BUSTED,
 }
+*/
 
 enum class GameStage {
   BETTING,
@@ -186,10 +190,18 @@ class GameViewModel(
   }
 
   // --- DEAL ---
-
   fun deal() {
     val s = _uiState.value
+
     if (s.stage != GameStage.BETTING) return
+
+    if (s.chipsOwned < BALANCE_THRESHOLD) {
+      _uiState.update {
+        it.copy(statusText = "Balance below R100 minimum. Daily reward gives R500 every 24h!")
+      }
+      return
+    }
+
     if (s.currentBet <= 0L) {
       _uiState.update { it.copy(statusText = "Please place a bet") }
       return
