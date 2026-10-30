@@ -1,6 +1,9 @@
 package io.github.doubleddoge.splithappens
 
 import android.app.Application
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
@@ -69,9 +72,6 @@ import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlinx.coroutines.launch
-import android.graphics.Paint as AndroidPaint
-import android.graphics.Path as AndroidPath
-import android.graphics.PathMeasure as AndroidPathMeasure
 
 // Theme Palettes
 private val GameBgDarkCenter = Color(0xFF0F3022)
@@ -97,10 +97,12 @@ fun GameScreen(
     mode: GameMode = GameMode.TRADITIONAL,
     displayName: String = "Player 1",
     chipsOwned: Long = 2500L,
+    profilePictureBytes: ByteArray? = null,
     isDarkTheme: Boolean = true,
     settingsUiState: SettingUiState = SettingUiState(),
     onNavigateHome: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {},
 ) {
   val context = LocalContext.current
   val triggerFeedback: (Long) -> Unit = { durationMs ->
@@ -188,7 +190,9 @@ fun GameScreen(
         UserHeaderCard(
             displayName = uiState.displayName.ifBlank { displayName },
             chipsOwned = displayedChips,
+            profilePictureBytes = profilePictureBytes,
             isDarkTheme = isDarkTheme,
+            onProfileClick = { safeNavigate(onNavigateProfile) },
         )
       },
       bottomBar = {

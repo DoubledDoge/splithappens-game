@@ -7,19 +7,21 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.dao.UserDao
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
-import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 private const val MAX_NAME_LENGTH = 20
 
+@Suppress("ArrayInDataClass")
 data class UserProfileItem(
     val user: UserEntity,
     val lastUsedFormatted: String = "Recently",
+    val profilePictureBytes: ByteArray? = null,
 )
 
 data class LoginUiState(
@@ -59,12 +61,12 @@ class LoginViewModel(
     viewModelScope.launch {
       userDao.observeAll().collect { users ->
         val items = users.map { user ->
-          val lastUsed = prefs.getLong("last_used_${user.userId}", user.createdAt)
           UserProfileItem(
               user = user,
-              lastUsedFormatted = formatTimeAgo(lastUsed),
+              lastUsedFormatted = "Saved",
+              profilePictureBytes = userDao.getPicture(user.userId),
           )
-        }.sortedByDescending { prefs.getLong("last_used_${it.user.userId}", it.user.createdAt) }
+        }
         _uiState.value = _uiState.value.copy(existingProfiles = items)
       }
     }
@@ -76,10 +78,11 @@ class LoginViewModel(
       return "Just now"
     }
     return android.text.format.DateUtils.getRelativeTimeSpanString(
-        timeMs,
-        now,
-        android.text.format.DateUtils.MINUTE_IN_MILLIS,
-    ).toString()
+            timeMs,
+            now,
+            android.text.format.DateUtils.MINUTE_IN_MILLIS,
+        )
+        .toString()
   }
 
   fun onUsernameChange(name: String) {
@@ -95,7 +98,17 @@ class LoginViewModel(
   }
 
   fun openSwitchProfileDialog() {
-    _uiState.value = _uiState.value.copy(isSwitchProfileDialogOpen = true)
+    viewModelScope.launch {
+      val refreshed =
+          _uiState.value.existingProfiles.map { item ->
+            item.copy(profilePictureBytes = userDao.getPicture(item.user.userId))
+          }
+      _uiState.value =
+          _uiState.value.copy(
+              existingProfiles = refreshed,
+              isSwitchProfileDialogOpen = true,
+          )
+    }
   }
 
   fun closeSwitchProfileDialog() {

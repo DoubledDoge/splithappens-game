@@ -47,12 +47,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
@@ -443,12 +445,21 @@ private fun ProfileItemCard(
                   .border(1.dp, GoldFoil, CircleShape),
           contentAlignment = Alignment.Center,
       ) {
-        Text(
-            text = item.user.displayName.take(1).uppercase(),
-            color = GoldFoil,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-        )
+        if (item.profilePictureBytes != null && item.profilePictureBytes.isNotEmpty()) {
+          AsyncImage(
+              model = item.profilePictureBytes,
+              contentDescription = "Profile Picture",
+              contentScale = ContentScale.Crop,
+              modifier = Modifier.fillMaxSize(),
+          )
+        } else {
+          Text(
+              text = item.user.displayName.take(1).uppercase(),
+              color = GoldFoil,
+              fontWeight = FontWeight.Bold,
+              fontSize = 16.sp,
+          )
+        }
       }
 
       Spacer(modifier = Modifier.width(12.dp))
