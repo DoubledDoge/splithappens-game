@@ -1,6 +1,9 @@
 package io.github.doubleddoge.splithappens
 
 import android.app.Application
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
@@ -8,6 +11,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -27,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,14 +66,12 @@ import io.github.doubleddoge.splithappens.components.GameActionBar
 import io.github.doubleddoge.splithappens.components.HandRow
 import io.github.doubleddoge.splithappens.components.OutcomeBanner
 import io.github.doubleddoge.splithappens.components.UserHeaderCard
-import io.github.doubleddoge.splithappens.data.buildSplitHappensDatabase
+import io.github.doubleddoge.splithappens.data.buildDatabase
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
-import android.graphics.Paint as AndroidPaint
-import android.graphics.Path as AndroidPath
-import android.graphics.PathMeasure as AndroidPathMeasure
+import kotlinx.coroutines.launch
 
 // Theme Palettes
 private val GameBgDarkCenter = Color(0xFF0F3022)
@@ -81,7 +86,9 @@ private val WoodRailOuter = Color(0xFF332014)
 private val WoodRailInner = Color(0xFF5A3924)
 private val GoldFoil = Color(0xFFE5B036)
 
-private const val ArcSweep = 110f
+private const val ARC_SWEEP = 110f
+
+private const val ROUNDED_PERCENT = 50
 
 @Composable
 fun GameScreen(
@@ -90,25 +97,40 @@ fun GameScreen(
     mode: GameMode = GameMode.TRADITIONAL,
     displayName: String = "Player 1",
     chipsOwned: Long = 2500L,
+    profilePictureBytes: ByteArray? = null,
     isDarkTheme: Boolean = true,
+    settingsUiState: SettingUiState = SettingUiState(),
     onNavigateHome: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {},
 ) {
   val context = LocalContext.current
-  val db = remember(context) { buildSplitHappensDatabase(context) }
+  val triggerFeedback: (Long) -> Unit = { durationMs ->
+    if (settingsUiState.soundEffects) triggerClickSound()
+    if (settingsUiState.hapticVibration) triggerDeviceVibration(context, durationMs)
+  }
+
+  val db = remember(context) { buildDatabase(context) }
   val gameViewModel: GameViewModel =
       viewModel(
           key = "game_${userId}_${mode.name}",
-          factory = GameViewModelFactory(
-              application = context.applicationContext as Application,
-              userDao = db.userDao(),
-              sessionDao = db.sessionDao(),
-              roundDao = db.roundDao(),
-              targetUserId = userId,
-              mode = mode
-          )
+          factory =
+              GameViewModelFactory(
+                  application = context.applicationContext as Application,
+                  userDao = db.userDao(),
+                  sessionDao = db.sessionDao(),
+                  roundDao = db.roundDao(),
+                  targetUserId = userId,
+                  mode = mode,
+              ),
       )
   val uiState by gameViewModel.uiState.collectAsState()
+  LaunchedEffect(mode) {
+    if (uiState.gameMode != mode && uiState.stage == GameStage.BETTING) {
+      gameViewModel.setGameMode(mode)
+    }
+  }
+
   val isGameInProgress = uiState.isGameInProgress
 
   var betChipsList by remember { mutableStateOf(listOf<Int>()) }
@@ -160,14 +182,17 @@ fun GameScreen(
   Scaffold(
       modifier = modifier,
       topBar = {
-        val displayedChips = when (uiState.stage) {
-            GameStage.ROUND_OVER -> uiState.chipsOwned
-            else -> uiState.chipsOwned - uiState.currentBet - uiState.insuranceBet
-        }
+        val displayedChips =
+            when (uiState.stage) {
+              GameStage.ROUND_OVER -> uiState.chipsOwned
+              else -> uiState.chipsOwned - uiState.currentBet - uiState.insuranceBet
+            }
         UserHeaderCard(
             displayName = uiState.displayName.ifBlank { displayName },
             chipsOwned = displayedChips,
+            profilePictureBytes = profilePictureBytes,
             isDarkTheme = isDarkTheme,
+            onProfileClick = { safeNavigate(onNavigateProfile) },
         )
       },
       bottomBar = {
@@ -258,32 +283,34 @@ fun GameScreen(
               fun arc(radius: Float, alpha: Float, strokeWidth: Float) =
                   drawArc(
                       color = GoldFoil.copy(alpha = alpha),
-                      startAngle = 90f - ArcSweep / 2f,
-                      sweepAngle = ArcSweep,
+                      startAngle = 90f - ARC_SWEEP / 2f,
+                      sweepAngle = ARC_SWEEP,
                       useCenter = false,
                       topLeft = Offset(center.x - radius, center.y - radius),
                       size = Size(radius * 2, radius * 2),
                       style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
                   )
 
-              arc(outerR, 0.45f, 1.5.dp.toPx())
-              arc(innerR, 0.25f, 1.dp.toPx())
+              if (settingsUiState.dealerRuleBanner) {
+                arc(outerR, 0.45f, 1.5.dp.toPx())
+                arc(innerR, 0.25f, 1.dp.toPx())
 
-              drawArcText(
-                  "BLACKJACK PAYS 3 TO 2",
-                  center,
-                  outerR - 8.dp.toPx(),
-                  GoldFoil.copy(alpha = 0.85f),
-                  12.sp.toPx(),
-              )
-              drawArcText(
-                  "INSURANCE PAYS 2 TO 1",
-                  center,
-                  innerR - 8.dp.toPx(),
-                  GoldFoil.copy(alpha = 0.55f),
-                  9.sp.toPx(),
-                  spacingEm = 0.14f,
-              )
+                drawArcText(
+                    "BLACKJACK PAYS 3 TO 2",
+                    center,
+                    outerR - 8.dp.toPx(),
+                    GoldFoil.copy(alpha = 0.85f),
+                    12.sp.toPx(),
+                )
+                drawArcText(
+                    "INSURANCE PAYS 2 TO 1",
+                    center,
+                    innerR - 8.dp.toPx(),
+                    GoldFoil.copy(alpha = 0.55f),
+                    9.sp.toPx(),
+                    spacingEm = 0.14f,
+                )
+              }
             }
 
             // DEALER AREA (Top)
@@ -291,17 +318,69 @@ fun GameScreen(
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+              // Mode Selector Pill
+              val canSwitchMode = uiState.stage == GameStage.BETTING
+
+              Row(
+                  modifier =
+                      Modifier.padding(bottom = 6.dp)
+                          .clip(RoundedCornerShape(ROUNDED_PERCENT))
+                          .background(Color.Black.copy(alpha = 0.35f))
+                          .border(
+                              1.dp,
+                              GoldFoil.copy(alpha = 0.45f),
+                              RoundedCornerShape(ROUNDED_PERCENT),
+                          )
+                          .padding(2.dp),
+                  horizontalArrangement = Arrangement.spacedBy(4.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                GameMode.entries.forEach { entry ->
+                  val isSelected = uiState.gameMode == entry
+                  val label = if (entry == GameMode.WILDCARD) "WILDCARD" else "TRADITIONAL"
+
+                  Box(
+                      modifier =
+                          Modifier.clip(RoundedCornerShape(ROUNDED_PERCENT))
+                              .background(if (isSelected) GoldFoil else Color.Transparent)
+                              .clickable(enabled = canSwitchMode && !isSelected) {
+                                triggerFeedback(25L)
+                                gameViewModel.setGameMode(entry)
+                              }
+                              .padding(horizontal = 10.dp, vertical = 4.dp),
+                      contentAlignment = Alignment.Center,
+                  ) {
+                    Text(
+                        text = label,
+                        color =
+                            if (isSelected) Color(0xFF1A1208)
+                            else GoldFoil.copy(alpha = if (canSwitchMode) 0.75f else 0.4f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                    )
+                  }
+                }
+              }
+
               TableLabel(
                   text = "DEALER",
                   total =
-                      if (uiState.dealerCards.isNotEmpty() && !uiState.hideHoleCard) {
+                      if (
+                          settingsUiState.showCardTotal &&
+                              uiState.dealerCards.isNotEmpty() &&
+                              !uiState.hideHoleCard
+                      ) {
                         uiState.dealerCards.evaluateHand().total
                       } else {
                         null
                       },
               )
               Spacer(modifier = Modifier.height(6.dp))
-              HandRow(hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard))
+              HandRow(
+                  hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard),
+                  fastDeal = settingsUiState.fastDeal,
+              )
             }
 
             // PLAYER AREA, STATUS BANNER & CONTROLS (Bottom)
@@ -312,29 +391,132 @@ fun GameScreen(
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-              // OUTCOME BANNER (Positioned directly above Player's Cards)
-                if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
-                    OutcomeBanner(
-                        text = uiState.statusText,
-                        results = uiState.results,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-
-              // PLAYER HAND DISPLAY
-              val primaryHand = uiState.playerHands.firstOrNull()
-              if (primaryHand != null) {
-                // TODO: Replace single HandRow rendering with side-by-side Row layout when split
-                // hands are enabled
-                HandRow(hand = primaryHand.cards.toTableCards())
+              // OUTCOME BANNER
+              if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
+                OutcomeBanner(
+                    text = uiState.statusText,
+                    results = uiState.results,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
               }
 
-              Spacer(modifier = Modifier.height(6.dp))
+              // PLAYER HAND DISPLAY
+              if (uiState.playerHands.size <= 1) {
+                val primaryHand = uiState.playerHands.firstOrNull()
 
-              TableLabel(
-                  text = "PLAYER",
-                  total = primaryHand?.value?.total,
-              )
+                if (primaryHand != null) {
+                  HandRow(
+                      hand = primaryHand.cards.toTableCards(),
+                      fastDeal = settingsUiState.fastDeal,
+                  )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                TableLabel(
+                    text = "PLAYER",
+                    total = if (settingsUiState.showCardTotal) primaryHand?.value?.total else null,
+                )
+              } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement =
+                        Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                  uiState.playerHands.forEachIndexed { index, hand ->
+                    val isActiveHand =
+                        uiState.stage == GameStage.PLAYER_TURN && index == uiState.activeHandIndex
+
+                    Column(
+                        modifier =
+                            Modifier.clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    if (isActiveHand) GoldFoil.copy(alpha = 0.12f)
+                                    else Color.Transparent
+                                )
+                                .border(
+                                    width = if (isActiveHand) 1.5.dp else 0.dp,
+                                    color = if (isActiveHand) GoldFoil else Color.Transparent,
+                                    shape = RoundedCornerShape(10.dp),
+                                )
+                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                      HandRow(
+                          hand =
+                              hand.cards.mapIndexed { cardIdx, card ->
+                                card.toTableCard(
+                                    uid = index * 10000L + cardIdx.toLong() + card.cardId * 100L,
+                                    isFaceUp = true,
+                                )
+                              },
+                          overlap = 26.dp,
+                          fastDeal = settingsUiState.fastDeal,
+                      )
+                      Spacer(modifier = Modifier.height(4.dp))
+
+                      TableLabel(
+                          text = "HAND ${index + 1}",
+                          total = if (settingsUiState.showCardTotal) hand.value.total else null,
+                      )
+                    }
+                  }
+                }
+              }
+
+              if (uiState.stage == GameStage.BETTING && uiState.chipsOwned < 100L) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF3B1C1C),
+                    border = BorderStroke(1.dp, Color(0xFFFF5252)),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                ) {
+                  Column(
+                      modifier = Modifier.padding(12.dp),
+                      horizontalAlignment = Alignment.CenterHorizontally,
+                  ) {
+                    Text(
+                        text = "LOW BALANCE (< R100)",
+                        color = Color(0xFFFF5252),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text =
+                            "Minimum stake is R100. Your daily R500 reward arrives every 24 hours, or you can top up below!",
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 11.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                          // Optional one-time emergency top-up
+                          val activeUserId = userId
+
+                          if (activeUserId.isNotBlank()) {
+                            kotlinx.coroutines
+                                .CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
+                                .launch {
+                                  db.userDao().setChips(activeUserId, 1000L)
+                                }
+                          }
+                        },
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = GoldFoil,
+                                contentColor = Color.Black,
+                            ),
+                        modifier = Modifier.height(36.dp),
+                    ) {
+                      Text("CLAIM R1,000 TOP-UP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                  }
+                }
+              }
 
               if (uiState.stage == GameStage.BETTING) {
                 Spacer(modifier = Modifier.height(6.dp))
@@ -342,6 +524,7 @@ fun GameScreen(
                     chips = betChipsList,
                     onUndo = {
                       if (betChipsList.isNotEmpty()) {
+                        triggerFeedback(25L)
                         gameViewModel.clearBet()
                         betChipsList = emptyList()
                       }
@@ -380,12 +563,19 @@ fun GameScreen(
                     legalActions = uiState.legalActions,
                     onChip = { amount ->
                       if ((uiState.chipsOwned - uiState.currentBet) >= amount) {
+                        triggerFeedback(25L)
                         betChipsList = betChipsList + amount.toInt()
                         gameViewModel.addBet(amount)
                       }
                     },
-                    onDeal = { gameViewModel.deal() },
-                    onAction = { action -> gameViewModel.performAction(action) },
+                    onDeal = {
+                      triggerFeedback(35L)
+                      gameViewModel.deal()
+                    },
+                    onAction = { action ->
+                      triggerFeedback(35L)
+                      gameViewModel.performAction(action)
+                    },
                 )
               }
             }
@@ -460,7 +650,7 @@ private fun DrawScope.drawArcText(
           center.x + radius,
           center.y + radius,
       )
-  val androidPath = AndroidPath().apply { arcTo(oval, 90f + ArcSweep / 2f, -ArcSweep, true) }
+  val androidPath = AndroidPath().apply { arcTo(oval, 90f + ARC_SWEEP / 2f, -ARC_SWEEP, true) }
   val paint =
       AndroidPaint().apply {
         isAntiAlias = true

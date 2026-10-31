@@ -3,7 +3,7 @@ package io.github.doubleddoge.splithappens.navigation
 sealed class Screen(val route: String) {
   object Splash : Screen("splash")
 
-  data object Login : Screen("login")
+  object Login : Screen("login")
 
   object Home : Screen("home")
 

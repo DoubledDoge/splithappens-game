@@ -44,7 +44,7 @@ private val BUTTON_DISABLED_SHADOW = 0.dp
 
 private val ACTION_BAR_HEIGHT = 64.dp
 private val ACTION_BAR_VERTICAL_PADDING = 8.dp
-private val BUTTON_SPACING = 8.dp
+private val BUTTON_SPACING = 6.dp
 
 private val BUTTON_HEIGHT = 46.dp
 private val BUTTON_CORNER_RADIUS = 12.dp
@@ -59,7 +59,7 @@ private const val CHIP_VALUE_HIGH = 100L
 
 private val BUTTON_FONT_SIZE = 13.sp
 private val BUTTON_MIN_FONT_SIZE = 8.sp
-private val BUTTON_LETTER_SPACING = 2.sp
+private val BUTTON_LETTER_SPACING = 1.sp
 private val FONT_SIZE_STEP = 0.5.sp
 
 private const val PREVIEW_WIDTH_DP = 360
@@ -75,86 +75,96 @@ fun GameActionBar(
     onChip: (Long) -> Unit = {},
     onDeal: () -> Unit = {},
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(ACTION_BAR_HEIGHT)
-            .padding(vertical = ACTION_BAR_VERTICAL_PADDING),
-        horizontalArrangement = Arrangement.spacedBy(BUTTON_SPACING),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (isBetting) {
-            GameButton(
-                label = CHIP_VALUE_LOW.toString(),
-                topColor = Gold,
-                bottomColor = GoldDark,
-                modifier = Modifier.weight(WEIGHT_NORMAL),
-                enabled = availableChips >= CHIP_VALUE_LOW,
-                onClick = { onChip(CHIP_VALUE_LOW) },
-            )
-            GameButton(
-                label = CHIP_VALUE_MEDIUM.toString(),
-                topColor = Gold,
-                bottomColor = GoldDark,
-                modifier = Modifier.weight(WEIGHT_NORMAL),
-                enabled = availableChips >= CHIP_VALUE_MEDIUM,
-                onClick = { onChip(CHIP_VALUE_MEDIUM) },
-            )
-            GameButton(
-                label = CHIP_VALUE_HIGH.toString(),
-                topColor = Gold,
-                bottomColor = GoldDark,
-                modifier = Modifier.weight(WEIGHT_NORMAL),
-                enabled = availableChips >= CHIP_VALUE_HIGH,
-                onClick = { onChip(CHIP_VALUE_HIGH) },
-            )
-            GameButton(
-                label = "DEAL",
-                topColor = Gold,
-                bottomColor = GoldDark,
-                modifier = Modifier.weight(WEIGHT_DEAL),
-                textColor = DealTextColor,
-                enabled = canBet,
-                onClick = onDeal,
-            )
-        } else {
-            GameButton(
-                label = "HIT",
-                topColor = Gold,
-                bottomColor = GoldDark,
-                modifier = Modifier.weight(WEIGHT_NORMAL),
-                enabled = Action.HIT in legalActions,
-                onClick = { onAction(Action.HIT) },
-            )
-            GameButton(
-                label = "STAND",
-                topColor = Gold,
-                bottomColor = GoldDark,
-                modifier = Modifier.weight(WEIGHT_NORMAL),
-                enabled = Action.STAND in legalActions,
-                onClick = { onAction(Action.STAND) },
-            )
-            if (Action.DOUBLE in legalActions) {
-                GameButton(
-                    label = "DOUBLE",
-                    topColor = Gold,
-                    bottomColor = GoldDark,
-                    modifier = Modifier.weight(WEIGHT_NORMAL),
-                    enabled = availableChips >= 0L,
-                    onClick = { onAction(Action.DOUBLE) },
-                )
-            }
-            if (Action.SURRENDER in legalActions) {
-                GameButton(
-                    label = "SURRENDER",
-                    topColor = Gold,
-                    bottomColor = GoldDark,
-                    modifier = Modifier.weight(WEIGHT_NORMAL),
-                    onClick = { onAction(Action.SURRENDER) },
-                )
-            }
-        }
+  Row(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .height(ACTION_BAR_HEIGHT)
+              .padding(vertical = ACTION_BAR_VERTICAL_PADDING),
+      horizontalArrangement = Arrangement.spacedBy(BUTTON_SPACING),
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    if (isBetting) {
+      GameButton(
+          label = CHIP_VALUE_LOW.toString(),
+          topColor = Gold,
+          bottomColor = GoldDark,
+          modifier = Modifier.weight(WEIGHT_NORMAL),
+          enabled = availableChips >= CHIP_VALUE_LOW,
+          onClick = { onChip(CHIP_VALUE_LOW) },
+      )
+      GameButton(
+          label = CHIP_VALUE_MEDIUM.toString(),
+          topColor = Gold,
+          bottomColor = GoldDark,
+          modifier = Modifier.weight(WEIGHT_NORMAL),
+          enabled = availableChips >= CHIP_VALUE_MEDIUM,
+          onClick = { onChip(CHIP_VALUE_MEDIUM) },
+      )
+      GameButton(
+          label = CHIP_VALUE_HIGH.toString(),
+          topColor = Gold,
+          bottomColor = GoldDark,
+          modifier = Modifier.weight(WEIGHT_NORMAL),
+          enabled = availableChips >= CHIP_VALUE_HIGH,
+          onClick = { onChip(CHIP_VALUE_HIGH) },
+      )
+      GameButton(
+          label = "DEAL",
+          topColor = Gold,
+          bottomColor = GoldDark,
+          modifier = Modifier.weight(WEIGHT_DEAL),
+          textColor = DealTextColor,
+          enabled = canBet,
+          onClick = onDeal,
+      )
+    } else {
+      GameButton(
+          label = "HIT",
+          topColor = Gold,
+          bottomColor = GoldDark,
+          modifier = Modifier.weight(WEIGHT_NORMAL),
+          enabled = Action.HIT in legalActions,
+          onClick = { onAction(Action.HIT) },
+      )
+      GameButton(
+          label = "STAND",
+          topColor = Gold,
+          bottomColor = GoldDark,
+          modifier = Modifier.weight(WEIGHT_NORMAL),
+          enabled = Action.STAND in legalActions,
+          onClick = { onAction(Action.STAND) },
+      )
+      if (Action.DOUBLE in legalActions) {
+        GameButton(
+            label = "DOUBLE",
+            topColor = Gold,
+            bottomColor = GoldDark,
+            modifier = Modifier.weight(WEIGHT_NORMAL),
+            enabled = availableChips >= 0L,
+            onClick = { onAction(Action.DOUBLE) },
+        )
+      }
+      if (Action.SPLIT in legalActions) {
+        GameButton(
+            label = "SPLIT",
+            topColor = Gold,
+            bottomColor = GoldDark,
+            modifier = Modifier.weight(WEIGHT_NORMAL),
+            onClick = { onAction(Action.SPLIT) },
+        )
+      }
+      if (Action.SURRENDER in legalActions) {
+        GameButton(
+            label = "SURRENDER",
+            topColor = Gold,
+            bottomColor = GoldDark,
+            modifier = Modifier.weight(WEIGHT_NORMAL),
+            onClick = { onAction(Action.SURRENDER) },
+        )
+      }
     }
+  }
 }
 
 @Composable
@@ -168,28 +178,29 @@ private fun GameButton(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(BUTTON_CORNER_RADIUS)
-    val buttonAlpha = if (enabled) BUTTON_ENABLED_ALPHA else BUTTON_DISABLED_ALPHA
-    val shadowElevation = if (enabled) BUTTON_SHADOW_ELEVATION else BUTTON_DISABLED_SHADOW
-    Box(
-        modifier = modifier
-            .height(height)
-            .alpha(buttonAlpha)
-            .shadow(shadowElevation, shape)
-            .clip(shape)
-            .background(
-                brush = Brush.verticalGradient(listOf(topColor, bottomColor)),
-                shape = shape,
-            )
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        AutoResizedText(
-            text = label,
-            color = textColor,
-            modifier = Modifier.padding(horizontal = BUTTON_TEXT_HORIZONTAL_PADDING),
-        )
-    }
+  val shape = RoundedCornerShape(BUTTON_CORNER_RADIUS)
+  val buttonAlpha = if (enabled) BUTTON_ENABLED_ALPHA else BUTTON_DISABLED_ALPHA
+  val shadowElevation = if (enabled) BUTTON_SHADOW_ELEVATION else BUTTON_DISABLED_SHADOW
+  Box(
+      modifier =
+          modifier
+              .height(height)
+              .alpha(buttonAlpha)
+              .shadow(shadowElevation, shape)
+              .clip(shape)
+              .background(
+                  brush = Brush.verticalGradient(listOf(topColor, bottomColor)),
+                  shape = shape,
+              )
+              .clickable(enabled = enabled, onClick = onClick),
+      contentAlignment = Alignment.Center,
+  ) {
+    AutoResizedText(
+        text = label,
+        color = textColor,
+        modifier = Modifier.padding(horizontal = BUTTON_TEXT_HORIZONTAL_PADDING),
+    )
+  }
 }
 
 @Composable
@@ -202,49 +213,57 @@ private fun AutoResizedText(
     letterSpacing: TextUnit = BUTTON_LETTER_SPACING,
     fontWeight: FontWeight = FontWeight.Bold,
 ) {
-    var resizedFontSize by remember(text, targetFontSize) { mutableStateOf(targetFontSize) }
-    var shouldDraw by remember(text, targetFontSize) { mutableStateOf(false) }
+  var resizedFontSize by remember(text, targetFontSize) { mutableStateOf(targetFontSize) }
+  var shouldDraw by remember(text, targetFontSize) { mutableStateOf(false) }
 
-    Text(
-        text = text,
-        color = color,
-        fontSize = resizedFontSize,
-        fontWeight = fontWeight,
-        letterSpacing = letterSpacing,
-        maxLines = 1,
-        softWrap = false,
-        modifier = modifier.drawWithContent {
+  Text(
+      text = text,
+      color = color,
+      fontSize = resizedFontSize,
+      fontWeight = fontWeight,
+      letterSpacing = letterSpacing,
+      maxLines = 1,
+      softWrap = false,
+      modifier =
+          modifier.drawWithContent {
             if (shouldDraw) {
-                drawContent()
+              drawContent()
             }
-        },
-        onTextLayout = { result ->
-            if (result.didOverflowWidth && resizedFontSize > minFontSize) {
-                val nextSize = (resizedFontSize.value - FONT_SIZE_STEP.value).sp
-                resizedFontSize = if (nextSize < minFontSize) minFontSize else nextSize
-            } else {
-                shouldDraw = true
-            }
-        },
-    )
+          },
+      onTextLayout = { result ->
+        if (result.didOverflowWidth && resizedFontSize > minFontSize) {
+          val nextSize = (resizedFontSize.value - FONT_SIZE_STEP.value).sp
+          resizedFontSize = if (nextSize < minFontSize) minFontSize else nextSize
+        } else {
+          shouldDraw = true
+        }
+      },
+  )
 }
 
-@Preview(showBackground = true, backgroundColor = PREVIEW_BACKGROUND_COLOR, widthDp = PREVIEW_WIDTH_DP)
+@Preview(
+    showBackground = true,
+    backgroundColor = PREVIEW_BACKGROUND_COLOR,
+    widthDp = PREVIEW_WIDTH_DP,
+)
 @Composable
 private fun ActionBarBettingPreview() {
-    GameActionBar(
-        isBetting = true,
-        canBet = true,
-        availableChips = 100L,
-    )
+  GameActionBar(
+      isBetting = true,
+      canBet = true,
+      availableChips = 100L,
+  )
 }
 
-@Preview(showBackground = true, backgroundColor = PREVIEW_BACKGROUND_COLOR, widthDp = PREVIEW_WIDTH_DP)
+@Preview(
+    showBackground = true,
+    backgroundColor = PREVIEW_BACKGROUND_COLOR,
+    widthDp = PREVIEW_WIDTH_DP,
+)
 @Composable
 private fun ActionBarPlayingPreview() {
-    GameActionBar(
-        isBetting = false,
-        legalActions = setOf(Action.HIT, Action.STAND, Action.DOUBLE, Action.SURRENDER),
-    )
+  GameActionBar(
+      isBetting = false,
+      legalActions = setOf(Action.HIT, Action.STAND, Action.DOUBLE, Action.SPLIT, Action.SURRENDER),
+  )
 }
-
