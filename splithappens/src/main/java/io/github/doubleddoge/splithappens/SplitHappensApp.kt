@@ -66,12 +66,23 @@ class SplitHappensApp : Application() {
           userDao.observeAll().first().firstOrNull()
         } ?: return
 
-    val lastClaim = prefs.getLong("pref_last_daily_claim_${user.userId}", 0L)
+    val claimKey = "pref_last_daily_claim_${user.userId}"
+    val lastClaim = prefs.getLong(claimKey, 0L)
     val now = System.currentTimeMillis()
     val interval = 24 * 60 * 60 * 1000L // 24 hours
-    if (lastClaim == 0L || (now - lastClaim) >= interval) {
-      prefs.edit { putLong("pref_last_daily_claim_${user.userId}", now) }
-      userDao.setChips(user.userId, user.chipsOwned + 500L)
+
+    // Anti-time tampering / clock rollback check:
+    // If 'now < lastClaim', the system clock has been rolled back (time travel backward exploit).
+    // Reject claim if time moved backward or if 24 hours have not elapsed.
+    if (now >= lastClaim && (lastClaim == 0L || (now - lastClaim) >= interval)) {
+      prefs.edit { putLong(claimKey, now) }
+      addDailyReward(user.userId, 500L)
     }
+  }
+
+  suspend fun addDailyReward(userId: String, amount: Long = 500L) {
+    val userDao = database.userDao()
+    val user = userDao.getById(userId) ?: return
+    userDao.setChips(user.userId, user.chipsOwned + amount)
   }
 }

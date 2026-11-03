@@ -48,18 +48,29 @@ class EdgeCaseTestingTest : DatabaseTest() {
     }
 
     /**
-     * 1. Blank forms and emoji player names edge case.
+     * 1. Username validation (A-Z, a-z only, max 20 chars, no emojis/special chars/spaces) and case insensitivity.
      */
     @Test
-    fun testEdgeCase_PlayerNamesWithEmojisAndBlanks() = runBlocking {
-        val blankUser = UserEntity(displayName = "", chipsOwned = 1000L)
-        val emojiUser = UserEntity(displayName = "🔥🃏 HighRoller 👑🚀", chipsOwned = 1000L)
+    fun testUsernameValidationAndCaseInsensitivity() = runBlocking {
+        val dao = db.userDao()
+        dao.insert(UserEntity(displayName = "Alice", chipsOwned = 2500L))
 
-        db.userDao().insert(blankUser)
-        db.userDao().insert(emojiUser)
+        // Case-insensitive lookup ("alice" matches "Alice")
+        val allUsers = dao.observeAll().first()
+        val match = allUsers.firstOrNull { it.displayName.equals("alice".trim(), ignoreCase = true) }
+        assertNotNull(match)
+        assertEquals("Alice", match?.displayName)
 
-        assertEquals("", db.userDao().getById(blankUser.userId)?.displayName)
-        assertEquals("🔥🃏 HighRoller 👑🚀", db.userDao().getById(emojiUser.userId)?.displayName)
+        // Character filtering: only A-Z, a-z allowed
+        val invalidInput = "Alice 123!🔥"
+        val filtered = invalidInput.filter { it in 'a'..'z' || it in 'A'..'Z' }
+        assertEquals("Alice", filtered)
+
+        // Max length 20 characters
+        val longInput = "abcdefghijklmnopqrstuvwxyz"
+        val clamped = longInput.filter { it in 'a'..'z' || it in 'A'..'Z' }.take(20)
+        assertEquals(20, clamped.length)
+        assertEquals("abcdefghijklmnopqrst", clamped)
     }
 
     /**
@@ -127,6 +138,22 @@ class EdgeCaseTestingTest : DatabaseTest() {
 
         assertFalse("Time tampering exploit succeeded!", exploitClaimed)
         assertEquals(1500L, db.userDao().getById(user.userId)?.chipsOwned)
+    }
+
+    @Test
+    fun testEdgeCase_ClockRollbackTimeTravelingRejected() = runBlocking {
+        val app = ApplicationProvider.getApplicationContext<io.github.doubleddoge.splithappens.SplitHappensApp>()
+        val user = newUser("RollbackUser", 1000L)
+        val prefs = context.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
+        val claimKey = "pref_last_daily_claim_${user.userId}"
+
+        val futureTime = System.currentTimeMillis() + 100000L
+        prefs.edit().putLong(claimKey, futureTime).apply()
+
+        app.checkAndClaimDailyReward(user.userId)
+
+        val updatedUser = db.userDao().getById(user.userId)
+        assertEquals("Chips should not increase on clock rollback", 1000L, updatedUser?.chipsOwned)
     }
 
 

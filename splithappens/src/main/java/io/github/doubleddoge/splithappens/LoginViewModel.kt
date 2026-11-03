@@ -93,10 +93,16 @@ class LoginViewModel(
   }
 
   fun onUsernameChange(name: String) {
-    val trimmed = name.trimStart()
+    val filtered = name.filter { it in 'a'..'z' || it in 'A'..'Z' }
 
-    if (trimmed.length <= MAX_NAME_LENGTH) {
-      _uiState.value = _uiState.value.copy(username = trimmed, errorMessage = null)
+    if (filtered.length <= MAX_NAME_LENGTH) {
+      _uiState.value = _uiState.value.copy(username = filtered, errorMessage = null)
+    } else {
+      _uiState.value =
+          _uiState.value.copy(
+              username = filtered.take(MAX_NAME_LENGTH),
+              errorMessage = "Maximum 20 characters allowed",
+          )
     }
   }
 
@@ -184,6 +190,7 @@ class LoginViewModel(
           prefs.edit {
             putLong("last_used_${existing.userId}", System.currentTimeMillis())
           }
+          (appContext as? SplitHappensApp)?.checkAndClaimDailyReward(existing.userId)
           onSuccess(existing)
         }
       }
@@ -195,6 +202,12 @@ class LoginViewModel(
 
     if (inputName.isBlank()) {
       _uiState.value = _uiState.value.copy(errorMessage = "Please enter a player name")
+      return
+    }
+
+    if (!inputName.all { it in 'a'..'z' || it in 'A'..'Z' } || inputName.length > MAX_NAME_LENGTH) {
+      _uiState.value =
+          _uiState.value.copy(errorMessage = "Only letters A-Z are allowed (max 20 chars)")
       return
     }
 
