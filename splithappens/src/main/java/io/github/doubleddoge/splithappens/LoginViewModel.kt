@@ -15,9 +15,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+private const val MAX_NAME_LENGTH = 20
+
+@Suppress("ArrayInDataClass")
 data class UserProfileItem(
     val user: UserEntity,
     val lastUsedFormatted: String = "Recently",
+    val profilePictureBytes: ByteArray? = null,
 )
 
 data class LoginUiState(
@@ -30,184 +34,235 @@ data class LoginUiState(
     val userPendingDelete: UserEntity? = null,
 )
 
+@Suppress("TooManyFunctions")
 class LoginViewModel(
     private val userDao: UserDao,
     context: Context,
 ) : ViewModel() {
 
-    private val prefs = context.getSharedPreferences("split_happens_auth", Context.MODE_PRIVATE)
+  private val appContext = context.applicationContext
+  private val prefs = context.getSharedPreferences("split_happens_auth", Context.MODE_PRIVATE)
+  private val appPrefs = context.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
 
-    private val _uiState =
-        MutableStateFlow(
-            LoginUiState(
-                username = prefs.getString("saved_username", "") ?: "",
-                rememberMe = prefs.getBoolean("remember_me", true),
-            )
-        )
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+  private val _uiState =
+      MutableStateFlow(
+          LoginUiState(
+              username = prefs.getString("saved_username", "") ?: "",
+              rememberMe = prefs.getBoolean("remember_me", true),
+          )
+      )
+  val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    init {
-        loadExistingProfiles()
-    }
+  init {
+    loadExistingProfiles()
+  }
 
-    private fun loadExistingProfiles() {
-        viewModelScope.launch {
-            userDao.observeAll().collect { users ->
-                val items = users.map { user ->
-                    UserProfileItem(
-                        user = user,
-                        lastUsedFormatted = "Saved",
-                    )
+  private fun loadExistingProfiles() {
+    viewModelScope.launch {
+      userDao.observeAll().collect { users ->
+        val items =
+            users
+                .map { user ->
+                  val lastUsed = prefs.getLong("last_used_${user.userId}", user.createdAt)
+
+                  UserProfileItem(
+                      user = user,
+                      lastUsedFormatted = formatTimeAgo(lastUsed),
+                      profilePictureBytes = userDao.getPicture(user.userId),
+                  )
                 }
-                _uiState.value = _uiState.value.copy(existingProfiles = items)
-            }
+                .sortedByDescending {
+                  prefs.getLong("last_used_${it.user.userId}", it.user.createdAt)
+                }
+        _uiState.value = _uiState.value.copy(existingProfiles = items)
+      }
+    }
+  }
+
+  private fun formatTimeAgo(timeMs: Long): String {
+    val now = System.currentTimeMillis()
+    if (now - timeMs < android.text.format.DateUtils.MINUTE_IN_MILLIS) {
+      return "Just now"
+    }
+    return android.text.format.DateUtils.getRelativeTimeSpanString(
+            timeMs,
+            now,
+            android.text.format.DateUtils.MINUTE_IN_MILLIS,
+        )
+        .toString()
+  }
+
+  fun onUsernameChange(name: String) {
+    val trimmed = name.trimStart()
+
+    if (trimmed.length <= MAX_NAME_LENGTH) {
+      _uiState.value = _uiState.value.copy(username = trimmed, errorMessage = null)
+    }
+  }
+
+  fun onRememberMeChange(checked: Boolean) {
+    _uiState.value = _uiState.value.copy(rememberMe = checked)
+  }
+
+  fun openSwitchProfileDialog() {
+    viewModelScope.launch {
+      val refreshed =
+          _uiState.value.existingProfiles.map { item ->
+            item.copy(profilePictureBytes = userDao.getPicture(item.user.userId))
+          }
+      _uiState.value =
+          _uiState.value.copy(
+              existingProfiles = refreshed,
+              isSwitchProfileDialogOpen = true,
+          )
+    }
+  }
+
+  fun closeSwitchProfileDialog() {
+    _uiState.value = _uiState.value.copy(isSwitchProfileDialogOpen = false)
+  }
+
+  fun selectProfile(user: UserEntity) {
+    _uiState.value =
+        _uiState.value.copy(
+            username = user.displayName,
+            errorMessage = null,
+            isSwitchProfileDialogOpen = false,
+        )
+  }
+
+  fun promptDeleteUser(user: UserEntity) {
+    _uiState.value = _uiState.value.copy(userPendingDelete = user)
+  }
+
+  fun cancelDeleteUser() {
+    _uiState.value = _uiState.value.copy(userPendingDelete = null)
+  }
+
+  fun confirmDeleteUser() {
+    val userToDelete = _uiState.value.userPendingDelete ?: return
+    viewModelScope.launch {
+      try {
+        userDao.delete(userToDelete)
+
+        val savedUserId = prefs.getString("saved_user_id", null)
+        if (savedUserId == userToDelete.userId) {
+          prefs.edit {
+            remove("saved_username")
+            remove("saved_user_id")
+          }
+          appPrefs.edit {
+            remove("active_user_id")
+          }
         }
-    }
 
-    fun onUsernameChange(name: String) {
-        _uiState.value = _uiState.value.copy(username = name, errorMessage = null)
-    }
+        if (_uiState.value.username == userToDelete.displayName) {
+          _uiState.value = _uiState.value.copy(username = "")
+        }
 
-    fun onRememberMeChange(checked: Boolean) {
-        _uiState.value = _uiState.value.copy(rememberMe = checked)
-    }
-
-    fun openSwitchProfileDialog() {
-        _uiState.value = _uiState.value.copy(isSwitchProfileDialogOpen = true)
-    }
-
-    fun closeSwitchProfileDialog() {
-        _uiState.value = _uiState.value.copy(isSwitchProfileDialogOpen = false)
-    }
-
-    fun selectProfile(user: UserEntity) {
+        _uiState.value = _uiState.value.copy(userPendingDelete = null)
+      } catch (e: CancellationException) {
+        throw e
+      } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
         _uiState.value =
             _uiState.value.copy(
-                username = user.displayName,
-                errorMessage = null,
-                isSwitchProfileDialogOpen = false,
+                userPendingDelete = null,
+                errorMessage = e.localizedMessage ?: "Failed to delete profile",
             )
+      }
+    }
+  }
+
+  fun checkAutoLogin(onSuccess: (UserEntity) -> Unit) {
+    val shouldRemember = prefs.getBoolean("remember_me", false)
+    val savedUserId = prefs.getString("saved_user_id", null)
+
+    if (shouldRemember && !savedUserId.isNullOrBlank()) {
+      viewModelScope.launch {
+        val existing = userDao.getById(savedUserId)
+        if (existing != null) {
+          prefs.edit {
+            putLong("last_used_${existing.userId}", System.currentTimeMillis())
+          }
+          onSuccess(existing)
+        }
+      }
+    }
+  }
+
+  fun login(onSuccess: (UserEntity) -> Unit) {
+    val inputName = _uiState.value.username.trim()
+
+    if (inputName.isBlank()) {
+      _uiState.value = _uiState.value.copy(errorMessage = "Please enter a player name")
+      return
     }
 
-    fun promptDeleteUser(user: UserEntity) {
-        _uiState.value = _uiState.value.copy(userPendingDelete = user)
-    }
+    _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
-    fun cancelDeleteUser() {
-        _uiState.value = _uiState.value.copy(userPendingDelete = null)
-    }
+    viewModelScope.launch {
+      try {
+        val allUsers = userDao.observeAll().first()
+        val existingUser = allUsers.firstOrNull {
+          it.displayName.equals(inputName, ignoreCase = true)
+        }
 
-    fun confirmDeleteUser() {
-        val userToDelete = _uiState.value.userPendingDelete ?: return
-        viewModelScope.launch {
-            try {
-                userDao.delete(userToDelete)
-
-                val savedUserId = prefs.getString("saved_user_id", null)
-                if (savedUserId == userToDelete.userId) {
-                    prefs.edit {
-                        remove("saved_username")
-                        remove("saved_user_id")
-                    }
-                }
-
-                if (_uiState.value.username == userToDelete.displayName) {
-                    _uiState.value = _uiState.value.copy(username = "")
-                }
-
-                _uiState.value = _uiState.value.copy(userPendingDelete = null)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-                _uiState.value =
-                    _uiState.value.copy(
-                        userPendingDelete = null,
-                        errorMessage = e.localizedMessage ?: "Failed to delete profile",
-                    )
+        val user =
+            if (existingUser != null) {
+              existingUser
+            } else {
+              val newUser =
+                  UserEntity(
+                      userId = UUID.randomUUID().toString(),
+                      displayName = inputName,
+                      chipsOwned = 2500L,
+                  )
+              userDao.insert(newUser)
+              newUser
             }
+
+        // Always write the current active user ID so HomeViewModel and GameScreen bind to them
+        prefs.edit {
+          putBoolean("remember_me", _uiState.value.rememberMe)
+          putString("saved_username", user.displayName)
+          putString("saved_user_id", user.userId)
+          putLong("last_used_${user.userId}", System.currentTimeMillis())
         }
+
+        appPrefs.edit {
+          putString("active_user_id", user.userId)
+        }
+
+        (appContext as? SplitHappensApp)?.checkAndClaimDailyReward(user.userId)
+
+        _uiState.value = _uiState.value.copy(isLoading = false)
+        onSuccess(user)
+      } catch (e: CancellationException) {
+        throw e
+      } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+        _uiState.value =
+            _uiState.value.copy(
+                isLoading = false,
+                errorMessage = e.localizedMessage ?: "Failed to log in",
+            )
+      }
     }
-
-    fun checkAutoLogin(onSuccess: (UserEntity) -> Unit) {
-        val shouldRemember = prefs.getBoolean("remember_me", false)
-        val savedUserId = prefs.getString("saved_user_id", null)
-
-        if (shouldRemember && !savedUserId.isNullOrBlank()) {
-            viewModelScope.launch {
-                val existing = userDao.getById(savedUserId)
-                if (existing != null) {
-                    onSuccess(existing)
-                }
-            }
-        }
-    }
-
-    fun login(onSuccess: (UserEntity) -> Unit) {
-        val inputName = _uiState.value.username.trim()
-
-        if (inputName.isBlank()) {
-            _uiState.value = _uiState.value.copy(errorMessage = "Please enter a player name")
-            return
-        }
-
-        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-
-        viewModelScope.launch {
-            try {
-                val allUsers = userDao.observeAll().first()
-                val existingUser = allUsers.firstOrNull {
-                    it.displayName.equals(inputName, ignoreCase = true)
-                }
-
-                val user =
-                    if (existingUser != null) {
-                        existingUser
-                    } else {
-                        val newUser =
-                            UserEntity(
-                                userId = UUID.randomUUID().toString(),
-                                displayName = inputName,
-                                chipsOwned = 2500L,
-                            )
-                        userDao.insert(newUser)
-                        newUser
-                    }
-
-                // Always write the current active user ID so HomeViewModel and GameScreen bind to them
-                prefs.edit {
-                    putBoolean("remember_me", _uiState.value.rememberMe)
-                    putString("saved_username", user.displayName)
-                    putString("saved_user_id", user.userId)
-                }
-
-                _uiState.value = _uiState.value.copy(isLoading = false)
-                onSuccess(user)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-                _uiState.value =
-                    _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = e.localizedMessage ?: "Failed to log in",
-                    )
-            }
-        }
-    }
+  }
 }
 
 class LoginViewModelFactory(
     private val userDao: UserDao,
     private val context: Context,
 ) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T =
-        when {
-            modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
-                LoginViewModel(userDao, context) as T
-            }
-
-            else -> {
-                throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-            }
+  @Suppress("UNCHECKED_CAST")
+  override fun <T : ViewModel> create(modelClass: Class<T>): T =
+      when {
+        modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
+          LoginViewModel(userDao, context) as T
         }
+
+        else -> {
+          throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        }
+      }
 }

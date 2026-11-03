@@ -18,6 +18,7 @@ import io.github.doubleddoge.splithappens.game.Phase
 import io.github.doubleddoge.splithappens.game.PlayerHand
 import io.github.doubleddoge.splithappens.game.Round
 import io.github.doubleddoge.splithappens.game.snapshot
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,16 +27,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 private val DEAL_DELAY = 350.milliseconds
+private val FAST_DEAL_DELAY = 100.milliseconds
 private val DEALER_TURN_DELAY = 600.milliseconds
+private val FAST_DEALER_TURN_DELAY = 180.milliseconds
+private const val BALANCE_THRESHOLD = 100L
 
+// TODO: Implement dealer emotions if we may need to
+/*
 enum class DealerEmotion {
   NEUTRAL,
   SMUG,
   BUSTED,
 }
+*/
 
 enum class GameStage {
   BETTING,
@@ -76,9 +82,16 @@ class GameViewModel(
     initialMode: GameMode = GameMode.TRADITIONAL,
 ) : AndroidViewModel(application) {
 
-  private val _uiState = MutableStateFlow(
-      GameUiState(gameMode = initialMode)
-  )
+  private val prefs =
+      application.getSharedPreferences("split_happens_prefs", android.content.Context.MODE_PRIVATE)
+
+  private val isFastDeal: Boolean
+    get() = prefs.getBoolean("pref_fast_deal", false)
+
+  private val isAutoStandOn21: Boolean
+    get() = prefs.getBoolean("pref_auto_stand_21", true)
+
+  private val _uiState = MutableStateFlow(GameUiState(gameMode = initialMode))
   val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
   private val shoe = io.github.doubleddoge.splithappens.game.Shoe(deckCount = 6)
@@ -94,11 +107,12 @@ class GameViewModel(
 
   private fun observeUserData() {
     viewModelScope.launch {
-      val userFlow = if (targetUserId.isNotBlank()) {
-        userDao.observeById(targetUserId)
-      } else {
-        userDao.observeAll().map { users -> users.firstOrNull() }
-      }
+      val userFlow =
+          if (targetUserId.isNotBlank()) {
+            userDao.observeById(targetUserId)
+          } else {
+            userDao.observeAll().map { users -> users.firstOrNull() }
+          }
 
       userFlow.collect { user ->
         if (user != null) {
@@ -107,12 +121,12 @@ class GameViewModel(
             currentUserId = user.userId
             sessionManager =
                 GameSessionManager(
-                    sessionDao = sessionDao,
-                    roundDao = roundDao,
-                    userId = user.userId,
-                    stakes = 100L,
-                    mode = _uiState.value.gameMode,
-                )
+                        sessionDao = sessionDao,
+                        roundDao = roundDao,
+                        userId = user.userId,
+                        stakes = 100L,
+                        mode = _uiState.value.gameMode,
+                    )
                     .apply { startSession() }
           }
 
@@ -137,12 +151,12 @@ class GameViewModel(
           sessionManager?.endSession(SessionStatus.COMPLETED)
           sessionManager =
               GameSessionManager(
-                  sessionDao = sessionDao,
-                  roundDao = roundDao,
-                  userId = userId,
-                  stakes = 100L,
-                  mode = mode,
-              )
+                      sessionDao = sessionDao,
+                      roundDao = roundDao,
+                      userId = userId,
+                      stakes = 100L,
+                      mode = mode,
+                  )
                   .apply { startSession() }
         }
       }
@@ -176,10 +190,18 @@ class GameViewModel(
   }
 
   // --- DEAL ---
-
   fun deal() {
     val s = _uiState.value
+
     if (s.stage != GameStage.BETTING) return
+
+    if (s.chipsOwned < BALANCE_THRESHOLD) {
+      _uiState.update {
+        it.copy(statusText = "Balance below R100 minimum. Daily reward gives R500 every 24h!")
+      }
+      return
+    }
+
     if (s.currentBet <= 0L) {
       _uiState.update { it.copy(statusText = "Please place a bet") }
       return
@@ -193,6 +215,7 @@ class GameViewModel(
             mode = s.gameMode,
             bankroll = s.chipsOwned,
             minBet = 0L,
+            autoStandOn21 = isAutoStandOn21,
         )
     currentRound = round
     round.startBetting(s.currentBet)
@@ -203,44 +226,41 @@ class GameViewModel(
           stage = GameStage.DEALING,
           statusText = "Dealing...",
           playerHands = round.hands.snapshot(),
+          activeHandIndex = 0,
           dealerCards = emptyList(),
           hideHoleCard = true,
           hasActiveHand = true,
       )
     }
-    roundJob =
-        viewModelScope.launch {
-          round.dealOneToPlayer()
-          updateDealState(round)
-          delay(DEAL_DELAY)
+    roundJob = viewModelScope.launch {
+      val dealDelay = if (isFastDeal) FAST_DEAL_DELAY else DEAL_DELAY
+      round.dealOneToPlayer()
+      updateDealState(round)
+      delay(dealDelay)
+      round.dealOneToDealer()
+      updateDealState(round)
+      delay(dealDelay)
+      round.dealOneToPlayer()
+      updateDealState(round)
+      delay(dealDelay)
+      round.dealOneToDealer()
+      updateDealState(round)
+      delay(dealDelay)
 
-          round.dealOneToDealer()
-          updateDealState(round)
-          delay(DEAL_DELAY)
+      round.finalizeDeal()
 
-          round.dealOneToPlayer()
-          updateDealState(round)
-          delay(DEAL_DELAY)
+      _uiState.update {
+        it.copy(
+            stage =
+                if (round.phase == Phase.INSURANCE) GameStage.INSURANCE else GameStage.PLAYER_TURN,
+            legalActions = round.legalActions(),
+            statusText =
+                if (round.phase == Phase.INSURANCE) "Insurance Offered" else "Hit or Stand?",
+        )
+      }
 
-          round.dealOneToDealer()
-          updateDealState(round)
-          delay(DEAL_DELAY)
-
-          round.finalizeDeal()
-
-          _uiState.update {
-            it.copy(
-                stage =
-                    if (round.phase == Phase.INSURANCE) GameStage.INSURANCE
-                    else GameStage.PLAYER_TURN,
-                legalActions = round.legalActions(),
-                statusText =
-                    if (round.phase == Phase.INSURANCE) "Insurance Offered" else "Hit or Stand?",
-            )
-          }
-
-          if (round.phase == Phase.FINISHED) finishRound()
-        }
+      if (round.phase == Phase.FINISHED) finishRound()
+    }
   }
 
   private fun updateDealState(round: Round) {
@@ -258,27 +278,39 @@ class GameViewModel(
     if (round.phase != Phase.PLAYER_TURN) return
 
     round.act(action)
+
+    val totalStaked = round.hands.sumOf { it.bet }
+    val statusPrompt =
+        if (round.hands.size > 1 && round.phase == Phase.PLAYER_TURN) {
+          "Playing Hand ${round.activeIndex + 1} of ${round.hands.size}"
+        } else {
+          _uiState.value.statusText
+        }
+
     _uiState.update {
       it.copy(
+          currentBet = totalStaked,
           playerHands = round.hands.snapshot(),
           activeHandIndex = round.activeIndex,
           dealerCards = round.dealerCards.toList(),
           hideHoleCard = round.holeHidden,
           legalActions = round.legalActions(),
+          statusText = statusPrompt,
       )
     }
+
     if (round.phase == Phase.FINISHED) {
-      roundJob =
-          viewModelScope.launch {
-            _uiState.update {
-              it.copy(
-                  stage = GameStage.DEALER_TURN,
-                  statusText = "Dealer drawing...",
-              )
-            }
-            delay(DEALER_TURN_DELAY)
-            finishRound()
-          }
+      roundJob = viewModelScope.launch {
+        _uiState.update {
+          it.copy(
+              stage = GameStage.DEALER_TURN,
+              statusText = "Dealer drawing...",
+          )
+        }
+        val turnDelay = if (isFastDeal) FAST_DEALER_TURN_DELAY else DEALER_TURN_DELAY
+        delay(turnDelay)
+        finishRound()
+      }
     }
   }
 
@@ -344,6 +376,7 @@ class GameViewModel(
       it.copy(
           currentBet = 0L,
           insuranceBet = 0L,
+          activeHandIndex = 0,
           playerHands = emptyList(),
           dealerCards = emptyList(),
           hideHoleCard = true,
@@ -361,6 +394,7 @@ class GameViewModel(
       it.copy(
           currentBet = 0L,
           insuranceBet = 0L,
+          activeHandIndex = 0,
           playerHands = emptyList(),
           dealerCards = emptyList(),
           hideHoleCard = true,
@@ -372,21 +406,36 @@ class GameViewModel(
     }
   }
 
-  private fun outcomeBanner(round: Round, primary: HandResult?): String =
-      when (primary) {
-        HandResult.BLACKJACK,
-        HandResult.NATURAL_BLACKJACK -> "BLACKJACK! YOU WIN!"
-        HandResult.QUEEN_JACK -> "QUEEN JACK! YOU WIN!"
-        HandResult.TRIPLE_SEVEN -> "7-7-7! YOU WIN!"
-        HandResult.SIX_CARD -> "6-CARD CHARLIE! YOU WIN!"
-        HandResult.SEVEN_CARD -> "7-CARD CHARLIE! YOU WIN!"
-        HandResult.WIN -> "YOU WIN!"
-        HandResult.PUSH -> "PUSH - BET RETURNED"
-        HandResult.LOSS ->
-            if (round.hands.firstOrNull()?.value?.isBust == true) "BUSTED!" else "DEALER WINS"
-        HandResult.SURRENDER -> "SURRENDERED"
-        null -> "ROUND OVER"
+  private fun outcomeBanner(round: Round, primary: HandResult?): String {
+    val results = round.results()
+
+    if (results.size > 1) {
+      val wins = results.count { it.multiplier > 1.0 }
+      val pushes = results.count { it == HandResult.PUSH }
+      val losses = results.count { it == HandResult.LOSS || it == HandResult.SURRENDER }
+      return when {
+        wins > 0 && losses == 0 -> "WON $wins OF ${results.size} HANDS!"
+        wins > 0 -> "SPLIT: $wins WON, $losses LOST" + if (pushes > 0) ", $pushes PUSH" else ""
+        pushes > 0 && losses == 0 -> "ALL HANDS PUSHED"
+        else -> "DEALER WINS SPLIT HANDS"
       }
+    }
+
+    return when (primary) {
+      HandResult.BLACKJACK,
+      HandResult.NATURAL_BLACKJACK -> "BLACKJACK! YOU WIN!"
+      HandResult.QUEEN_JACK -> "QUEEN JACK! YOU WIN!"
+      HandResult.TRIPLE_SEVEN -> "7-7-7! YOU WIN!"
+      HandResult.SIX_CARD -> "6-CARD CHARLIE! YOU WIN!"
+      HandResult.SEVEN_CARD -> "7-CARD CHARLIE! YOU WIN!"
+      HandResult.WIN -> "YOU WIN!"
+      HandResult.PUSH -> "PUSH - BET RETURNED"
+      HandResult.LOSS ->
+          if (round.hands.firstOrNull()?.value?.isBust == true) "BUSTED!" else "DEALER WINS"
+      HandResult.SURRENDER -> "SURRENDERED"
+      null -> "ROUND OVER"
+    }
+  }
 
   override fun onCleared() {
     viewModelScope.launch { sessionManager?.endSession(SessionStatus.COMPLETED) }

@@ -129,6 +129,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                 factory = HomeViewModelFactory(db.userDao(), db.gameHistoryDao(), activeUserId),
                 key = "home_$activeUserId",
             )
+
         HomeScreen(
             viewModel = homeVm,
             isDarkTheme = settingsUiState.darkTheme,
@@ -159,13 +160,21 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                 factory = HomeViewModelFactory(db.userDao(), db.gameHistoryDao(), activeUserId),
                 key = "game_header_$activeUserId",
             )
+
         val homeUiState by homeVm.uiState.collectAsState()
+
+        androidx.compose.runtime.LaunchedEffect(activeUserId) {
+          homeVm.refreshProfilePicture()
+        }
+
         GameScreen(
             userId = activeUserId,
             mode = mode,
             displayName = homeUiState.displayName,
             chipsOwned = homeUiState.chipsOwned,
+            profilePictureBytes = homeUiState.profilePictureBytes,
             isDarkTheme = settingsUiState.darkTheme,
+            settingsUiState = settingsUiState,
             onNavigateHome = {
               navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Home.route) { inclusive = true }
@@ -177,6 +186,9 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                 launchSingleTop = true
                 restoreState = true
               }
+            },
+            onNavigateProfile = {
+              navController.navigate(Screen.Profile.route) { launchSingleTop = true }
             },
         )
       }

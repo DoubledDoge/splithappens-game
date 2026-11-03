@@ -12,7 +12,7 @@
 	- **Traditional**: regular blackjack payouts only.
 - **Full player actions**: hit, stand, double down, split (up to 4 hands), surrender, and insurance
   when the dealer shows an ace.
-- **Chip bankroll**: start with 2,500 chips, with a 100 chip minimum bet.
+- **Chip bankroll**: start with 2,500 chips.
 - **Persistent history**: sessions, games, hands, and cards are stored in a local Room database, so
   your results and net chips survive app restarts.
 - **Player profile**: display name, chip balance, profile picture, and per-mode net chip stats.

@@ -11,25 +11,21 @@ import org.junit.Before
 
 // Fresh in-memory database per test
 abstract class DatabaseTest {
-    protected lateinit var db: SplitHappensDatabase
+  protected lateinit var db: Database
 
-    @Before
-    fun createDb() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        db =
-            Room.inMemoryDatabaseBuilder<SplitHappensDatabase>(context)
-                .setDriver(AndroidSQLiteDriver())
-                .build()
-    }
+  @Before
+  fun createDb() {
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    db = Room.inMemoryDatabaseBuilder<Database>(context).setDriver(AndroidSQLiteDriver()).build()
+  }
 
-    @After
-    fun closeDb() = db.close()
+  @After fun closeDb() = db.close()
 
-    protected suspend fun newUser(name: String = "Player", chips: Long = 1000): UserEntity =
-        UserEntity(displayName = name, chipsOwned = chips).also { db.userDao().insert(it) }
+  protected suspend fun newUser(name: String = "Player", chips: Long = 1000): UserEntity =
+      UserEntity(displayName = name, chipsOwned = chips).also { db.userDao().insert(it) }
 
-    protected fun assertFailsWithException(block: suspend () -> Unit) {
-        val failed = runCatching { runBlocking { block() } }.isFailure
-        Assert.assertTrue("Expected an exception", failed)
-    }
+  protected fun assertFailsWithException(block: suspend () -> Unit) {
+    val failed = runCatching { runBlocking { block() } }.isFailure
+    Assert.assertTrue("Expected an exception", failed)
+  }
 }

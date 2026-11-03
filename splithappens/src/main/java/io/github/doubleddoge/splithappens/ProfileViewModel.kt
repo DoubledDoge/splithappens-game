@@ -10,24 +10,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-
-// PROFILE UI STATE
-
+private const val MAX_NAME_LENGTH = 20
+private const val PERCENTAGE_MULTIPLIER = 100
 
 data class ProfileUiState(
     val userId: String = "default_player",
     val displayName: String = "Player 1",
     val chipsOwned: Long = 2500L,
     val profilePictureBytes: ByteArray? = null,
-
     val gamesPlayed: Int = 0,
     val wins: Int = 0,
     val losses: Int = 0,
     val winRate: Double = 0.0,
     val netChipsEarned: Long = 0L,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null,
 ) {
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -41,7 +42,9 @@ data class ProfileUiState(
         wins == other.wins &&
         losses == other.losses &&
         winRate == other.winRate &&
-        isLoading == other.isLoading
+        netChipsEarned == other.netChipsEarned &&
+        isLoading == other.isLoading &&
+        errorMessage == other.errorMessage
   }
 
   override fun hashCode(): Int {
@@ -53,7 +56,9 @@ data class ProfileUiState(
     result = 31 * result + wins
     result = 31 * result + losses
     result = 31 * result + winRate.hashCode()
+    result = 31 * result + netChipsEarned.hashCode()
     result = 31 * result + isLoading.hashCode()
+    result = 31 * result + errorMessage.hashCode()
     return result
   }
 }
@@ -66,10 +71,7 @@ private fun ByteArray?.contentEqualsNullable(other: ByteArray?): Boolean {
   }
 }
 
-
-
 // PROFILE VIEW MODEL
-
 
 class ProfileViewModel(
     private val userDao: UserDao,
@@ -113,7 +115,7 @@ class ProfileViewModel(
               val losses = history.count { it.netChips < 0 }
               val winRate =
                   if (gamesPlayed > 0) {
-                    (wins.toDouble() / gamesPlayed) * 100
+                    (wins.toDouble() / gamesPlayed) * PERCENTAGE_MULTIPLIER
                   } else {
                     0.0
                   }
@@ -168,12 +170,33 @@ class ProfileViewModel(
     val cleanedName = newName.trim()
     if (currentUserId.isBlank() || cleanedName.isBlank()) return
 
+    if (cleanedName.length > MAX_NAME_LENGTH) {
+      _uiState.update {
+        it.copy(errorMessage = "Name must be $MAX_NAME_LENGTH characters or less.")
+      }
+      return
+    }
+
     viewModelScope.launch {
+      val allUsers = userDao.observeAll().first()
+      val isTaken = allUsers.any {
+        it.userId != currentUserId && it.displayName.equals(cleanedName, ignoreCase = true)
+      }
+      if (isTaken) {
+        _uiState.update { it.copy(errorMessage = "That name is already taken by another profile.") }
+        return@launch
+      }
+
       val currentUser = userDao.getById(currentUserId)
       if (currentUser != null) {
         userDao.update(currentUser.copy(displayName = cleanedName))
+        _uiState.update { it.copy(errorMessage = null) }
       }
     }
+  }
+
+  fun clearError() {
+    _uiState.update { it.copy(errorMessage = null) }
   }
 }
 

@@ -94,94 +94,99 @@ fun PlayingCard(
     card: TableCard,
     modifier: Modifier = Modifier,
     dealFrom: DpOffset = DefaultDealFromOffset,
+    fastDeal: Boolean = false,
 ) {
-    val fly = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        fly.animateTo(1f, tween(CARD_FLY_DURATION_MS, easing = FastOutSlowInEasing))
-    }
-    val flip by animateFloatAsState(
-        targetValue = if (card.isFaceUp) FACE_UP_FLIP_DEG else FACE_DOWN_FLIP_DEG,
-        animationSpec = tween(CARD_FLIP_DURATION_MS),
-        label = "cardFlip",
-    )
+  val flyDuration = if (fastDeal) CARD_FLY_DURATION_MS / 3 else CARD_FLY_DURATION_MS
+  val flipDuration = if (fastDeal) CARD_FLIP_DURATION_MS / 3 else CARD_FLIP_DURATION_MS
 
-    Box(
-        modifier
-            .size(width = DefaultCardWidth, height = DefaultCardHeight)
-            .graphicsLayer {
-                val t = fly.value
-                translationX = (1f - t) * dealFrom.x.toPx()
-                translationY = (1f - t) * dealFrom.y.toPx()
-                rotationZ = (1f - t) * FLY_ROTATION_Z_DEG
-                alpha = (t * FLY_ALPHA_MULTIPLIER).coerceAtMost(1f)
-                rotationY = flip
-                cameraDistance = CARD_CAMERA_DISTANCE * density
-            }
-            .shadow(CardShadowElevation, RoundedCornerShape(CardCornerRadius)),
-    ) {
-        if (flip <= FLIP_MIDPOINT_DEG) {
-            CardFace(card)
-        } else {
-            CardBack(Modifier.graphicsLayer { rotationY = FACE_DOWN_FLIP_DEG })
-        }
+  val fly = remember { Animatable(0f) }
+  LaunchedEffect(Unit) {
+    fly.animateTo(1f, tween(flyDuration, easing = FastOutSlowInEasing))
+  }
+
+  val flip by
+      animateFloatAsState(
+          targetValue = if (card.isFaceUp) FACE_UP_FLIP_DEG else FACE_DOWN_FLIP_DEG,
+          animationSpec = tween(flipDuration),
+          label = "cardFlip",
+      )
+
+  Box(
+      modifier
+          .size(width = DefaultCardWidth, height = DefaultCardHeight)
+          .graphicsLayer {
+            val t = fly.value
+            translationX = (1f - t) * dealFrom.x.toPx()
+            translationY = (1f - t) * dealFrom.y.toPx()
+            rotationZ = (1f - t) * FLY_ROTATION_Z_DEG
+            alpha = (t * FLY_ALPHA_MULTIPLIER).coerceAtMost(1f)
+            rotationY = flip
+            cameraDistance = CARD_CAMERA_DISTANCE * density
+          }
+          .shadow(CardShadowElevation, RoundedCornerShape(CardCornerRadius)),
+  ) {
+    if (flip <= FLIP_MIDPOINT_DEG) {
+      CardFace(card)
+    } else {
+      CardBack(Modifier.graphicsLayer { rotationY = FACE_DOWN_FLIP_DEG })
     }
+  }
 }
 
 @Composable
 private fun CardFace(card: TableCard) {
-    val ink = if (card.suit.isRed) RedSuitColor else BlackSuitColor
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(CardFaceBackgroundColor, RoundedCornerShape(CardCornerRadius))
-            .border(
-                CardFaceBorderWidth,
-                Color.Black.copy(alpha = CARD_FACE_BORDER_ALPHA),
-                RoundedCornerShape(CardCornerRadius),
-            )
-            .padding(CardFacePadding),
+  val ink = if (card.suit.isRed) RedSuitColor else BlackSuitColor
+  Box(
+      Modifier.fillMaxSize()
+          .background(CardFaceBackgroundColor, RoundedCornerShape(CardCornerRadius))
+          .border(
+              CardFaceBorderWidth,
+              Color.Black.copy(alpha = CARD_FACE_BORDER_ALPHA),
+              RoundedCornerShape(CardCornerRadius),
+          )
+          .padding(CardFacePadding),
+  ) {
+    Column(
+        Modifier.align(Alignment.TopStart),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            Modifier.align(Alignment.TopStart),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                card.rank.label,
-                color = ink,
-                fontSize = CornerRankFontSize,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Text(
-            card.suit.symbol,
-            color = ink,
-            fontSize = CenterSuitFontSize,
-            modifier = Modifier.align(Alignment.Center),
-        )
+      Text(
+          card.rank.label,
+          color = ink,
+          fontSize = CornerRankFontSize,
+          fontWeight = FontWeight.Bold,
+      )
     }
+    Text(
+        card.suit.symbol,
+        color = ink,
+        fontSize = CenterSuitFontSize,
+        modifier = Modifier.align(Alignment.Center),
+    )
+  }
 }
 
 @Composable
 private fun CardBack(modifier: Modifier = Modifier) {
-    Box(
-        modifier
-            .fillMaxSize()
-            .background(
-                Brush.linearGradient(listOf(CardBackPrimaryColor, CardBackSecondaryColor)),
-                RoundedCornerShape(CardCornerRadius),
-            )
-            .border(
-                CardBackOuterBorderWidth,
-                CardFaceBackgroundColor,
-                RoundedCornerShape(CardCornerRadius),
-            )
-            .padding(CardBackPadding)
-            .border(
-                CardBackInnerBorderWidth,
-                GoldFoil.copy(alpha = CARD_BACK_INNER_BORDER_ALPHA),
-                RoundedCornerShape(CardInnerCornerRadius),
-            ),
-    )
+  Box(
+      modifier
+          .fillMaxSize()
+          .background(
+              Brush.linearGradient(listOf(CardBackPrimaryColor, CardBackSecondaryColor)),
+              RoundedCornerShape(CardCornerRadius),
+          )
+          .border(
+              CardBackOuterBorderWidth,
+              CardFaceBackgroundColor,
+              RoundedCornerShape(CardCornerRadius),
+          )
+          .padding(CardBackPadding)
+          .border(
+              CardBackInnerBorderWidth,
+              GoldFoil.copy(alpha = CARD_BACK_INNER_BORDER_ALPHA),
+              RoundedCornerShape(CardInnerCornerRadius),
+          ),
+  )
 }
 
 @Composable
@@ -190,51 +195,51 @@ fun HandRow(
     modifier: Modifier = Modifier,
     overlap: Dp = DefaultHandOverlap,
     dealFrom: DpOffset = DefaultDealFromOffset,
+    fastDeal: Boolean = false,
 ) {
-    val totalWidth = DefaultCardWidth + (overlap * (hand.size - 1).coerceAtLeast(0))
-    Box(modifier.width(totalWidth).height(DefaultCardHeight)) {
-        hand.forEachIndexed { i, card ->
-            key(card.uid) {
-                PlayingCard(
-                    card = card,
-                    modifier = Modifier.offset(x = overlap * i),
-                    dealFrom = dealFrom,
-                )
-            }
-        }
+  val totalWidth = DefaultCardWidth + (overlap * (hand.size - 1).coerceAtLeast(0))
+  Box(modifier.width(totalWidth).height(DefaultCardHeight)) {
+    hand.forEachIndexed { i, card ->
+      key(card.uid) {
+        PlayingCard(
+            card = card,
+            modifier = Modifier.offset(x = overlap * i),
+            dealFrom = dealFrom,
+            fastDeal = fastDeal,
+        )
+      }
     }
+  }
 }
 
 @Composable
 fun SectionLabel(title: String, total: Int?) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier
-                .width(SectionLabelLineLength)
-                .height(SectionLabelLineWidth)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(Color.Transparent, GoldFoil.copy(alpha = SECTION_LINE_ALPHA)),
-                    ),
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Box(
+        Modifier.width(SectionLabelLineLength)
+            .height(SectionLabelLineWidth)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(Color.Transparent, GoldFoil.copy(alpha = SECTION_LINE_ALPHA)),
                 ),
-        )
-        Text(
-            text = if (total != null) "$title · $total" else title,
-            color = GoldFoil.copy(alpha = SECTION_TEXT_ALPHA),
-            fontSize = SectionLabelFontSize,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = SectionLabelLetterSpacing,
-            modifier = Modifier.padding(horizontal = SectionLabelTextPadding),
-        )
-        Box(
-            Modifier
-                .width(SectionLabelLineLength)
-                .height(SectionLabelLineWidth)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(GoldFoil.copy(alpha = SECTION_LINE_ALPHA), Color.Transparent),
-                    ),
+            ),
+    )
+    Text(
+        text = if (total != null) "$title · $total" else title,
+        color = GoldFoil.copy(alpha = SECTION_TEXT_ALPHA),
+        fontSize = SectionLabelFontSize,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = SectionLabelLetterSpacing,
+        modifier = Modifier.padding(horizontal = SectionLabelTextPadding),
+    )
+    Box(
+        Modifier.width(SectionLabelLineLength)
+            .height(SectionLabelLineWidth)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(GoldFoil.copy(alpha = SECTION_LINE_ALPHA), Color.Transparent),
                 ),
-        )
-    }
+            ),
+    )
+  }
 }
