@@ -167,7 +167,12 @@ class GameViewModel(
 
   fun addBet(amount: Long) {
     val s = _uiState.value
-    if (s.stage != GameStage.BETTING || (s.chipsOwned - s.currentBet) < amount) return
+    if (s.stage != GameStage.BETTING) return
+    val available = s.chipsOwned - s.currentBet
+    if (available < amount) {
+      _uiState.update { it.copy(statusText = "Not enough chips!") }
+      return
+    }
 
     val newBet = s.currentBet + amount
     _uiState.update {
@@ -319,23 +324,68 @@ class GameViewModel(
     if (round.phase != Phase.INSURANCE) return
 
     val maxInsurance = _uiState.value.currentBet / 2
+    val available = _uiState.value.chipsOwned - _uiState.value.currentBet - round.insuranceBet
     val amount = if (accept) maxInsurance else 0L
-    round.resolveInsurance(amount)
 
-    _uiState.update {
-      it.copy(
-          insuranceBet = amount,
-          stage =
-              if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
-          playerHands = round.hands.snapshot(),
-          dealerCards = round.dealerCards.toList(),
-          hideHoleCard = round.holeHidden,
-          legalActions = round.legalActions(),
-          statusText = if (round.phase == Phase.FINISHED) it.statusText else "Hit or Stand?",
-      )
+    if (accept && amount > available) {
+      _uiState.update {
+        it.copy(
+            statusText = "Not enough chips for insurance!",
+        )
+      }
+      try {
+        round.resolveInsurance(0L)
+      } catch (@Suppress("TooGenericExceptionCaught") _: Exception) {}
+      _uiState.update {
+        it.copy(
+            insuranceBet = 0L,
+            stage = if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
+            playerHands = round.hands.snapshot(),
+            dealerCards = round.dealerCards.toList(),
+            hideHoleCard = round.holeHidden,
+            legalActions = round.legalActions(),
+        )
+      }
+      if (round.phase == Phase.FINISHED) finishRound()
+      return
     }
 
-    if (round.phase == Phase.FINISHED) finishRound()
+    try {
+      round.resolveInsurance(amount)
+      _uiState.update {
+        it.copy(
+            insuranceBet = amount,
+            stage =
+                if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
+            playerHands = round.hands.snapshot(),
+            dealerCards = round.dealerCards.toList(),
+            hideHoleCard = round.holeHidden,
+            legalActions = round.legalActions(),
+            statusText = if (round.phase == Phase.FINISHED) it.statusText else "Hit or Stand?",
+        )
+      }
+      if (round.phase == Phase.FINISHED) finishRound()
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+      _uiState.update {
+        it.copy(
+            statusText = e.localizedMessage ?: "Not enough chips for insurance!",
+        )
+      }
+      try {
+        round.resolveInsurance(0L)
+      } catch (@Suppress("TooGenericExceptionCaught") _: Exception) {}
+      _uiState.update {
+        it.copy(
+            insuranceBet = 0L,
+            stage = if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
+            playerHands = round.hands.snapshot(),
+            dealerCards = round.dealerCards.toList(),
+            hideHoleCard = round.holeHidden,
+            legalActions = round.legalActions(),
+        )
+      }
+      if (round.phase == Phase.FINISHED) finishRound()
+    }
   }
 
   private fun finishRound() {

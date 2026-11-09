@@ -179,22 +179,21 @@ class LoginViewModel(
     }
   }
 
-  fun checkAutoLogin(onSuccess: (UserEntity) -> Unit) {
+  suspend fun tryAutoLogin(): Boolean {
     val shouldRemember = prefs.getBoolean("remember_me", false)
     val savedUserId = prefs.getString("saved_user_id", null)
 
     if (shouldRemember && !savedUserId.isNullOrBlank()) {
-      viewModelScope.launch {
-        val existing = userDao.getById(savedUserId)
-        if (existing != null) {
-          prefs.edit {
-            putLong("last_used_${existing.userId}", System.currentTimeMillis())
-          }
-          (appContext as? SplitHappensApp)?.checkAndClaimDailyReward(existing.userId)
-          onSuccess(existing)
+      val existing = userDao.getById(savedUserId)
+      if (existing != null) {
+        prefs.edit {
+          putLong("last_used_${existing.userId}", System.currentTimeMillis())
         }
+        (appContext as? SplitHappensApp)?.checkAndClaimDailyReward(existing.userId)
+        return true
       }
     }
+    return false
   }
 
   fun login(onSuccess: (UserEntity) -> Unit) {
