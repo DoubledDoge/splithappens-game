@@ -70,7 +70,7 @@ data class GameUiState(
     val hasActiveHand: Boolean = false,
 ) {
   val isGameInProgress: Boolean
-    get() = stage != GameStage.BETTING || currentBet > 0L || hasActiveHand
+    get() = stage == GameStage.DEALING || stage == GameStage.INSURANCE || stage == GameStage.PLAYER_TURN
 }
 
 class GameViewModel(
@@ -195,7 +195,7 @@ class GameViewModel(
 
     if (s.stage != GameStage.BETTING) return
 
-    if (s.chipsOwned < BALANCE_THRESHOLD) {
+    if (s.chipsOwned <= BALANCE_THRESHOLD) {
       _uiState.update {
         it.copy(statusText = "Balance below R100 minimum. Daily reward gives R500 every 24h!")
       }
@@ -413,11 +413,19 @@ class GameViewModel(
       val wins = results.count { it.multiplier > 1.0 }
       val pushes = results.count { it == HandResult.PUSH }
       val losses = results.count { it == HandResult.LOSS || it == HandResult.SURRENDER }
+
       return when {
-        wins > 0 && losses == 0 -> "WON $wins OF ${results.size} HANDS!"
-        wins > 0 -> "SPLIT: $wins WON, $losses LOST" + if (pushes > 0) ", $pushes PUSH" else ""
-        pushes > 0 && losses == 0 -> "ALL HANDS PUSHED"
-        else -> "DEALER WINS SPLIT HANDS"
+        wins == results.size -> "ALL HANDS WON!"
+        losses == results.size -> "ALL HANDS LOST"
+        pushes == results.size -> "ALL HANDS PUSHED"
+        else -> {
+          val parts = buildList {
+            if (wins > 0) add("$wins WON")
+            if (losses > 0) add("$losses LOST")
+            if (pushes > 0) add("$pushes PUSH")
+          }
+          "SPLIT: ${parts.joinToString(", ")}"
+        }
       }
     }
 

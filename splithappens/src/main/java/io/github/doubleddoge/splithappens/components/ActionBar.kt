@@ -73,6 +73,7 @@ fun GameActionBar(
     legalActions: Set<Action> = emptySet(),
     onAction: (Action) -> Unit = {},
     onChip: (Long) -> Unit = {},
+    onAllIn: () -> Unit = {},
     onDeal: () -> Unit = {},
 ) {
   Row(
@@ -108,6 +109,15 @@ fun GameActionBar(
           modifier = Modifier.weight(WEIGHT_NORMAL),
           enabled = availableChips >= CHIP_VALUE_HIGH,
           onClick = { onChip(CHIP_VALUE_HIGH) },
+      )
+      GameButton(
+          label = "ALL IN",
+          topColor = Gold,
+          bottomColor = GoldDark,
+          modifier = Modifier.weight(1.2f),
+          textColor = DealTextColor,
+          enabled = availableChips > 0L,
+          onClick = onAllIn,
       )
       GameButton(
           label = "DEAL",

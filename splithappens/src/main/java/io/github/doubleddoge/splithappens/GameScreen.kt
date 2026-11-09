@@ -135,6 +135,7 @@ fun GameScreen(
 
   var betChipsList by remember { mutableStateOf(listOf<Int>()) }
   var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
+  var showAllInDialog by remember { mutableStateOf(false) }
 
   val bgCenter = if (isDarkTheme) GameBgDarkCenter else GameBgLightCenter
   val bgOuter = if (isDarkTheme) GameBgDarkOuter else GameBgLightOuter
@@ -146,6 +147,36 @@ fun GameScreen(
     } else {
       destinationAction()
     }
+  }
+
+  if (showAllInDialog) {
+    val available = uiState.chipsOwned - uiState.currentBet
+    AlertDialog(
+        onDismissRequest = { showAllInDialog = false },
+        title = { Text("Go All In?") },
+        text = {
+          Text(
+              "Are you sure you want to wager your entire remaining balance of R$available?"
+          )
+        },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                showAllInDialog = false
+                if (available > 0L) {
+                  triggerFeedback(35L)
+                  betChipsList = betChipsList + available.toInt()
+                  gameViewModel.addBet(available)
+                }
+              }
+          ) {
+            Text("ALL IN", color = GoldFoil, fontWeight = FontWeight.Bold)
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = { showAllInDialog = false }) { Text("Cancel") }
+        },
+    )
   }
 
   BackHandler {
@@ -465,7 +496,7 @@ fun GameScreen(
                 }
               }
 
-              if (uiState.stage == GameStage.BETTING && uiState.chipsOwned < 100L) {
+              if (uiState.stage == GameStage.BETTING && uiState.userId.isNotBlank() && uiState.chipsOwned <= 100L) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -566,6 +597,12 @@ fun GameScreen(
                         triggerFeedback(25L)
                         betChipsList = betChipsList + amount.toInt()
                         gameViewModel.addBet(amount)
+                      }
+                    },
+                    onAllIn = {
+                      val available = uiState.chipsOwned - uiState.currentBet
+                      if (available > 0L) {
+                        showAllInDialog = true
                       }
                     },
                     onDeal = {
