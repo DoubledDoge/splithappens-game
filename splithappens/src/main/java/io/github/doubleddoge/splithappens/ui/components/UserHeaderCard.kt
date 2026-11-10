@@ -30,20 +30,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.ui.theme.BorderGold
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
+import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
 import io.github.doubleddoge.splithappens.ui.theme.GoldBright
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
+import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
 // Dark Theme Colors
 private val CardBgDark = Color(0xFF072C1E)
-private val ChipBadgeBgDark = Color(0xFF041910)
-
-// Light Theme Colors
-private val AvatarBgLight = Color(0xFF237D5D)
-private val ChipBadgeBgLight = Color(0xFF124533)
 
 @Composable
 fun UserHeaderCard(
@@ -55,8 +52,8 @@ fun UserHeaderCard(
     onProfileClick: () -> Unit = {}
 ) {
     val cardBg = if (isDarkTheme) CardBgDark else LightSurface
-    val avatarBg = if (isDarkTheme) FeltDarkRaised else AvatarBgLight
-    val chipBadgeBg = if (isDarkTheme) ChipBadgeBgDark else ChipBadgeBgLight
+    val avatarBg = if (isDarkTheme) FeltDarkRaised else FeltLightBorder
+    val chipBadgeBg = if (isDarkTheme) DarkBackground else LightBackground
 
     val bitmap = remember(profilePictureBytes) {
         profilePictureBytes?.let {
@@ -69,7 +66,7 @@ fun UserHeaderCard(
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(horizontal = 10.dp, vertical = 8.dp)
-            .border(2.dp, BorderGold, RoundedCornerShape(16.dp))
+            .border(2.dp, GoldFoil, RoundedCornerShape(16.dp))
             .background(
                 color = cardBg,
                 shape = RoundedCornerShape(16.dp)
@@ -82,7 +79,7 @@ fun UserHeaderCard(
         Box(
             modifier = Modifier
                 .size(44.dp)
-                .border(1.dp, BorderGold, CircleShape)
+                .border(1.dp, GoldFoil, CircleShape)
                 .clip(CircleShape)
                 .background(avatarBg),
             contentAlignment = Alignment.Center

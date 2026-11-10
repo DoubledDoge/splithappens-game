@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key.Companion.F
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,11 +37,15 @@ import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.viewmodel.SettingUiState
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCenter
+import io.github.doubleddoge.splithappens.ui.theme.CardBackground
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
 import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
+import io.github.doubleddoge.splithappens.ui.theme.TextMint
+import io.github.doubleddoge.splithappens.ui.theme.TextMuted
 
 @Composable
 fun SettingsScreen(
@@ -60,17 +63,17 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
 
-    val currentBackground = if (uiState.darkTheme) FeltDarkCenter else LightBackground
+    val currentBackground = if (uiState.darkTheme) CardBackground else LightBackground
     val currentCardBg = if (uiState.darkTheme) FeltDarkCard else LightSurface
-    val currentCardBorder = if (uiState.darkTheme) Color(0xFF134530) else FeltLightBorder
-    val currentSubtitle = if (uiState.darkTheme) Color(0xFF8BA697) else Color(0xFFBCE0CF)
-    val currentCategoryTitle = if (uiState.darkTheme) Color(0xFF789D8B) else Color(0xFFA5D6BD)
-    val currentDivider = if (uiState.darkTheme) Color(0xFF133B29) else Color(0xFF247053)
+    val currentCardBorder = if (uiState.darkTheme) FeltDarkRaised else FeltLightBorder
+    val currentSubtitle = if (uiState.darkTheme) TextMuted else TextMint
+    val currentCategoryTitle = if (uiState.darkTheme) TextMuted else TextMint
+    val currentDivider = if (uiState.darkTheme) FeltDarkCard else LightSurface
 
-    val activeTrackColor = if (uiState.darkTheme) GoldFoil else Color(0xFFFFD54F)
-    val activeThumbColor = if (uiState.darkTheme) Color(0xFF0C2419) else Color.White
-    val inactiveTrackColor = if (uiState.darkTheme) Color(0xFF435A50) else Color(0xFF1B4E3A)
-    val inactiveThumbColor = if (uiState.darkTheme) Color(0xFF8BA697) else Color(0xFFBCE0CF)
+    val activeTrackColor = GoldFoil
+    val activeThumbColor = if (uiState.darkTheme) DarkBackground else Color.White
+    val inactiveTrackColor = if (uiState.darkTheme) Color(0xFF435A50) else LightBackground
+    val inactiveThumbColor = if (uiState.darkTheme) TextMuted else TextMint
 
     Scaffold(
         bottomBar = {

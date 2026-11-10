@@ -53,21 +53,20 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.doubleddoge.splithappens.viewmodel.MenuUiState
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
-import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCenter
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.CardBackground
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import io.github.doubleddoge.splithappens.ui.theme.TextMint
+import io.github.doubleddoge.splithappens.ui.theme.TextMuted
 import io.github.doubleddoge.splithappens.util.triggerClickSound
 import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
 import io.github.doubleddoge.splithappens.viewmodel.HomeUiState
 import kotlin.math.abs
-
-// Standard Dark Theme Colors
-private val MenuTheme_MutedText = Color(0xFF9EBAAA)
 
 @Composable
 fun MenuScreen(
@@ -91,11 +90,11 @@ fun MenuScreen(
   var showStatsDialog by remember { mutableStateOf(false) }
 
   // Dynamic color palette based on theme
-  val bgGlowCenter = if (isDarkTheme) FeltDarkCenter else Color(0xFF1B634A)
-  val bgOuterDark = if (isDarkTheme) FeltDarkOuter else LightBackground
+  val bgGlowCenter = if (isDarkTheme) CardBackground else Color(0xFF1B634A)
+  val bgOuterDark = if (isDarkTheme) DarkBackground else LightBackground
   val surfaceColor = if (isDarkTheme) FeltDarkCard else LightSurface
   val surfaceBorder = if (isDarkTheme) Color.White.copy(alpha = 0.12f) else FeltLightBorder
-  val mutedTextColor = if (isDarkTheme) MenuTheme_MutedText else Color(0xFFBCE0CF)
+  val mutedTextColor = if (isDarkTheme) TextMuted else TextMint
 
   val runFeedback: (() -> Unit) -> Unit = { action ->
     if (!isPreview) {
@@ -155,7 +154,7 @@ fun MenuScreen(
         ) {
           Text(
               text = "MENU",
-              color = BorderGold,
+              color = GoldFoil,
               fontSize = 26.sp,
               fontWeight = FontWeight.Black,
               letterSpacing = 4.sp,
@@ -211,7 +210,7 @@ fun MenuScreen(
             text = "SWITCH PROFILE",
             icon = "👥",
             surfaceColor = surfaceColor,
-            borderColor = BorderGold.copy(alpha = 0.45f),
+            borderColor = GoldFoil.copy(alpha = 0.45f),
             onClick = { runFeedback(onOpenLogoutConfirm) },
         )
       }
@@ -259,7 +258,7 @@ fun MenuScreen(
         },
         confirmButton = {
           TextButton(onClick = { runFeedback(onConfirmLogout) }) {
-            Text("SWITCH", color = BorderGold, fontWeight = FontWeight.Bold)
+            Text("SWITCH", color = GoldFoil, fontWeight = FontWeight.Bold)
           }
         },
         dismissButton = {
@@ -284,14 +283,14 @@ private fun MenuButton(
   Card(
       shape = RoundedCornerShape(16.dp),
       colors =
-          CardDefaults.cardColors(containerColor = if (isPrimary) BorderGold else surfaceColor),
+          CardDefaults.cardColors(containerColor = if (isPrimary) GoldFoil else surfaceColor),
       modifier =
           modifier
               .fillMaxWidth()
               .height(58.dp)
               .border(
                   width = 1.dp,
-                  color = if (isPrimary) BorderGold else borderColor,
+                  color = if (isPrimary) GoldFoil else borderColor,
                   shape = RoundedCornerShape(16.dp),
               )
               .clickable { onClick() },
@@ -309,7 +308,7 @@ private fun MenuButton(
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
-            color = if (isPrimary) FeltDarkOuter else Color.White,
+            color = if (isPrimary) DarkBackground else Color.White,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.2.sp,
@@ -317,7 +316,7 @@ private fun MenuButton(
       }
       Text(
           text = "›",
-          color = if (isPrimary) FeltDarkOuter else Color.White.copy(alpha = 0.5f),
+          color = if (isPrimary) DarkBackground else Color.White.copy(alpha = 0.5f),
           fontSize = 20.sp,
           fontWeight = FontWeight.Light,
       )
@@ -351,7 +350,7 @@ private fun MenuStatsDialog(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
         shape = RoundedCornerShape(20.dp),
         color = surfaceColor,
-        border = BorderStroke(1.dp, BorderGold),
+        border = BorderStroke(1.dp, GoldFoil),
         tonalElevation = 8.dp,
     ) {
       Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
@@ -361,7 +360,7 @@ private fun MenuStatsDialog(
         ) {
           Text(
               text = "♠  PLAYER STATS  ♠",
-              color = BorderGold,
+              color = GoldFoil,
               fontSize = 20.sp,
               fontWeight = FontWeight.Bold,
               letterSpacing = 1.5.sp,
@@ -381,7 +380,7 @@ private fun MenuStatsDialog(
         Spacer(modifier = Modifier.height(16.dp))
 
         HorizontalDivider(
-            color = BorderGold.copy(alpha = 0.45f),
+            color = GoldFoil.copy(alpha = 0.45f),
             thickness = 1.dp,
         )
 
@@ -427,7 +426,7 @@ private fun MenuStatsDialog(
 
         Text(
             text = "PERFORMANCE",
-            color = BorderGold,
+            color = GoldFoil,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.2.sp,
@@ -446,7 +445,7 @@ private fun MenuStatsDialog(
           Text(
               text = if (winRate >= 50) "♛" else "♟",
               fontSize = 28.sp,
-              color = BorderGold,
+              color = GoldFoil,
           )
 
           Spacer(modifier = Modifier.width(12.dp))
@@ -486,7 +485,7 @@ private fun MenuStatsDialog(
             shape = RoundedCornerShape(12.dp),
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = BorderGold,
+                    containerColor = GoldFoil,
                     contentColor = Color.Black,
                 ),
         ) {
@@ -515,7 +514,7 @@ private fun MenuStatCard(
               .background(Color.White.copy(alpha = 0.04f))
               .border(
                   width = 1.dp,
-                  color = BorderGold.copy(alpha = 0.18f),
+                  color = GoldFoil.copy(alpha = 0.18f),
                   shape = RoundedCornerShape(12.dp),
               )
               .padding(vertical = 14.dp),
@@ -533,7 +532,7 @@ private fun MenuStatCard(
 
     Text(
         text = value,
-        color = BorderGold,
+        color = GoldFoil,
         fontSize = 21.sp,
         fontWeight = FontWeight.Bold,
     )
@@ -562,7 +561,7 @@ private fun RulesBookletDialog(
       Card(
           shape = RoundedCornerShape(20.dp),
           colors = CardDefaults.cardColors(containerColor = surfaceColor),
-          modifier = Modifier.fillMaxWidth().border(1.5.dp, BorderGold, RoundedCornerShape(20.dp)),
+          modifier = Modifier.fillMaxWidth().border(1.5.dp, GoldFoil, RoundedCornerShape(20.dp)),
       ) {
         Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
           Row(
@@ -572,7 +571,7 @@ private fun RulesBookletDialog(
           ) {
             Text(
                 text = "RULEBOOK",
-                color = BorderGold,
+                color = GoldFoil,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp,
@@ -584,11 +583,11 @@ private fun RulesBookletDialog(
           SecondaryTabRow(
               selectedTabIndex = selectedTab,
               containerColor = backgroundColor,
-              contentColor = BorderGold,
+              contentColor = GoldFoil,
               indicator = {
                 TabRowDefaults.SecondaryIndicator(
                     modifier = Modifier.tabIndicatorOffset(selectedTab),
-                    color = BorderGold,
+                    color = GoldFoil,
                 )
               },
           ) {
@@ -599,7 +598,7 @@ private fun RulesBookletDialog(
                   text = {
                     Text(
                         text = title,
-                        color = if (selectedTab == index) BorderGold else mutedTextColor,
+                        color = if (selectedTab == index) GoldFoil else mutedTextColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                     )
@@ -630,7 +629,7 @@ private fun RulesBookletDialog(
               shape = RoundedCornerShape(12.dp),
               colors =
                   ButtonDefaults.buttonColors(
-                      containerColor = BorderGold,
+                      containerColor = GoldFoil,
                       contentColor = Color.Black,
                   ),
           ) {
@@ -650,7 +649,7 @@ private fun RulesBookletDialog(
 @Composable
 private fun RulesBasicsContent(mutedColor: Color) {
   Column {
-    Text("THE OBJECTIVE", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+    Text("THE OBJECTIVE", color = GoldFoil, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     Text(
         "Beat the dealer's hand by getting closer to 21 without busting.",
         color = Color.White,
@@ -658,13 +657,13 @@ private fun RulesBasicsContent(mutedColor: Color) {
         modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
     )
 
-    Text("CARD VALUES", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+    Text("CARD VALUES", color = GoldFoil, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     Text("• 2 through 10: Face value", color = mutedColor, fontSize = 13.sp)
     Text("• Jack, Queen, King: 10 each", color = mutedColor, fontSize = 13.sp)
     Text("• Ace: 1 or 11 (whichever is best)", color = mutedColor, fontSize = 13.sp)
 
     Spacer(modifier = Modifier.height(12.dp))
-    Text("TABLE RULES", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+    Text("TABLE RULES", color = GoldFoil, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     Text("• Dealer stands on 17.", color = mutedColor, fontSize = 13.sp)
     Text("• Natural Blackjack pays 3:2.", color = mutedColor, fontSize = 13.sp)
   }
@@ -673,7 +672,7 @@ private fun RulesBasicsContent(mutedColor: Color) {
 @Composable
 private fun RulesWildcardsContent(mutedColor: Color) {
   Column {
-    Text("WILDCARD PAYOUTS", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+    Text("WILDCARD PAYOUTS", color = GoldFoil, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     Spacer(modifier = Modifier.height(8.dp))
     PayoutRow("7-Card Charlie", "250x", mutedColor)
     PayoutRow("6-Card Charlie", "120x", mutedColor)
@@ -690,14 +689,14 @@ private fun PayoutRow(name: String, multiplier: String, mutedColor: Color) {
       horizontalArrangement = Arrangement.SpaceBetween,
   ) {
     Text(name, color = mutedColor, fontSize = 12.sp, modifier = Modifier.weight(1f))
-    Text(multiplier, color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+    Text(multiplier, color = GoldFoil, fontWeight = FontWeight.Bold, fontSize = 12.sp)
   }
 }
 
 @Composable
 private fun RulesStrategyContent(mutedColor: Color) {
   Column {
-    Text("BASIC STRATEGY", color = BorderGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+    Text("BASIC STRATEGY", color = GoldFoil, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     Spacer(modifier = Modifier.height(8.dp))
     Text("• Hard 8 or less: Always HIT.", color = mutedColor, fontSize = 13.sp)
     Text(

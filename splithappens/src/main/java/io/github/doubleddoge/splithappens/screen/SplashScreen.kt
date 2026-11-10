@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.PaperWhite
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
@@ -70,7 +70,7 @@ fun SplashScreen(
               .background(
                   brush =
                       Brush.radialGradient(
-                          colors = listOf(FeltDarkOuter, FeltDarkOuter),
+                          colors = listOf(DarkBackground, DarkBackground),
                           radius = 1200f,
                       )
               ),

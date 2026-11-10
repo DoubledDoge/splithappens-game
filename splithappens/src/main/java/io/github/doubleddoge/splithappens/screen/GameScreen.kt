@@ -76,8 +76,8 @@ import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.DangerRed
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCenter
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.CardBackground
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
@@ -148,8 +148,8 @@ fun GameScreen(
   var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
   var showAllInDialog by remember { mutableStateOf(false) }
 
-  val bgCenter = if (isDarkTheme) FeltDarkCenter else LightSurface
-  val bgOuter = if (isDarkTheme) FeltDarkOuter else LightBackground
+  val bgCenter = if (isDarkTheme) CardBackground else LightSurface
+  val bgOuter = if (isDarkTheme) DarkBackground else LightBackground
   val feltColor = if (isDarkTheme) FeltDarkSurface else LightBackground
 
   val safeNavigate: (() -> Unit) -> Unit = { destinationAction ->
@@ -632,7 +632,7 @@ fun GameScreen(
               val canAffordInsurance = uiState.chipsOwned >= uiState.currentBet / 2
               Surface(
                   shape = RoundedCornerShape(16.dp),
-                  color = Color(0xFF092016),
+                  color = DarkBackground,
                   border = BorderStroke(2.dp, GoldFoil),
                   shadowElevation = 12.dp,
                   modifier = Modifier.align(Alignment.Center).padding(24.dp),

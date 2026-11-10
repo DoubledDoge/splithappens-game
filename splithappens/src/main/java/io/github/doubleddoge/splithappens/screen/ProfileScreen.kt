@@ -55,9 +55,10 @@ import coil.compose.AsyncImage
 import io.github.doubleddoge.splithappens.viewmodel.ProfileUiState
 import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
-import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
 import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
@@ -112,7 +113,7 @@ fun ProfileScreenContent(
 
   val currentBackground = if (isDarkTheme) DarkBackground else LightBackground
   val currentCardBg = if (isDarkTheme) CardBackground else LightSurface
-  val currentCardBorder = if (isDarkTheme) Color(0xFF134530) else FeltLightBorder
+  val currentCardBorder = if (isDarkTheme) FeltDarkRaised else FeltLightBorder
 
   var isEditingName by remember { mutableStateOf(false) }
   var tempName by remember { mutableStateOf(uiState.displayName) }
@@ -174,7 +175,7 @@ fun ProfileScreenContent(
       ) {
         Text(
             text = "PROFILE",
-            color = BorderGold,
+            color = GoldFoil,
             fontSize = 24.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 3.sp,
@@ -184,7 +185,7 @@ fun ProfileScreenContent(
       if (uiState.isLoading) {
         Spacer(modifier = Modifier.height(40.dp))
         CircularProgressIndicator(
-            color = BorderGold,
+            color = GoldFoil,
             modifier = Modifier.size(32.dp),
         )
       } else {
@@ -200,7 +201,7 @@ fun ProfileScreenContent(
                       .background(Color(0xFF0F4D35))
                       .border(
                           width = 2.dp,
-                          color = BorderGold,
+                          color = GoldFoil,
                           shape = CircleShape,
                       ),
               contentAlignment = Alignment.Center,
@@ -226,7 +227,7 @@ fun ProfileScreenContent(
               modifier =
                   Modifier.size(30.dp)
                       .clip(CircleShape)
-                      .background(BorderGold)
+                      .background(GoldFoil)
                       .border(1.dp, Color.Black, CircleShape),
               contentAlignment = Alignment.Center,
           ) {
@@ -256,11 +257,11 @@ fun ProfileScreenContent(
                 shape = RoundedCornerShape(10.dp),
                 colors =
                     OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BorderGold,
+                        focusedBorderColor = GoldFoil,
                         unfocusedBorderColor = Color.White.copy(alpha = 0.35f),
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        cursorColor = BorderGold,
+                        cursorColor = GoldFoil,
                     ),
             )
 
@@ -277,7 +278,7 @@ fun ProfileScreenContent(
                 shape = RoundedCornerShape(10.dp),
                 colors =
                     ButtonDefaults.buttonColors(
-                        containerColor = BorderGold,
+                        containerColor = GoldFoil,
                         contentColor = Color.Black,
                     ),
             ) {
@@ -317,7 +318,7 @@ fun ProfileScreenContent(
         Surface(
             shape = RoundedCornerShape(50.dp),
             color = Color(0xFF132A21),
-            border = BorderStroke(1.dp, BorderGold.copy(alpha = 0.6f)),
+            border = BorderStroke(1.dp, GoldFoil.copy(alpha = 0.6f)),
         ) {
           Row(
               modifier = Modifier.padding(horizontal = 18.dp, vertical = 7.dp),
@@ -327,7 +328,7 @@ fun ProfileScreenContent(
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "R${uiState.chipsOwned} CHIPS",
-                color = BorderGold,
+                color = GoldFoil,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.8.sp,
@@ -357,7 +358,7 @@ fun ProfileScreenContent(
               Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "CAREER OVERVIEW",
-                    color = BorderGold,
+                    color = GoldFoil,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.5.sp,
@@ -373,7 +374,7 @@ fun ProfileScreenContent(
               }
               Text(
                   text = "♛",
-                  color = BorderGold.copy(alpha = 0.7f),
+                  color = GoldFoil.copy(alpha = 0.7f),
                   fontSize = 24.sp,
               )
             }
@@ -382,7 +383,7 @@ fun ProfileScreenContent(
 
             Box(
                 modifier =
-                    Modifier.fillMaxWidth().height(1.dp).background(BorderGold.copy(alpha = 0.25f))
+                    Modifier.fillMaxWidth().height(1.dp).background(GoldFoil.copy(alpha = 0.25f))
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -451,7 +452,7 @@ private fun ProfileStatCard(
               .background(Color.Black.copy(alpha = 0.18f))
               .border(
                   width = 1.dp,
-                  color = BorderGold.copy(alpha = 0.15f),
+                  color = GoldFoil.copy(alpha = 0.15f),
                   shape = RoundedCornerShape(12.dp),
               )
               .padding(vertical = 12.dp, horizontal = 6.dp),
@@ -467,7 +468,7 @@ private fun ProfileStatCard(
     Spacer(modifier = Modifier.height(5.dp))
     Text(
         text = value,
-        color = BorderGold,
+        color = GoldFoil,
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
     )

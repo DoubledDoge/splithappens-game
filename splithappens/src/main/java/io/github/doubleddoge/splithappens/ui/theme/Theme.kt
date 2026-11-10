@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 
 
 private val CasinoDarkColorScheme = darkColorScheme(
-	primary = BorderGold,
+	primary = GoldFoil,
 	background = DarkBackground,
 	surface = CardBackground,
 	onPrimary = Color.Black,
@@ -17,7 +17,7 @@ private val CasinoDarkColorScheme = darkColorScheme(
 )
 
 private val CasinoLightColorScheme = lightColorScheme(
-	primary = BorderGold,
+	primary = GoldFoil,
 	background = LightBackground,
 	surface = LightSurface,
 	onPrimary = Color.Black,

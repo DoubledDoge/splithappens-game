@@ -15,7 +15,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -41,7 +40,7 @@ import io.github.doubleddoge.splithappens.viewmodel.SettingViewModelFactory
 import io.github.doubleddoge.splithappens.screen.SplashScreen
 import io.github.doubleddoge.splithappens.SplitHappensApp
 import io.github.doubleddoge.splithappens.data.enum.GameMode
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import kotlinx.coroutines.flow.first
 
@@ -77,7 +76,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
       viewModel(factory = SettingViewModelFactory(context.applicationContext as Application))
   val settingsUiState by settingsViewModel.uiState.collectAsState()
 
-  val navBgColor = if (settingsUiState.darkTheme) FeltDarkOuter else LightBackground
+  val navBgColor = if (settingsUiState.darkTheme) DarkBackground else LightBackground
 
   Box(modifier = Modifier.fillMaxSize().background(navBgColor)) {
     NavHost(

@@ -53,7 +53,7 @@ import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.components.BannerAd
 import io.github.doubleddoge.splithappens.ui.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.enum.GameMode
-import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.ButtonBackground
 import io.github.doubleddoge.splithappens.ui.theme.ButtonTextColor
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
@@ -221,14 +221,14 @@ fun HomeScreenContent(
       ) {
         // WildCard
         Card(
-            modifier = Modifier.fillMaxWidth().border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth().border(1.dp, GoldFoil, RoundedCornerShape(16.dp)),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = currentCardBg),
         ) {
           Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
             Text(
                 text = "Wild Card",
-                color = BorderGold,
+                color = GoldFoil,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -247,7 +247,7 @@ fun HomeScreenContent(
                 shape = RoundedCornerShape(8.dp),
                 colors =
                     ButtonDefaults.buttonColors(
-                        containerColor = BorderGold,
+                        containerColor = GoldFoil,
                         contentColor = ButtonTextColor,
                     ),
             ) {
@@ -263,14 +263,14 @@ fun HomeScreenContent(
 
         // Traditional
         Card(
-            modifier = Modifier.fillMaxWidth().border(1.dp, BorderGold, RoundedCornerShape(16.dp)),
+            modifier = Modifier.fillMaxWidth().border(1.dp, GoldFoil, RoundedCornerShape(16.dp)),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = currentCardBg),
         ) {
           Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
             Text(
                 text = "Traditional",
-                color = BorderGold,
+                color = GoldFoil,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -347,7 +347,7 @@ fun StatsDialog(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
         shape = RoundedCornerShape(20.dp),
         color = containerColor,
-        border = BorderStroke(1.dp, BorderGold),
+        border = BorderStroke(1.dp, GoldFoil),
         tonalElevation = 8.dp,
     ) {
       Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
@@ -357,7 +357,7 @@ fun StatsDialog(
         ) {
           Text(
               text = "♠  PLAYER STATS  ♠",
-              color = BorderGold,
+              color = GoldFoil,
               fontSize = 20.sp,
               fontWeight = FontWeight.Bold,
               letterSpacing = 1.5.sp,
@@ -377,7 +377,7 @@ fun StatsDialog(
         Spacer(modifier = Modifier.height(16.dp))
 
         HorizontalDivider(
-            color = BorderGold.copy(alpha = 0.45f),
+            color = GoldFoil.copy(alpha = 0.45f),
             thickness = 1.dp,
         )
 
@@ -423,7 +423,7 @@ fun StatsDialog(
 
         Text(
             text = "PERFORMANCE",
-            color = BorderGold,
+            color = GoldFoil,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.2.sp,
@@ -442,7 +442,7 @@ fun StatsDialog(
           Text(
               text = if (winRate >= 50) "♛" else "♟",
               fontSize = 28.sp,
-              color = BorderGold,
+              color = GoldFoil,
           )
 
           Spacer(modifier = Modifier.width(12.dp))
@@ -482,7 +482,7 @@ fun StatsDialog(
             shape = RoundedCornerShape(12.dp),
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = BorderGold,
+                    containerColor = GoldFoil,
                     contentColor = Color.Black,
                 ),
         ) {
@@ -511,7 +511,7 @@ private fun StatCard(
               .background(Color.White.copy(alpha = 0.04f))
               .border(
                   width = 1.dp,
-                  color = BorderGold.copy(alpha = 0.18f),
+                  color = GoldFoil.copy(alpha = 0.18f),
                   shape = RoundedCornerShape(12.dp),
               )
               .padding(vertical = 14.dp),
@@ -529,7 +529,7 @@ private fun StatCard(
 
     Text(
         text = value,
-        color = BorderGold,
+        color = GoldFoil,
         fontSize = 21.sp,
         fontWeight = FontWeight.Bold,
     )
@@ -546,7 +546,7 @@ fun RulesDialog(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
         shape = RoundedCornerShape(20.dp),
         color = containerColor,
-        border = BorderStroke(1.dp, BorderGold),
+        border = BorderStroke(1.dp, GoldFoil),
         tonalElevation = 8.dp,
     ) {
       Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
@@ -556,7 +556,7 @@ fun RulesDialog(
         ) {
           Text(
               text = "♠  BLACKJACK  ♠",
-              color = BorderGold,
+              color = GoldFoil,
               fontSize = 20.sp,
               fontWeight = FontWeight.Bold,
               letterSpacing = 1.5.sp,
@@ -576,7 +576,7 @@ fun RulesDialog(
         Spacer(modifier = Modifier.height(16.dp))
 
         HorizontalDivider(
-            color = BorderGold.copy(alpha = 0.45f),
+            color = GoldFoil.copy(alpha = 0.45f),
             thickness = 1.dp,
         )
 
@@ -620,7 +620,7 @@ fun RulesDialog(
             shape = RoundedCornerShape(12.dp),
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = BorderGold,
+                    containerColor = GoldFoil,
                     contentColor = Color.Black,
                 ),
         ) {
@@ -652,7 +652,7 @@ private fun RuleItem(
   ) {
     Box(
         modifier =
-            Modifier.size(38.dp).clip(CircleShape).background(BorderGold.copy(alpha = 0.12f)),
+            Modifier.size(38.dp).clip(CircleShape).background(GoldFoil.copy(alpha = 0.12f)),
         contentAlignment = Alignment.Center,
     ) {
       Text(
@@ -666,7 +666,7 @@ private fun RuleItem(
     Column(modifier = Modifier.weight(1f)) {
       Text(
           text = title,
-          color = BorderGold,
+          color = GoldFoil,
           fontSize = 11.sp,
           fontWeight = FontWeight.Bold,
           letterSpacing = 1.sp,

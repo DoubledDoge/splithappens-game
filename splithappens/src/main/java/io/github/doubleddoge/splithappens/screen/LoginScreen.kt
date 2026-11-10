@@ -61,8 +61,8 @@ import io.github.doubleddoge.splithappens.viewmodel.UserProfileItem
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import io.github.doubleddoge.splithappens.ui.theme.DangerRed
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCenter
-import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.CardBackground
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
@@ -71,11 +71,9 @@ import io.github.doubleddoge.splithappens.ui.theme.OnGold
 import io.github.doubleddoge.splithappens.ui.theme.PaperWhite
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
-// Dark Theme Palette
-
 // Light Theme Palette
 private val LoginCardSurfaceLight = Color(0xFF1D5A43)
-private val CheckMark = Color(0xFF140E06)
+
 
 @Composable
 fun LoginScreen(
@@ -114,8 +112,8 @@ fun LoginScreenContent(
     onConfirmDeleteUser: () -> Unit,
     onCancelDeleteUser: () -> Unit,
 ) {
-  val bgCenter = if (isDarkTheme) FeltDarkCenter else LightSurface
-  val bgOuter = if (isDarkTheme) FeltDarkOuter else LightBackground
+  val bgCenter = if (isDarkTheme) CardBackground else LightSurface
+  val bgOuter = if (isDarkTheme) DarkBackground else LightBackground
   val cardSurface = if (isDarkTheme) FeltDarkCard else LoginCardSurfaceLight
 
   Box(
@@ -247,7 +245,7 @@ fun LoginScreenContent(
                 colors =
                     CheckboxDefaults.colors(
                         checkedColor = GoldFoil,
-                        checkmarkColor = CheckMark,
+                        checkmarkColor = OnGold,
                         uncheckedColor = Color.White.copy(alpha = 0.5f),
                     ),
             )

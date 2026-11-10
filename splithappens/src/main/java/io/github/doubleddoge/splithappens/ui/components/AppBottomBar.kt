@@ -28,10 +28,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.R
-import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.CardBackground
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.GoldBright
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
+import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
 @Composable
@@ -45,9 +47,9 @@ fun AppBottomBar(
 ) {
     // Dynamic BottomBar colors based on theme
     val barBackground = if (isDarkTheme) Color(0xFF072C1E) else LightBackground
-    val barBorder = if (isDarkTheme) BorderGold else Color(0xFFE5B82C)
-    val circleBackground = if (isDarkTheme) Color(0xFF041A12) else Color(0xFF0D3828)
-    val circleBorder = if (isDarkTheme) Color(0xFF0D3D2B) else Color(0xFF23654B)
+    val barBorder = if (isDarkTheme) GoldFoil else Color(0xFFE5B82C)
+    val circleBackground = if (isDarkTheme) DarkBackground else CardBackground
+    val circleBorder = if (isDarkTheme) CardBackground else LightSurface
     val spadeColor = circleBackground
 
     Row(
