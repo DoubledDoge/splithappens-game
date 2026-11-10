@@ -4,7 +4,7 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Scaled Card Background (Fits inside 66dp inner safe circle) -->
+    <!-- Scaled Card Background -->
     <path
         android:fillColor="#F9F9F9"
         android:pathData="M 40,28
@@ -19,12 +19,12 @@
         android:strokeWidth="1.2"
         android:strokeColor="#E5B036" />
 
-    <!-- Corner Rank "A" -->
+    <!-- Corner Rank -->
     <path
         android:fillColor="#000000"
         android:pathData="M 39,33.5 L 40.3,33.5 L 42.1,38.5 L 41,38.5 L 40.5,37.2 L 38.7,37.2 L 38.2,38.5 L 37.2,38.5 Z M 39.6,34.4 L 38.9,36.4 L 40.3,36.4 Z" />
 
-    <!-- Center Spade Suit Symbol (♠) -->
+    <!-- Center Spade Suit Symbol -->
     <path
         android:fillColor="#000000"
         android:pathData="M 54,42
