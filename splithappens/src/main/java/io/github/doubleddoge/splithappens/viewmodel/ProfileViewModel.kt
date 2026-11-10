@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

@@ -1,6 +1,6 @@
 @file:Suppress("UsePropertyAccessSyntax")
 
-package io.github.doubleddoge.splithappens.components
+package io.github.doubleddoge.splithappens.ui.components
 
 import android.annotation.SuppressLint
 import android.util.Log

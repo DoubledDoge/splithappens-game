@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.screen
 
 import android.app.Application
 import android.graphics.Paint as AndroidPaint
@@ -56,21 +56,32 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.github.doubleddoge.splithappens.components.AppBottomBar
-import io.github.doubleddoge.splithappens.components.BetChips
-import io.github.doubleddoge.splithappens.components.GameActionBar
-import io.github.doubleddoge.splithappens.components.HandRow
-import io.github.doubleddoge.splithappens.components.OutcomeBanner
-import io.github.doubleddoge.splithappens.components.UserHeaderCard
+import io.github.doubleddoge.splithappens.viewmodel.GameStage
+import io.github.doubleddoge.splithappens.viewmodel.GameViewModel
+import io.github.doubleddoge.splithappens.viewmodel.GameViewModelFactory
+import io.github.doubleddoge.splithappens.viewmodel.SettingUiState
+import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
+import io.github.doubleddoge.splithappens.ui.components.BetChips
+import io.github.doubleddoge.splithappens.ui.components.GameActionBar
+import io.github.doubleddoge.splithappens.ui.components.HandRow
+import io.github.doubleddoge.splithappens.ui.components.OutcomeBanner
+import io.github.doubleddoge.splithappens.ui.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.buildDatabase
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import io.github.doubleddoge.splithappens.ui.toTableCard
+import io.github.doubleddoge.splithappens.ui.toTableCards
+import io.github.doubleddoge.splithappens.util.triggerClickSound
+import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 // Theme Palettes
@@ -520,7 +531,7 @@ fun GameScreen(
                             "Minimum stake is R100. Your daily R500 reward arrives every 24 hours, or you can top up below!",
                         color = Color.White.copy(alpha = 0.85f),
                         fontSize = 11.sp,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        textAlign = TextAlign.Center,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
@@ -529,8 +540,7 @@ fun GameScreen(
                           val activeUserId = userId
 
                           if (activeUserId.isNotBlank()) {
-                            kotlinx.coroutines
-                                .CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
+                            CoroutineScope(Dispatchers.IO)
                                 .launch {
                                   db.userDao().setChips(activeUserId, 1000L)
                                 }

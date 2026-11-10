@@ -5,9 +5,9 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import io.github.doubleddoge.splithappens.BorderGold
-import io.github.doubleddoge.splithappens.CardBackground
-import io.github.doubleddoge.splithappens.DarkBackground
+import io.github.doubleddoge.splithappens.screen.BorderGold
+import io.github.doubleddoge.splithappens.screen.CardBackground
+import io.github.doubleddoge.splithappens.screen.DarkBackground
 
 private val CasinoDarkColorScheme = darkColorScheme(
 	primary = BorderGold,

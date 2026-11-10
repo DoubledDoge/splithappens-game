@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.components
+package io.github.doubleddoge.splithappens.ui.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode

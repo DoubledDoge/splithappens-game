@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.viewmodel
 
 import android.app.Application
 import android.content.Context

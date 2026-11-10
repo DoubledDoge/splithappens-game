@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.screen
 
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -52,7 +52,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import io.github.doubleddoge.splithappens.components.AppBottomBar
+import io.github.doubleddoge.splithappens.viewmodel.ProfileUiState
+import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
+import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import java.io.ByteArrayOutputStream
 import java.util.Locale
 import kotlin.math.abs

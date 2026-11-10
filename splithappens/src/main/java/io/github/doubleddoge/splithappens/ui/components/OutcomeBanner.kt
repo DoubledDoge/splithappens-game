@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.components
+package io.github.doubleddoge.splithappens.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

@@ -22,23 +22,23 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.github.doubleddoge.splithappens.GameScreen
-import io.github.doubleddoge.splithappens.HomeScreen
-import io.github.doubleddoge.splithappens.HomeViewModel
-import io.github.doubleddoge.splithappens.HomeViewModelFactory
-import io.github.doubleddoge.splithappens.LoginScreen
-import io.github.doubleddoge.splithappens.LoginViewModel
-import io.github.doubleddoge.splithappens.LoginViewModelFactory
-import io.github.doubleddoge.splithappens.MenuScreen
-import io.github.doubleddoge.splithappens.MenuViewModel
-import io.github.doubleddoge.splithappens.MenuViewModelFactory
-import io.github.doubleddoge.splithappens.ProfileScreen
-import io.github.doubleddoge.splithappens.ProfileViewModel
-import io.github.doubleddoge.splithappens.ProfileViewModelFactory
-import io.github.doubleddoge.splithappens.ScreenSettings
-import io.github.doubleddoge.splithappens.SettingViewModel
-import io.github.doubleddoge.splithappens.SettingViewModelFactory
-import io.github.doubleddoge.splithappens.SplashScreen
+import io.github.doubleddoge.splithappens.screen.GameScreen
+import io.github.doubleddoge.splithappens.screen.HomeScreen
+import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
+import io.github.doubleddoge.splithappens.viewmodel.HomeViewModelFactory
+import io.github.doubleddoge.splithappens.screen.LoginScreen
+import io.github.doubleddoge.splithappens.viewmodel.LoginViewModel
+import io.github.doubleddoge.splithappens.viewmodel.LoginViewModelFactory
+import io.github.doubleddoge.splithappens.screen.MenuScreen
+import io.github.doubleddoge.splithappens.viewmodel.MenuViewModel
+import io.github.doubleddoge.splithappens.viewmodel.MenuViewModelFactory
+import io.github.doubleddoge.splithappens.screen.ProfileScreen
+import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
+import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModelFactory
+import io.github.doubleddoge.splithappens.screen.SettingsScreen
+import io.github.doubleddoge.splithappens.viewmodel.SettingViewModel
+import io.github.doubleddoge.splithappens.viewmodel.SettingViewModelFactory
+import io.github.doubleddoge.splithappens.screen.SplashScreen
 import io.github.doubleddoge.splithappens.SplitHappensApp
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import kotlinx.coroutines.flow.first
@@ -240,7 +240,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 
       // 6. Settings Screen
       composable(Screen.Settings.route) {
-        ScreenSettings(
+        SettingsScreen(
             uiState = settingsUiState,
             onToggleDarkTheme = settingsViewModel::toggleDarkTheme,
             onToggleShowCardTotal = settingsViewModel::toggleShowCardTotal,

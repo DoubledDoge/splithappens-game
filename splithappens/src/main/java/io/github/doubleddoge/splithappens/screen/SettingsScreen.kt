@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.screen
 
 import android.content.Context
 import android.os.Build
@@ -34,7 +34,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.components.AppBottomBar
+import io.github.doubleddoge.splithappens.viewmodel.SettingUiState
+import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 
 // Local Color Palette fallbacks to guarantee no unresolved color symbols
 private val SettingsDarkBg = Color(0xFF0F3022)
@@ -44,7 +45,7 @@ private val SettingsCardLight = Color(0xFF1C6349)
 private val SettingsGold = Color(0xFFE5B036)
 
 @Composable
-fun ScreenSettings(
+fun SettingsScreen(
     uiState: SettingUiState,
     onToggleDarkTheme: (Boolean) -> Unit = {},
     onToggleShowCardTotal: (Boolean) -> Unit = {},

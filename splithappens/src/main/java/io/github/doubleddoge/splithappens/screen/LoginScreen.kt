@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -55,6 +55,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
+import io.github.doubleddoge.splithappens.viewmodel.LoginUiState
+import io.github.doubleddoge.splithappens.viewmodel.LoginViewModel
+import io.github.doubleddoge.splithappens.viewmodel.UserProfileItem
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 

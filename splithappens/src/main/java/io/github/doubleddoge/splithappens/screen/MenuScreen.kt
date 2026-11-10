@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -51,8 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import io.github.doubleddoge.splithappens.components.AppBottomBar
+import io.github.doubleddoge.splithappens.viewmodel.MenuUiState
+import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import io.github.doubleddoge.splithappens.util.triggerClickSound
+import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
+import io.github.doubleddoge.splithappens.viewmodel.HomeUiState
 import kotlin.math.abs
 
 // Standard Dark Theme Colors

@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.viewmodel
 
 import android.app.Application
 import android.content.Context
@@ -7,6 +7,7 @@ import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -112,7 +113,7 @@ class SettingViewModel(application: Application) : AndroidViewModel(application)
 
   private fun triggerHaptic(force: Boolean = false) {
     if (!force && !_uiState.value.hapticVibration) return
-    triggerDeviceVibration(getApplication(), DURATION_MILLIS)
+	  triggerDeviceVibration(getApplication(), DURATION_MILLIS)
   }
 
     override fun onCleared() {

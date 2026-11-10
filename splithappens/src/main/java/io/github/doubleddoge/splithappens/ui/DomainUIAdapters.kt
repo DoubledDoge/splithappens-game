@@ -1,13 +1,13 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.ui
 
 import io.github.doubleddoge.splithappens.game.Card
 
-fun Card.toTableCard(uid: Long, isFaceUp: Boolean = true): TableCard{
+fun Card.toTableCard(uid: Long, isFaceUp: Boolean = true): TableCard {
     return TableCard(
-        uid = uid,
-        suit = this.suit,
-        rank = this.rank,
-        isFaceUp = isFaceUp
+	    uid = uid,
+	    suit = this.suit,
+	    rank = this.rank,
+	    isFaceUp = isFaceUp
     )
 }
 

@@ -1,6 +1,7 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.viewmodel
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +18,7 @@ import io.github.doubleddoge.splithappens.game.GameSessionManager
 import io.github.doubleddoge.splithappens.game.Phase
 import io.github.doubleddoge.splithappens.game.PlayerHand
 import io.github.doubleddoge.splithappens.game.Round
+import io.github.doubleddoge.splithappens.game.Shoe
 import io.github.doubleddoge.splithappens.game.snapshot
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
@@ -83,7 +85,7 @@ class GameViewModel(
 ) : AndroidViewModel(application) {
 
   private val prefs =
-      application.getSharedPreferences("split_happens_prefs", android.content.Context.MODE_PRIVATE)
+      application.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
 
   private val isFastDeal: Boolean
     get() = prefs.getBoolean("pref_fast_deal", false)
@@ -94,7 +96,7 @@ class GameViewModel(
   private val _uiState = MutableStateFlow(GameUiState(gameMode = initialMode))
   val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
-  private val shoe = io.github.doubleddoge.splithappens.game.Shoe(deckCount = 6)
+  private val shoe = Shoe(deckCount = 6)
   private var roundJob: Job? = null
 
   private var currentRound: Round? = null

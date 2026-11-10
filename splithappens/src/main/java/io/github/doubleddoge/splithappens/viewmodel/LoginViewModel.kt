@@ -1,10 +1,12 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.viewmodel
 
 import android.content.Context
+import android.text.format.DateUtils
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import io.github.doubleddoge.splithappens.SplitHappensApp
 import io.github.doubleddoge.splithappens.data.dao.UserDao
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import java.util.UUID
@@ -81,13 +83,13 @@ class LoginViewModel(
 
   private fun formatTimeAgo(timeMs: Long): String {
     val now = System.currentTimeMillis()
-    if (now - timeMs < android.text.format.DateUtils.MINUTE_IN_MILLIS) {
+    if (now - timeMs < DateUtils.MINUTE_IN_MILLIS) {
       return "Just now"
     }
-    return android.text.format.DateUtils.getRelativeTimeSpanString(
+    return DateUtils.getRelativeTimeSpanString(
             timeMs,
             now,
-            android.text.format.DateUtils.MINUTE_IN_MILLIS,
+            DateUtils.MINUTE_IN_MILLIS,
         )
         .toString()
   }

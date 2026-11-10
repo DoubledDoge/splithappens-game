@@ -7,7 +7,7 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdSize.getLargeAnchoredAdaptiveBannerAdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
-import io.github.doubleddoge.splithappens.HomeViewModel
+import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.data.entity.HandEntity

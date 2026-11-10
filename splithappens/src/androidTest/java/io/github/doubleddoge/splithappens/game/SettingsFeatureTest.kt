@@ -2,10 +2,12 @@ package io.github.doubleddoge.splithappens.game
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.github.doubleddoge.splithappens.SettingViewModel
+import io.github.doubleddoge.splithappens.viewmodel.SettingViewModel
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.viewmodel.GameStage
+import io.github.doubleddoge.splithappens.viewmodel.GameUiState
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -75,23 +77,19 @@ class SettingsFeatureTest : DatabaseTest() {
   @Test
   fun testGameInProgress_states() {
     assertFalse(
-        io.github.doubleddoge.splithappens
-            .GameUiState(stage = io.github.doubleddoge.splithappens.GameStage.BETTING)
+        GameUiState(stage = GameStage.BETTING)
             .isGameInProgress
     )
     assertTrue(
-        io.github.doubleddoge.splithappens
-            .GameUiState(stage = io.github.doubleddoge.splithappens.GameStage.PLAYER_TURN)
+        GameUiState(stage = GameStage.PLAYER_TURN)
             .isGameInProgress
     )
     assertFalse(
-        io.github.doubleddoge.splithappens
-            .GameUiState(stage = io.github.doubleddoge.splithappens.GameStage.DEALER_TURN)
+        GameUiState(stage = GameStage.DEALER_TURN)
             .isGameInProgress
     )
     assertFalse(
-        io.github.doubleddoge.splithappens
-            .GameUiState(stage = io.github.doubleddoge.splithappens.GameStage.ROUND_OVER)
+        GameUiState(stage = GameStage.ROUND_OVER)
             .isGameInProgress
     )
   }

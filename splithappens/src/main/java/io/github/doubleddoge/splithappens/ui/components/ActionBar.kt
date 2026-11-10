@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.components
+package io.github.doubleddoge.splithappens.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

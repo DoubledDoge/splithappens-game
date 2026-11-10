@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.components
+package io.github.doubleddoge.splithappens.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.BorderGold
+import io.github.doubleddoge.splithappens.screen.BorderGold
 import io.github.doubleddoge.splithappens.R
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 

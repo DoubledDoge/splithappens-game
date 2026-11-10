@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.components
+package io.github.doubleddoge.splithappens.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -33,10 +33,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.TableCard
-import io.github.doubleddoge.splithappens.isRed
-import io.github.doubleddoge.splithappens.label
-import io.github.doubleddoge.splithappens.symbol
+import io.github.doubleddoge.splithappens.ui.TableCard
+import io.github.doubleddoge.splithappens.ui.isRed
+import io.github.doubleddoge.splithappens.ui.label
+import io.github.doubleddoge.splithappens.ui.symbol
 
 // Colors
 private val GoldFoil = Color(0xFFE5B036)

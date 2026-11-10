@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens
+package io.github.doubleddoge.splithappens.screen
 
 import android.app.Activity
 import android.widget.Toast
@@ -47,9 +47,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import io.github.doubleddoge.splithappens.components.AppBottomBar
-import io.github.doubleddoge.splithappens.components.BannerAd
-import io.github.doubleddoge.splithappens.components.UserHeaderCard
+import io.github.doubleddoge.splithappens.viewmodel.HomeUiState
+import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
+import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
+import io.github.doubleddoge.splithappens.ui.components.BannerAd
+import io.github.doubleddoge.splithappens.ui.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlin.math.abs
@@ -65,14 +67,14 @@ private const val TWO_SECONDS = 2000
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel,
-    modifier: Modifier = Modifier,
-    isDarkTheme: Boolean = true,
-    onPlayClick: (GameMode) -> Unit = {},
-    onNavigateSettings: () -> Unit = {},
-    onNavigateMenu: () -> Unit = {},
-    onNavigateGame: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
+	viewModel: HomeViewModel,
+	modifier: Modifier = Modifier,
+	isDarkTheme: Boolean = true,
+	onPlayClick: (GameMode) -> Unit = {},
+	onNavigateSettings: () -> Unit = {},
+	onNavigateMenu: () -> Unit = {},
+	onNavigateGame: () -> Unit = {},
+	onNavigateProfile: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsState()
 
@@ -94,14 +96,14 @@ fun HomeScreen(
 
 @Composable
 fun HomeScreenContent(
-    uiState: HomeUiState,
-    modifier: Modifier = Modifier,
-    isDarkTheme: Boolean = true,
-    onPlayClick: (GameMode) -> Unit = {},
-    onNavigateSettings: () -> Unit = {},
-    onNavigateMenu: () -> Unit = {},
-    onNavigateGame: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
+	uiState: HomeUiState,
+	modifier: Modifier = Modifier,
+	isDarkTheme: Boolean = true,
+	onPlayClick: (GameMode) -> Unit = {},
+	onNavigateSettings: () -> Unit = {},
+	onNavigateMenu: () -> Unit = {},
+	onNavigateGame: () -> Unit = {},
+	onNavigateProfile: () -> Unit = {},
 ) {
   val context = LocalContext.current
   var lastBackPressTime by remember { mutableLongStateOf(0L) }
@@ -321,9 +323,9 @@ fun HomeScreenContent(
 
 @Composable
 fun StatsDialog(
-    uiState: HomeUiState,
-    containerColor: Color = CardBackground,
-    onDismiss: () -> Unit,
+	uiState: HomeUiState,
+	containerColor: Color = CardBackground,
+	onDismiss: () -> Unit,
 ) {
   val winRate =
       if (uiState.totalGamesPlayed > 0) {
@@ -687,14 +689,14 @@ fun HomeScreenPreview() {
   SplitHappensTheme {
     HomeScreenContent(
         uiState =
-            HomeUiState(
-                displayName = "Player 1",
-                chipsOwned = 2500L,
-                totalGamesPlayed = 12,
-                totalWins = 7,
-                netChipsEarned = 1400L,
-                isLoading = false,
-            ),
+	        HomeUiState(
+		        displayName = "Player 1",
+		        chipsOwned = 2500L,
+		        totalGamesPlayed = 12,
+		        totalWins = 7,
+		        netChipsEarned = 1400L,
+		        isLoading = false,
+	        ),
         isDarkTheme = true,
     )
   }
