@@ -1,5 +1,6 @@
 package io.github.doubleddoge.splithappens.game
 
+import io.github.doubleddoge.splithappens.data.enum.HandType
 import io.github.doubleddoge.splithappens.data.enum.Rank
 import io.github.doubleddoge.splithappens.data.enum.Suit
 import org.junit.Assert.assertEquals

@@ -4,12 +4,14 @@ import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.HandResult
 
 object HandEvaluator {
-	private val naturals =
+	private val naturalResults =
 		setOf(HandResult.BLACKJACK, HandResult.QUEEN_JACK, HandResult.NATURAL_BLACKJACK)
 
 	fun premium(cards: List<Card>, afterSplit: Boolean, mode: GameMode): HandResult? {
 		val hand = cards.evaluateHand(afterSplit)
 		if (hand.isBust) return null
+
+		// maxByOrNull keeps the first candidate when multipliers tie.
 		val candidates = buildList {
 			if (hand.isBlackjack) add(HandResult.BLACKJACK)
 			if (hand.isQueenAce) add(HandResult.QUEEN_JACK)
@@ -29,17 +31,21 @@ object HandEvaluator {
 		mode: GameMode,
 	): HandResult {
 		if (surrendered) return HandResult.SURRENDER
-		val p = player.evaluateHand(afterSplit)
-		if (p.isBust) return HandResult.LOSS
 
-		val premium = premium(player, afterSplit, mode)
-		val d = dealer.evaluateHand()
-		if (d.isBlackjack) return if (premium in naturals) HandResult.PUSH else HandResult.LOSS
-		if (premium != null) return premium
+		val playerHand = player.evaluateHand(afterSplit)
+		if (playerHand.isBust) return HandResult.LOSS
+
+		val premiumResult = premium(player, afterSplit, mode)
+		val dealerHand = dealer.evaluateHand()
+
+		if (dealerHand.isBlackjack) {
+			return if (premiumResult in naturalResults) HandResult.PUSH else HandResult.LOSS
+		}
+		if (premiumResult != null) return premiumResult
 
 		return when {
-			d.isBust || p.total > d.total -> HandResult.WIN
-			p.total == d.total -> HandResult.PUSH
+			dealerHand.isBust || playerHand.total > dealerHand.total -> HandResult.WIN
+			playerHand.total == dealerHand.total -> HandResult.PUSH
 			else -> HandResult.LOSS
 		}
 	}

@@ -12,10 +12,10 @@ import io.github.doubleddoge.splithappens.data.dao.UserDao
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.HandResult
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
-import io.github.doubleddoge.splithappens.game.Action
+import io.github.doubleddoge.splithappens.data.enum.Action
 import io.github.doubleddoge.splithappens.game.Card
 import io.github.doubleddoge.splithappens.game.GameSessionManager
-import io.github.doubleddoge.splithappens.game.Phase
+import io.github.doubleddoge.splithappens.data.enum.Phase
 import io.github.doubleddoge.splithappens.game.PlayerHand
 import io.github.doubleddoge.splithappens.game.Round
 import io.github.doubleddoge.splithappens.game.Shoe

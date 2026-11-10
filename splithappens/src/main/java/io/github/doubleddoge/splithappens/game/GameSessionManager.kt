@@ -4,9 +4,10 @@ import io.github.doubleddoge.splithappens.data.dao.RoundDao
 import io.github.doubleddoge.splithappens.data.dao.SessionDao
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
 import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.data.enum.Phase
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 
-//Mini repo to keep track of round/hand progress. Ends when the hand does.
+//Mini repo to keep track of round/hand progress
 class GameSessionManager(
 	private val sessionDao: SessionDao,
 	private val roundDao: RoundDao,
@@ -14,15 +15,14 @@ class GameSessionManager(
 	private val stakes: Long,
 	private val mode: GameMode = GameMode.WILDCARD,
 ) {
-	var sessionId: Long = 0
+	var sessionId: Long = NO_SESSION_ID
 		private set
-	var gameNum: Int = 1
+	var gameNum: Int = FIRST_GAME_NUMBER
 		private set
 	var isSessionActive: Boolean = false
 		private set
 
 	suspend fun startSession(): Long {
-		//new id is automatically inserted by Room.
 		val session = SessionEntity(
 			userId = userId,
 			stakes = stakes,
@@ -50,5 +50,10 @@ class GameSessionManager(
 			sessionDao.setStatus(sessionId, status, System.currentTimeMillis())
 			isSessionActive = false
 		}
+	}
+
+	private companion object {
+		const val NO_SESSION_ID = 0L
+		const val FIRST_GAME_NUMBER = 1
 	}
 }

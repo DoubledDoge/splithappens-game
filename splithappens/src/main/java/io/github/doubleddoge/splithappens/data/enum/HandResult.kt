@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package io.github.doubleddoge.splithappens.data.enum
 
 // Has a multiplier to enable different payouts decided by game logic.

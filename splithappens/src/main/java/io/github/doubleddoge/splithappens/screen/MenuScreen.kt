@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import io.github.doubleddoge.splithappens.data.enum.HandResult
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
@@ -703,11 +704,11 @@ private fun RulesWildcardsContent(mutedColor: Color) {
 	Column {
 		Text("WILDCARD PAYOUTS", color = GoldFoil, fontWeight = FontWeight.Bold, fontSize = 13.sp)
 		Spacer(modifier = Modifier.height(8.dp))
-		PayoutRow("7-Card Charlie", "250x", mutedColor)
-		PayoutRow("6-Card Charlie", "120x", mutedColor)
-		PayoutRow("Triple Sevens (7-7-7)", "100x", mutedColor)
-		PayoutRow("Natural Blackjack (Ace + Jack)", "50x", mutedColor)
-		PayoutRow("Queen + Ace Blackjack", "10x", mutedColor)
+		PayoutRow("7-Card Charlie", "${HandResult.SEVEN_CARD.multiplier.toInt()}x", mutedColor)
+		PayoutRow("6-Card Charlie", "${HandResult.SIX_CARD.multiplier.toInt()}x", mutedColor)
+		PayoutRow("Triple Sevens (7-7-7)", "${HandResult.TRIPLE_SEVEN.multiplier.toInt()}x", mutedColor)
+		PayoutRow("Natural Blackjack (Ace + Jack)", "${HandResult.NATURAL_BLACKJACK.multiplier.toInt()}x", mutedColor)
+		PayoutRow("Queen + Ace Blackjack", "${HandResult.QUEEN_JACK.multiplier.toInt()}x", mutedColor)
 	}
 }
 

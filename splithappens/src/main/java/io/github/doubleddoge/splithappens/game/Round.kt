@@ -5,59 +5,11 @@ import io.github.doubleddoge.splithappens.data.dao.RoundRecord
 import io.github.doubleddoge.splithappens.data.entity.GameEntity
 import io.github.doubleddoge.splithappens.data.entity.HandCardEntity
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
+import io.github.doubleddoge.splithappens.data.enum.Action
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.HandResult
 import io.github.doubleddoge.splithappens.data.enum.HandStatus
-
-enum class Action {
-	HIT,
-	STAND,
-	DOUBLE,
-	SPLIT,
-	SURRENDER,
-}
-
-enum class Phase {
-	BETTING,
-	INSURANCE,
-	PLAYER_TURN,
-	FINISHED,
-}
-
-class PlayerHand(
-	val cards: MutableList<Card>,
-	var bet: Long,
-	val parentIndex: Int? = null,
-) {
-	var afterSplit = parentIndex != null
-	var isDoubled = false
-	var stood = false
-	var surrendered = false
-
-	val value
-		get() = HandValue(cards, isSplit = afterSplit)
-
-	val isDone
-		get() = stood || surrendered || isDoubled || value.total >= 21
-
-	fun status(): HandStatus =
-		when {
-			surrendered -> HandStatus.SURRENDERED
-			value.isBust -> HandStatus.BUSTED
-			value.isBlackjack -> HandStatus.BLACKJACK
-			else -> HandStatus.STOOD
-		}
-
-	fun snapshot(): PlayerHand =
-		PlayerHand(cards.toMutableList(), bet, parentIndex).also {
-			it.afterSplit = afterSplit
-			it.isDoubled = isDoubled
-			it.stood = stood
-			it.surrendered = surrendered
-		}
-}
-
-fun List<PlayerHand>.snapshot(): List<PlayerHand> = map { it.snapshot() }
+import io.github.doubleddoge.splithappens.data.enum.Phase
 
 // One Round. Bets do NOT deduct funds on placement, Bankroll is the balance at round start.
 // Reshuffles between rounds.
@@ -67,9 +19,13 @@ class Round(
 	private val mode: GameMode,
 	private val bankroll: Long,
 	private val minBet: Long = 0,
-	private val maxHands: Int = 4,
+	private val maxHands: Int = GameRules.DEFAULT_MAX_HANDS,
 	private val autoStandOn21: Boolean = true,
 ) {
+
+	private val dealerUpCard get() = dealerCards[DEALER_UP_CARD_INDEX]
+
+	private val maxInsurance get() = hands[0].bet / GameRules.INSURANCE_MAX_BET_DIVISOR
 	var phase = Phase.BETTING
 		private set
 
@@ -106,10 +62,12 @@ class Round(
 	}
 
 	fun finalizeDeal() {
-		check(hands.isNotEmpty() && hands[0].cards.size == 2 && dealerCards.size == 2) {
-			"Initial deal is incomplete"
-		}
-		if (dealerCards[0].isAce) phase = Phase.INSURANCE else startPlay()
+		check(
+			hands.isNotEmpty() &&
+					hands[0].cards.size == GameRules.INITIAL_HAND_SIZE &&
+					dealerCards.size == GameRules.INITIAL_HAND_SIZE
+		) { "Initial deal is incomplete" }
+		if (dealerUpCard.isAce) phase = Phase.INSURANCE else startPlay()
 	}
 
 	fun placeBet(amount: Long) {
@@ -123,7 +81,7 @@ class Round(
 
 	fun resolveInsurance(amount: Long) {
 		check(phase == Phase.INSURANCE) { "Insurance not an offer" }
-		require(amount in 0..hands[0].bet / 2) { "Insurance is at most half the bet" }
+		require(amount in 0..maxInsurance) { "Insurance is at most half the bet" }
 		require(amount <= available) { "Not enough chips" }
 		insuranceBet = amount
 		startPlay()
@@ -131,44 +89,44 @@ class Round(
 
 	fun legalActions(): Set<Action> {
 		if (phase != Phase.PLAYER_TURN) return emptySet()
-		val h = hands[activeIndex]
-		val twoCards = h.cards.size == 2
+		val hand = hands[activeIndex]
+		val hasTwoCards = hand.cards.size == GameRules.INITIAL_HAND_SIZE
+		val canMatchBet = available >= hand.bet
 		return buildSet {
 			add(Action.HIT)
 			add(Action.STAND)
-			if (twoCards && available >= h.bet) add(Action.DOUBLE)
+			if (hasTwoCards && canMatchBet) add(Action.DOUBLE)
 			if (
-				twoCards &&
-				available >= h.bet &&
+				hasTwoCards && canMatchBet &&
 				hands.size < maxHands &&
-				h.cards[0].value == h.cards[1].value
+				hand.cards[0].value == hand.cards[1].value
 			) {
 				add(Action.SPLIT)
 			}
-			if (twoCards && hands.size == 1) add(Action.SURRENDER)
+			if (hasTwoCards && hands.size == 1) add(Action.SURRENDER)
 		}
 	}
 
 	fun act(action: Action) {
 		require(action in legalActions()) { "Illegal action: $action" }
-		val h = hands[activeIndex]
+		val hand = hands[activeIndex]
 		when (action) {
-			Action.HIT -> h.cards += shoe.deal()
-			Action.STAND -> h.stood = true
-			Action.SURRENDER -> h.surrendered = true
+			Action.HIT -> hand.cards += shoe.deal()
+			Action.STAND -> hand.stood = true
+			Action.SURRENDER -> hand.surrendered = true
 			Action.DOUBLE -> {
-				h.bet *= 2
-				h.isDoubled = true
-				h.cards += shoe.deal()
+				hand.bet *= GameRules.DOUBLE_DOWN_FACTOR
+				hand.isDoubled = true
+				hand.cards += shoe.deal()
 			}
 
 			Action.SPLIT -> {
-				val moved = h.cards.removeAt(1)
-				h.afterSplit = true
-				h.cards += shoe.deal()
+				val moved = hand.cards.removeAt(hand.cards.lastIndex)
+				hand.afterSplit = true
+				hand.cards += shoe.deal()
 				hands += PlayerHand(
 					mutableListOf(moved, shoe.deal()),
-					h.bet,
+					hand.bet,
 					parentIndex = activeIndex
 				)
 			}
@@ -195,12 +153,7 @@ class Round(
 				cards = h.cards.toHandCards(),
 			)
 		}
-		val dealerStatus =
-			when {
-				dealer.isBust -> HandStatus.BUSTED
-				dealer.isBlackjack -> HandStatus.BLACKJACK
-				else -> HandStatus.STOOD
-			}
+		val dealerStatus = dealer.toHandStatus()
 		return RoundRecord(
 			game =
 				GameEntity.create(
@@ -214,7 +167,7 @@ class Round(
 				playerRecords +
 						HandRecord(
 							HandEntity.dealer(dealerStatus),
-							cards = dealerCards.toHandCards(holeIndex = 1),
+							cards = dealerCards.toHandCards(holeIndex = DEALER_HOLE_CARD_INDEX),
 						),
 		)
 	}
@@ -224,13 +177,12 @@ class Round(
 		if (dealerValue.isBlackjack) finish() else advance()
 	}
 
-	private fun isHandDone(h: PlayerHand): Boolean =
-		h.stood ||
-				h.surrendered ||
-				h.isDoubled ||
-				h.value.isBust ||
-				h.value.isBlackjack ||
-				(autoStandOn21 && h.value.total == 21)
+	private fun isHandDone(hand: PlayerHand): Boolean {
+		val value = hand.value
+		return hand.stood || hand.surrendered || hand.isDoubled ||
+				value.isBust || value.isBlackjack ||
+				(autoStandOn21 && value.total == GameRules.BLACKJACK_TOTAL)
+	}
 
 	private fun advance() {
 		while (activeIndex < hands.size && isHandDone(hands[activeIndex])) activeIndex++
@@ -238,8 +190,9 @@ class Round(
 	}
 
 	private fun finish() {
-		if (hands.any { !it.surrendered && !it.value.isBust }) {
-			while (dealerValue.total < 17) dealerCards += shoe.deal()
+		val dealerMustPlay = hands.any { !it.surrendered && !it.value.isBust }
+		if (dealerMustPlay) {
+			while (dealerValue.total < GameRules.DEALER_STAND_TOTAL) dealerCards += shoe.deal()
 		}
 		phase = Phase.FINISHED
 	}
@@ -251,5 +204,10 @@ class Round(
 			cardId = c.cardId,
 			isHoleCard = i == holeIndex,
 		)
+	}
+
+	private companion object {
+		const val DEALER_UP_CARD_INDEX = 0
+		const val DEALER_HOLE_CARD_INDEX = 1
 	}
 }

@@ -3,6 +3,7 @@ package io.github.doubleddoge.splithappens.game
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
+import io.github.doubleddoge.splithappens.data.enum.Action
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 import kotlinx.coroutines.runBlocking

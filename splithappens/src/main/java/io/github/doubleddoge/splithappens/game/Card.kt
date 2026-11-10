@@ -9,10 +9,10 @@ data class Card(val suit: Suit, val rank: Rank) {
 
 	val value: Int
 		get() = when (rank) {
-			Rank.ACE -> 11
-			Rank.JACK, Rank.QUEEN, Rank.KING -> 10
-			else -> rank.ordinal + 1
+			Rank.ACE -> GameRules.ACE_HIGH_VALUE
+			Rank.JACK, Rank.QUEEN, Rank.KING -> GameRules.FACE_CARD_VALUE
+			else -> rank.ordinal + 1 // TWO to TEN follow ACE in declaration order
 		}
-	val isAce get() = rank == Rank.ACE
 
+	val isAce: Boolean get() = rank == Rank.ACE
 }
