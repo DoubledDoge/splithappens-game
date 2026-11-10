@@ -7,8 +7,6 @@
     <!-- Scaled Card Background (Fits inside 66dp inner safe circle) -->
     <path
         android:fillColor="#F9F9F9"
-        android:strokeColor="#E5B036"
-        android:strokeWidth="1.2"
         android:pathData="M 40,28
                   H 68
                   A 5,5 0 0 1 73,33
@@ -17,7 +15,9 @@
                   H 40
                   A 5,5 0 0 1 35,75
                   V 33
-                  A 5,5 0 0 1 40,28 Z" />
+                  A 5,5 0 0 1 40,28 Z"
+        android:strokeWidth="1.2"
+        android:strokeColor="#E5B036" />
 
     <!-- Corner Rank "A" -->
     <path

@@ -13,88 +13,88 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 data class MenuUiState(
-    val isRulesBookletOpen: Boolean = false,
-    val isLogoutConfirmOpen: Boolean = false,
-    val soundEnabled: Boolean = true,
-    val hapticsEnabled: Boolean = true
+	val isRulesBookletOpen: Boolean = false,
+	val isLogoutConfirmOpen: Boolean = false,
+	val soundEnabled: Boolean = true,
+	val hapticsEnabled: Boolean = true
 )
 
 @Suppress("unused")
 class MenuViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val prefs: SharedPreferences =
-        application.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
+	private val prefs: SharedPreferences =
+		application.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
 
-    private val authPrefs: SharedPreferences =
-        application.getSharedPreferences("split_happens_auth", Context.MODE_PRIVATE)
+	private val authPrefs: SharedPreferences =
+		application.getSharedPreferences("split_happens_auth", Context.MODE_PRIVATE)
 
-    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        when (key) {
-            "pref_sound_effects", "pref_haptic_vibration" -> {
-                loadPreferences()
-            }
-        }
-    }
+	private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+		when (key) {
+			"pref_sound_effects", "pref_haptic_vibration" -> {
+				loadPreferences()
+			}
+		}
+	}
 
-    private val _uiState = MutableStateFlow(MenuUiState())
-    val uiState: StateFlow<MenuUiState> = _uiState.asStateFlow()
+	private val _uiState = MutableStateFlow(MenuUiState())
+	val uiState: StateFlow<MenuUiState> = _uiState.asStateFlow()
 
-    init {
-        loadPreferences()
-        prefs.registerOnSharedPreferenceChangeListener(preferenceListener)
-    }
+	init {
+		loadPreferences()
+		prefs.registerOnSharedPreferenceChangeListener(preferenceListener)
+	}
 
-    fun loadPreferences() {
-        _uiState.update {
-            it.copy(
-                soundEnabled = prefs.getBoolean("pref_sound_effects", true),
-                hapticsEnabled = prefs.getBoolean("pref_haptic_vibration", true)
-            )
-        }
-    }
+	fun loadPreferences() {
+		_uiState.update {
+			it.copy(
+				soundEnabled = prefs.getBoolean("pref_sound_effects", true),
+				hapticsEnabled = prefs.getBoolean("pref_haptic_vibration", true)
+			)
+		}
+	}
 
-    fun openRulesBooklet() {
-        _uiState.update { it.copy(isRulesBookletOpen = true) }
-    }
+	fun openRulesBooklet() {
+		_uiState.update { it.copy(isRulesBookletOpen = true) }
+	}
 
-    fun closeRulesBooklet() {
-        _uiState.update { it.copy(isRulesBookletOpen = false) }
-    }
+	fun closeRulesBooklet() {
+		_uiState.update { it.copy(isRulesBookletOpen = false) }
+	}
 
-    fun openLogoutConfirmation() {
-        _uiState.update { it.copy(isLogoutConfirmOpen = true) }
-    }
+	fun openLogoutConfirmation() {
+		_uiState.update { it.copy(isLogoutConfirmOpen = true) }
+	}
 
-    fun closeLogoutConfirmation() {
-        _uiState.update { it.copy(isLogoutConfirmOpen = false) }
-    }
+	fun closeLogoutConfirmation() {
+		_uiState.update { it.copy(isLogoutConfirmOpen = false) }
+	}
 
-    fun logout(onLoggedOut: () -> Unit) {
-        authPrefs.edit {
-            remove("saved_user_id")
-            remove("saved_username")
-            putBoolean("remember_me", false)
-        }
-        prefs.edit {
-            remove("active_user_id")
-        }
-        _uiState.update { it.copy(isLogoutConfirmOpen = false) }
-        onLoggedOut()
-    }
+	fun logout(onLoggedOut: () -> Unit) {
+		authPrefs.edit {
+			remove("saved_user_id")
+			remove("saved_username")
+			putBoolean("remember_me", false)
+		}
+		prefs.edit {
+			remove("active_user_id")
+		}
+		_uiState.update { it.copy(isLogoutConfirmOpen = false) }
+		onLoggedOut()
+	}
 
-    override fun onCleared() {
-        super.onCleared()
-        prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener)
-    }
+	override fun onCleared() {
+		super.onCleared()
+		prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener)
+	}
 }
 
 @Suppress("unused")
 class MenuViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MenuViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return MenuViewModel(application) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-    }
+	override fun <T : ViewModel> create(modelClass: Class<T>): T {
+		if (modelClass.isAssignableFrom(MenuViewModel::class.java)) {
+			@Suppress("UNCHECKED_CAST")
+			return MenuViewModel(application) as T
+		}
+		throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+	}
 }

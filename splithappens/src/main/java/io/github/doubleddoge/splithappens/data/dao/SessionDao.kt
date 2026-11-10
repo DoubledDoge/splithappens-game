@@ -9,22 +9,23 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SessionDao {
-    @Insert suspend fun insert(session: SessionEntity): Long
+	@Insert
+	suspend fun insert(session: SessionEntity): Long
 
-    @Query("SELECT * FROM Sessions WHERE sessionId = :sessionId")
-    suspend fun getById(sessionId: Long): SessionEntity?
+	@Query("SELECT * FROM Sessions WHERE sessionId = :sessionId")
+	suspend fun getById(sessionId: Long): SessionEntity?
 
-    @Query("SELECT * FROM Sessions WHERE userId = :userId ORDER BY startedAt DESC")
-    fun observeForUser(userId: String): Flow<List<SessionEntity>>
+	@Query("SELECT * FROM Sessions WHERE userId = :userId ORDER BY startedAt DESC")
+	fun observeForUser(userId: String): Flow<List<SessionEntity>>
 
-    //initiating a cascading deletion
-    @Query("DELETE FROM Sessions WHERE sessionId = :sessionId")
-    suspend fun deleteById(sessionId: Long)
+	//initiating a cascading deletion
+	@Query("DELETE FROM Sessions WHERE sessionId = :sessionId")
+	suspend fun deleteById(sessionId: Long)
 
-    @Query("UPDATE Sessions SET status = :status, endedAt = :endedAt WHERE sessionId = :sessionId")
-    suspend fun setStatus(
-        sessionId: Long,
-        status: SessionStatus,
-        endedAt: Long?,
-    )
+	@Query("UPDATE Sessions SET status = :status, endedAt = :endedAt WHERE sessionId = :sessionId")
+	suspend fun setStatus(
+		sessionId: Long,
+		status: SessionStatus,
+		endedAt: Long?,
+	)
 }

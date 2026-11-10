@@ -20,48 +20,49 @@ import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import io.github.doubleddoge.splithappens.data.view.GameHistory
 
 @Database(
-    entities =
-        [
-            UserEntity::class,
-            ProfilePictureEntity::class,
-            SessionEntity::class,
-            GameEntity::class,
-            HandEntity::class,
-            HandCardEntity::class,
-            CardEntity::class,
-        ],
-    views = [GameHistory::class],
-    version = 1,
+	entities =
+		[
+			UserEntity::class,
+			ProfilePictureEntity::class,
+			SessionEntity::class,
+			GameEntity::class,
+			HandEntity::class,
+			HandCardEntity::class,
+			CardEntity::class,
+		],
+	views = [GameHistory::class],
+	version = 1,
 )
 abstract class Database : RoomDatabase() {
-  abstract fun userDao(): UserDao
+	abstract fun userDao(): UserDao
 
-  abstract fun sessionDao(): SessionDao
+	abstract fun sessionDao(): SessionDao
 
-  abstract fun cardDao(): CardDao
+	abstract fun cardDao(): CardDao
 
-  abstract fun roundDao(): RoundDao
+	abstract fun roundDao(): RoundDao
 
-  abstract fun gameHistoryDao(): GameHistoryDao
+	abstract fun gameHistoryDao(): GameHistoryDao
 }
 
-@Volatile private var INSTANCE: io.github.doubleddoge.splithappens.data.Database? = null
+@Volatile
+private var INSTANCE: io.github.doubleddoge.splithappens.data.Database? = null
 
 fun buildDatabase(context: Context): io.github.doubleddoge.splithappens.data.Database {
-  return INSTANCE
-      ?: synchronized(Database::class.java) {
-        INSTANCE
-            ?: run {
-              val db =
-                  Room.databaseBuilder<io.github.doubleddoge.splithappens.data.Database>(
-                          context.applicationContext,
-                          "splithappens.db",
-                      )
-                      .setDriver(AndroidSQLiteDriver())
-                      .build()
+	return INSTANCE
+		?: synchronized(Database::class.java) {
+			INSTANCE
+				?: run {
+					val db =
+						Room.databaseBuilder<io.github.doubleddoge.splithappens.data.Database>(
+							context.applicationContext,
+							"splithappens.db",
+						)
+							.setDriver(AndroidSQLiteDriver())
+							.build()
 
-              // Build the database instance
-              db.also { INSTANCE = it }
-            }
-      }
+					// Build the database instance
+					db.also { INSTANCE = it }
+				}
+		}
 }

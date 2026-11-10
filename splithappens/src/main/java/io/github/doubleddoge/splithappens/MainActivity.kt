@@ -14,21 +14,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
 
-    // Force window canvas to match deep casino green so route fades never show white
-    window.decorView.setBackgroundColor("#071B12".toColorInt())
+		// Force window canvas to match deep casino green so route fades never show white
+		window.decorView.setBackgroundColor("#071B12".toColorInt())
 
-    enableEdgeToEdge()
+		enableEdgeToEdge()
 
-    CoroutineScope(Dispatchers.IO).launch { MobileAds.initialize(this@MainActivity) {} }
-    setContent {
-      SplitHappensTheme {
-        AppNavigation()
-      }
-    }
+		CoroutineScope(Dispatchers.IO).launch { MobileAds.initialize(this@MainActivity) {} }
+		setContent {
+			SplitHappensTheme {
+				AppNavigation()
+			}
+		}
 
-    ProfilerOverlay.install(this)
-  }
+		ProfilerOverlay.install(this)
+	}
 }

@@ -11,82 +11,90 @@ import io.github.doubleddoge.splithappens.data.enum.HandOwner
 
 // Everything that happened in one finished round, as it comes out of the game logic.
 data class RoundRecord(
-    val game: GameEntity,
-    val hands: List<HandRecord>,
+	val game: GameEntity,
+	val hands: List<HandRecord>,
 )
 
 data class HandRecord(
-    val hand: HandEntity,
-    val parentIndex: Int? = null,
-    val cards: List<HandCardEntity>,
+	val hand: HandEntity,
+	val parentIndex: Int? = null,
+	val cards: List<HandCardEntity>,
 )
 
 @Dao
 abstract class RoundDao {
-    @Insert abstract suspend fun insertGame(game: GameEntity): Long
+	@Insert
+	abstract suspend fun insertGame(game: GameEntity): Long
 
-    @Insert abstract suspend fun insertHand(hand: HandEntity): Long
+	@Insert
+	abstract suspend fun insertHand(hand: HandEntity): Long
 
-    @Insert abstract suspend fun insertHandCards(cards: List<HandCardEntity>)
+	@Insert
+	abstract suspend fun insertHandCards(cards: List<HandCardEntity>)
 
-    //new constraints mentioned, helper functions for unit tests.
-    @Query("SELECT * FROM Hands WHERE gameId = :gameId ORDER BY handId")
-    abstract suspend fun getHands(gameId: Long): List<HandEntity>
+	//new constraints mentioned, helper functions for unit tests.
+	@Query("SELECT * FROM Hands WHERE gameId = :gameId ORDER BY handId")
+	abstract suspend fun getHands(gameId: Long): List<HandEntity>
 
-    @Query("SELECT COUNT(*) FROM Games") abstract suspend fun countGames(): Int
-    @Query("SELECT COUNT(*) FROM Hands") abstract suspend fun countHands(): Int
-    @Query("SELECT COUNT(*) FROM HandCards") abstract suspend fun countHandCards(): Int
+	@Query("SELECT COUNT(*) FROM Games")
+	abstract suspend fun countGames(): Int
 
-    //cascading deletion tests and constraints
-    @Query("SELECT * FROM HandCards WHERE handId = :handId ORDER BY dealtOrder")
-    abstract suspend fun getHandCards(handId: Long): List<HandCardEntity>
+	@Query("SELECT COUNT(*) FROM Hands")
+	abstract suspend fun countHands(): Int
 
-    @Query("DELETE FROM Games WHERE gameId = :gameId")
-    abstract suspend fun deleteGame(gameId: Long)
+	@Query("SELECT COUNT(*) FROM HandCards")
+	abstract suspend fun countHandCards(): Int
 
-    @Query("DELETE FROM Hands WHERE handId = :handId")
-    abstract suspend fun deleteHand(handId: Long)
+	//cascading deletion tests and constraints
+	@Query("SELECT * FROM HandCards WHERE handId = :handId ORDER BY dealtOrder")
+	abstract suspend fun getHandCards(handId: Long): List<HandCardEntity>
 
-    @Query("UPDATE Users SET chipsOwned = chipsOwned + :delta WHERE userId = :userId")
-    abstract suspend fun addChips(
-        userId: String,
-        delta: Long,
-    )
+	@Query("DELETE FROM Games WHERE gameId = :gameId")
+	abstract suspend fun deleteGame(gameId: Long)
 
-  /*
-  End-of-round operations done here
+	@Query("DELETE FROM Hands WHERE handId = :handId")
+	abstract suspend fun deleteHand(handId: Long)
 
-  Room version 3.0.3 fixes a potential deadlock and an IllegalMonitorStateException here
-   */
-    @Transaction
-    open suspend fun saveRound(
-        round: RoundRecord,
-        userId: String,
-        newChipsOwned: Long,
-    ): Long {
-        val gameId = insertGame(round.game)
-        val handIds = ArrayList<Long>(round.hands.size)
+	@Query("UPDATE Users SET chipsOwned = chipsOwned + :delta WHERE userId = :userId")
+	abstract suspend fun addChips(
+		userId: String,
+		delta: Long,
+	)
 
-        for (record in round.hands) {
-            val parentId =
-                record.parentIndex?.let { index ->
-                    require(index in handIds.indices) { "Split hand must come after its parent hand" }
-                    handIds[index]
-                }
+	/*
+	End-of-round operations done here
 
-            val handId = insertHand(record.hand.copy(gameId = gameId, parentHandId = parentId))
-            handIds += handId
-            insertHandCards(record.cards.map { it.copy(handId = handId) })
-        }
+	Room version 3.0.3 fixes a potential deadlock and an IllegalMonitorStateException here
+	 */
+	@Transaction
+	open suspend fun saveRound(
+		round: RoundRecord,
+		userId: String,
+		newChipsOwned: Long,
+	): Long {
+		val gameId = insertGame(round.game)
+		val handIds = ArrayList<Long>(round.hands.size)
 
-        // playerNet = sum(hand.payout - hand.betAmount)
-        val playerNet =
-            round.hands
-                .filter { it.hand.owner == HandOwner.PLAYER }
-                .sumOf { it.hand.payout - it.hand.betAmount }
+		for (record in round.hands) {
+			val parentId =
+				record.parentIndex?.let { index ->
+					require(index in handIds.indices) { "Split hand must come after its parent hand" }
+					handIds[index]
+				}
 
-        addChips(userId, playerNet + round.game.insurancePayout - round.game.insuranceBet)
+			val handId = insertHand(record.hand.copy(gameId = gameId, parentHandId = parentId))
+			handIds += handId
+			insertHandCards(record.cards.map { it.copy(handId = handId) })
+		}
 
-        return gameId
-    }
+		// playerNet = sum(hand.payout - hand.betAmount)
+		val playerNet =
+			round.hands
+				.filter { it.hand.owner == HandOwner.PLAYER }
+				.sumOf { it.hand.payout - it.hand.betAmount }
+
+		addChips(userId, playerNet + round.game.insurancePayout - round.game.insuranceBet)
+
+		return gameId
+	}
 }

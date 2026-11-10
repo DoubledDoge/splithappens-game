@@ -13,76 +13,76 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class SplitHappensApp : Application() {
-  val database: Database by lazy { buildDatabase(this) }
-  private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-  lateinit var seedJob: Job
-    private set
+	val database: Database by lazy { buildDatabase(this) }
+	private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+	lateinit var seedJob: Job
+		private set
 
-  override fun onCreate() {
-    super.onCreate()
-    seedJob = appScope.launch {
-      runCatching { seedDefaults() }.onFailure { it.printStackTrace() }
-      runCatching { checkAndClaimDailyReward() }.onFailure { it.printStackTrace() }
-    }
-  }
+	override fun onCreate() {
+		super.onCreate()
+		seedJob = appScope.launch {
+			runCatching { seedDefaults() }.onFailure { it.printStackTrace() }
+			runCatching { checkAndClaimDailyReward() }.onFailure { it.printStackTrace() }
+		}
+	}
 
-  private suspend fun seedDefaults() {
-    database.cardDao().insertAll(CardEntity.standardDeck()) // idempotent (
-    val userDao = database.userDao()
-    val defaultPlayer = userDao.getById("default_player")
+	private suspend fun seedDefaults() {
+		database.cardDao().insertAll(CardEntity.standardDeck()) // idempotent (
+		val userDao = database.userDao()
+		val defaultPlayer = userDao.getById("default_player")
 
-    if (defaultPlayer != null) {
-      userDao.delete(defaultPlayer)
+		if (defaultPlayer != null) {
+			userDao.delete(defaultPlayer)
 
-      val authPrefs = getSharedPreferences("split_happens_auth", MODE_PRIVATE)
-      val appPrefs = getSharedPreferences("split_happens_prefs", MODE_PRIVATE)
+			val authPrefs = getSharedPreferences("split_happens_auth", MODE_PRIVATE)
+			val appPrefs = getSharedPreferences("split_happens_prefs", MODE_PRIVATE)
 
-      if (authPrefs.getString("saved_user_id", null) == "default_player") {
-        authPrefs.edit {
-          remove("saved_user_id")
-          remove("saved_username")
-        }
-      }
-      if (appPrefs.getString("active_user_id", null) == "default_player") {
-        appPrefs.edit { remove("active_user_id") }
-      }
-    }
-  }
+			if (authPrefs.getString("saved_user_id", null) == "default_player") {
+				authPrefs.edit {
+					remove("saved_user_id")
+					remove("saved_username")
+				}
+			}
+			if (appPrefs.getString("active_user_id", null) == "default_player") {
+				appPrefs.edit { remove("active_user_id") }
+			}
+		}
+	}
 
-  suspend fun checkAndClaimDailyReward(targetUserId: String? = null) {
-    val userDao = database.userDao()
-    val prefs = getSharedPreferences("split_happens_prefs", MODE_PRIVATE)
-    val authPrefs = getSharedPreferences("split_happens_auth", MODE_PRIVATE)
+	suspend fun checkAndClaimDailyReward(targetUserId: String? = null) {
+		val userDao = database.userDao()
+		val prefs = getSharedPreferences("split_happens_prefs", MODE_PRIVATE)
+		val authPrefs = getSharedPreferences("split_happens_auth", MODE_PRIVATE)
 
-    val activeUserId =
-        targetUserId?.takeIf { it.isNotBlank() }
-            ?: authPrefs.getString("saved_user_id", null)
-            ?: prefs.getString("active_user_id", null)
+		val activeUserId =
+			targetUserId?.takeIf { it.isNotBlank() }
+				?: authPrefs.getString("saved_user_id", null)
+				?: prefs.getString("active_user_id", null)
 
-    val user =
-        if (!activeUserId.isNullOrBlank()) {
-          userDao.getById(activeUserId)
-        } else {
-          userDao.observeAll().first().firstOrNull()
-        } ?: return
+		val user =
+			if (!activeUserId.isNullOrBlank()) {
+				userDao.getById(activeUserId)
+			} else {
+				userDao.observeAll().first().firstOrNull()
+			} ?: return
 
-    val claimKey = "pref_last_daily_claim_${user.userId}"
-    val lastClaim = prefs.getLong(claimKey, 0L)
-    val now = System.currentTimeMillis()
-    val interval = 24 * 60 * 60 * 1000L // 24 hours
+		val claimKey = "pref_last_daily_claim_${user.userId}"
+		val lastClaim = prefs.getLong(claimKey, 0L)
+		val now = System.currentTimeMillis()
+		val interval = 24 * 60 * 60 * 1000L // 24 hours
 
-    // Anti-time tampering / clock rollback check:
-    // If 'now < lastClaim', the system clock has been rolled back (time travel backward exploit).
-    // Reject claim if time moved backward or if 24 hours have not elapsed.
-    if (now >= lastClaim && (lastClaim == 0L || (now - lastClaim) >= interval)) {
-      prefs.edit { putLong(claimKey, now) }
-      addDailyReward(user.userId, 500L)
-    }
-  }
+		// Anti-time tampering / clock rollback check:
+		// If 'now < lastClaim', the system clock has been rolled back (time travel backward exploit).
+		// Reject claim if time moved backward or if 24 hours have not elapsed.
+		if (now >= lastClaim && (lastClaim == 0L || (now - lastClaim) >= interval)) {
+			prefs.edit { putLong(claimKey, now) }
+			addDailyReward(user.userId, 500L)
+		}
+	}
 
-  suspend fun addDailyReward(userId: String, amount: Long = 500L) {
-    val userDao = database.userDao()
-    val user = userDao.getById(userId) ?: return
-    userDao.setChips(user.userId, user.chipsOwned + amount)
-  }
+	suspend fun addDailyReward(userId: String, amount: Long = 500L) {
+		val userDao = database.userDao()
+		val user = userDao.getById(userId) ?: return
+		userDao.setChips(user.userId, user.chipsOwned + amount)
+	}
 }

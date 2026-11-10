@@ -21,274 +21,298 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.github.doubleddoge.splithappens.screen.GameScreen
-import io.github.doubleddoge.splithappens.screen.HomeScreen
-import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
-import io.github.doubleddoge.splithappens.viewmodel.HomeViewModelFactory
-import io.github.doubleddoge.splithappens.screen.LoginScreen
-import io.github.doubleddoge.splithappens.viewmodel.LoginViewModel
-import io.github.doubleddoge.splithappens.viewmodel.LoginViewModelFactory
-import io.github.doubleddoge.splithappens.screen.MenuScreen
-import io.github.doubleddoge.splithappens.viewmodel.MenuViewModel
-import io.github.doubleddoge.splithappens.viewmodel.MenuViewModelFactory
-import io.github.doubleddoge.splithappens.screen.ProfileScreen
-import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
-import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModelFactory
-import io.github.doubleddoge.splithappens.screen.SettingsScreen
-import io.github.doubleddoge.splithappens.viewmodel.SettingViewModel
-import io.github.doubleddoge.splithappens.viewmodel.SettingViewModelFactory
-import io.github.doubleddoge.splithappens.screen.SplashScreen
 import io.github.doubleddoge.splithappens.SplitHappensApp
 import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.screen.GameScreen
+import io.github.doubleddoge.splithappens.screen.HomeScreen
+import io.github.doubleddoge.splithappens.screen.LoginScreen
+import io.github.doubleddoge.splithappens.screen.MenuScreen
+import io.github.doubleddoge.splithappens.screen.ProfileScreen
+import io.github.doubleddoge.splithappens.screen.SettingsScreen
+import io.github.doubleddoge.splithappens.screen.SplashScreen
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
+import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
+import io.github.doubleddoge.splithappens.viewmodel.HomeViewModelFactory
+import io.github.doubleddoge.splithappens.viewmodel.LoginViewModel
+import io.github.doubleddoge.splithappens.viewmodel.LoginViewModelFactory
+import io.github.doubleddoge.splithappens.viewmodel.MenuViewModel
+import io.github.doubleddoge.splithappens.viewmodel.MenuViewModelFactory
+import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
+import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModelFactory
+import io.github.doubleddoge.splithappens.viewmodel.SettingViewModel
+import io.github.doubleddoge.splithappens.viewmodel.SettingViewModelFactory
 import kotlinx.coroutines.flow.first
 
 @Composable
 fun AppNavigation(navController: NavHostController = rememberNavController()) {
-  val context = LocalContext.current
-  val app = context.applicationContext as SplitHappensApp
-  val db = remember(app) { app.database }
+	val context = LocalContext.current
+	val app = context.applicationContext as SplitHappensApp
+	val db = remember(app) { app.database }
 
-  val authPrefs =
-      remember(context) {
-        context.getSharedPreferences("split_happens_auth", Context.MODE_PRIVATE)
-      }
+	val authPrefs =
+		remember(context) {
+			context.getSharedPreferences("split_happens_auth", Context.MODE_PRIVATE)
+		}
 
-  // Reactive state for the active user ID so navigation updates when profiles switch
-  var activeUserId by remember {
-    mutableStateOf(authPrefs.getString("saved_user_id", "") ?: "")
-  }
+	// Reactive state for the active user ID so navigation updates when profiles switch
+	var activeUserId by remember {
+		mutableStateOf(authPrefs.getString("saved_user_id", "") ?: "")
+	}
 
-  DisposableEffect(authPrefs) {
-    val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-      if (key == "saved_user_id") {
-        activeUserId = authPrefs.getString("saved_user_id", "") ?: ""
-      }
-    }
-    authPrefs.registerOnSharedPreferenceChangeListener(listener)
-    onDispose {
-      authPrefs.unregisterOnSharedPreferenceChangeListener(listener)
-    }
-  }
+	DisposableEffect(authPrefs) {
+		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+			if (key == "saved_user_id") {
+				activeUserId = authPrefs.getString("saved_user_id", "") ?: ""
+			}
+		}
+		authPrefs.registerOnSharedPreferenceChangeListener(listener)
+		onDispose {
+			authPrefs.unregisterOnSharedPreferenceChangeListener(listener)
+		}
+	}
 
-  val settingsViewModel: SettingViewModel =
-      viewModel(factory = SettingViewModelFactory(context.applicationContext as Application))
-  val settingsUiState by settingsViewModel.uiState.collectAsState()
+	val settingsViewModel: SettingViewModel =
+		viewModel(factory = SettingViewModelFactory(context.applicationContext as Application))
+	val settingsUiState by settingsViewModel.uiState.collectAsState()
 
-  val navBgColor = if (settingsUiState.darkTheme) DarkBackground else LightBackground
+	val navBgColor = if (settingsUiState.darkTheme) DarkBackground else LightBackground
 
-  Box(modifier = Modifier.fillMaxSize().background(navBgColor)) {
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Splash.route,
-        modifier = Modifier.fillMaxSize().background(navBgColor),
-    ) {
-      // 1. Splash Screen
-      composable(Screen.Splash.route) {
-        val loginVm: LoginViewModel =
-            viewModel(factory = LoginViewModelFactory(db.userDao(), context))
-        SplashScreen(
-            awaitReady = {
-              app.seedJob.join()
-              loginVm.tryAutoLogin()
-            },
-            onNavigateHome = {
-              navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
-              }
-            },
-            onNavigateLogin = {
-              navController.navigate(Screen.Login.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
-              }
-            },
-        )
-      }
+	Box(
+		modifier = Modifier
+            .fillMaxSize()
+            .background(navBgColor)
+	) {
+		NavHost(
+			navController = navController,
+			startDestination = Screen.Splash.route,
+			modifier = Modifier
+                .fillMaxSize()
+                .background(navBgColor),
+		) {
+			// 1. Splash Screen
+			composable(Screen.Splash.route) {
+				val loginVm: LoginViewModel =
+					viewModel(factory = LoginViewModelFactory(db.userDao(), context))
+				SplashScreen(
+					awaitReady = {
+						app.seedJob.join()
+						loginVm.tryAutoLogin()
+					},
+					onNavigateHome = {
+						navController.navigate(Screen.Home.route) {
+							popUpTo(Screen.Splash.route) { inclusive = true }
+						}
+					},
+					onNavigateLogin = {
+						navController.navigate(Screen.Login.route) {
+							popUpTo(Screen.Splash.route) { inclusive = true }
+						}
+					},
+				)
+			}
 
-      // 2. Login Screen
-      composable(Screen.Login.route) {
-        val loginVm: LoginViewModel =
-            viewModel(factory = LoginViewModelFactory(db.userDao(), context))
-        LoginScreen(
-            viewModel = loginVm,
-            isDarkTheme = settingsUiState.darkTheme,
-            onLoginSuccess = {
-              navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Login.route) { inclusive = true }
-              }
-            },
-        )
-      }
+			// 2. Login Screen
+			composable(Screen.Login.route) {
+				val loginVm: LoginViewModel =
+					viewModel(factory = LoginViewModelFactory(db.userDao(), context))
+				LoginScreen(
+					viewModel = loginVm,
+					isDarkTheme = settingsUiState.darkTheme,
+					onLoginSuccess = {
+						navController.navigate(Screen.Home.route) {
+							popUpTo(Screen.Login.route) { inclusive = true }
+						}
+					},
+				)
+			}
 
-      // 3. Home Screen
-      composable(Screen.Home.route) {
-        val homeVm: HomeViewModel =
-            viewModel(
-                factory = HomeViewModelFactory(db.userDao(), db.gameHistoryDao(), activeUserId),
-                key = "home_$activeUserId",
-            )
+			// 3. Home Screen
+			composable(Screen.Home.route) {
+				val homeVm: HomeViewModel =
+					viewModel(
+						factory = HomeViewModelFactory(
+							db.userDao(),
+							db.gameHistoryDao(),
+							activeUserId
+						),
+						key = "home_$activeUserId",
+					)
 
-        HomeScreen(
-            viewModel = homeVm,
-            isDarkTheme = settingsUiState.darkTheme,
-            onPlayClick = { mode -> navController.navigate(Screen.Game.createRoute(mode.name)) },
-            onNavigateSettings = {
-              navController.navigate(Screen.Settings.route) { launchSingleTop = true }
-            },
-            onNavigateMenu = {
-              navController.navigate(Screen.Menu.route) { launchSingleTop = true }
-            },
-            onNavigateGame = {
-              navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
-                launchSingleTop = true
-              }
-            },
-            onNavigateProfile = {
-              navController.navigate(Screen.Profile.route) { launchSingleTop = true }
-            },
-        )
-      }
+				HomeScreen(
+					viewModel = homeVm,
+					isDarkTheme = settingsUiState.darkTheme,
+					onPlayClick = { mode -> navController.navigate(Screen.Game.createRoute(mode.name)) },
+					onNavigateSettings = {
+						navController.navigate(Screen.Settings.route) { launchSingleTop = true }
+					},
+					onNavigateMenu = {
+						navController.navigate(Screen.Menu.route) { launchSingleTop = true }
+					},
+					onNavigateGame = {
+						navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
+							launchSingleTop = true
+						}
+					},
+					onNavigateProfile = {
+						navController.navigate(Screen.Profile.route) { launchSingleTop = true }
+					},
+				)
+			}
 
-      // 4. Game Screen
-      composable(Screen.Game.route) { backStackEntry ->
-        val modeString = backStackEntry.arguments?.getString("mode") ?: GameMode.TRADITIONAL.name
-        val mode = GameMode.valueOf(modeString)
-        val homeVm: HomeViewModel =
-            viewModel(
-                factory = HomeViewModelFactory(db.userDao(), db.gameHistoryDao(), activeUserId),
-                key = "game_header_$activeUserId",
-            )
+			// 4. Game Screen
+			composable(Screen.Game.route) { backStackEntry ->
+				val modeString =
+					backStackEntry.arguments?.getString("mode") ?: GameMode.TRADITIONAL.name
+				val mode = GameMode.valueOf(modeString)
+				val homeVm: HomeViewModel =
+					viewModel(
+						factory = HomeViewModelFactory(
+							db.userDao(),
+							db.gameHistoryDao(),
+							activeUserId
+						),
+						key = "game_header_$activeUserId",
+					)
 
-        val homeUiState by homeVm.uiState.collectAsState()
+				val homeUiState by homeVm.uiState.collectAsState()
 
-        androidx.compose.runtime.LaunchedEffect(activeUserId) {
-          homeVm.refreshProfilePicture()
-        }
+				androidx.compose.runtime.LaunchedEffect(activeUserId) {
+					homeVm.refreshProfilePicture()
+				}
 
-        GameScreen(
-            userId = activeUserId,
-            mode = mode,
-            displayName = homeUiState.displayName,
-            chipsOwned = homeUiState.chipsOwned,
-            profilePictureBytes = homeUiState.profilePictureBytes,
-            isDarkTheme = settingsUiState.darkTheme,
-            settingsUiState = settingsUiState,
-            onNavigateHome = {
-              navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Home.route) { inclusive = true }
-              }
-            },
-            onNavigateMenu = {
-              navController.navigate(Screen.Menu.route) {
-                popUpTo(Screen.Home.route) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-              }
-            },
-            onNavigateProfile = {
-              navController.navigate(Screen.Profile.route) { launchSingleTop = true }
-            },
-        )
-      }
+				GameScreen(
+					userId = activeUserId,
+					mode = mode,
+					displayName = homeUiState.displayName,
+					chipsOwned = homeUiState.chipsOwned,
+					profilePictureBytes = homeUiState.profilePictureBytes,
+					isDarkTheme = settingsUiState.darkTheme,
+					settingsUiState = settingsUiState,
+					onNavigateHome = {
+						navController.navigate(Screen.Home.route) {
+							popUpTo(Screen.Home.route) { inclusive = true }
+						}
+					},
+					onNavigateMenu = {
+						navController.navigate(Screen.Menu.route) {
+							popUpTo(Screen.Home.route) { saveState = true }
+							launchSingleTop = true
+							restoreState = true
+						}
+					},
+					onNavigateProfile = {
+						navController.navigate(Screen.Profile.route) { launchSingleTop = true }
+					},
+				)
+			}
 
-      // 5. Menu Screen
-      composable(Screen.Menu.route) {
-        val menuVm: MenuViewModel =
-            viewModel(factory = MenuViewModelFactory(context.applicationContext as Application))
-        val menuUiState by menuVm.uiState.collectAsState()
-        val homeVm: HomeViewModel =
-            viewModel(
-                factory = HomeViewModelFactory(db.userDao(), db.gameHistoryDao(), activeUserId),
-                key = "menu_$activeUserId",
-            )
-        val homeUiState by homeVm.uiState.collectAsState()
+			// 5. Menu Screen
+			composable(Screen.Menu.route) {
+				val menuVm: MenuViewModel =
+					viewModel(factory = MenuViewModelFactory(context.applicationContext as Application))
+				val menuUiState by menuVm.uiState.collectAsState()
+				val homeVm: HomeViewModel =
+					viewModel(
+						factory = HomeViewModelFactory(
+							db.userDao(),
+							db.gameHistoryDao(),
+							activeUserId
+						),
+						key = "menu_$activeUserId",
+					)
+				val homeUiState by homeVm.uiState.collectAsState()
 
-        MenuScreen(
-            uiState = menuUiState,
-            homeUiState = homeUiState,
-            isDarkTheme = settingsUiState.darkTheme,
-            onOpenRules = menuVm::openRulesBooklet,
-            onCloseRules = menuVm::closeRulesBooklet,
-            onOpenLogoutConfirm = menuVm::openLogoutConfirmation,
-            onCloseLogoutConfirm = menuVm::closeLogoutConfirmation,
-            onConfirmLogout = {
-              menuVm.logout {
-                navController.navigate(Screen.Login.route) {
-                  popUpTo(0) { inclusive = true }
-                }
-              }
-            },
-            onNavigateHome = {
-              navController.navigate(Screen.Home.route) { launchSingleTop = true }
-            },
-            onNavigateGame = {
-              navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
-                launchSingleTop = true
-              }
-            },
-            onNavigateToProfile = {
-              navController.navigate(Screen.Profile.route) { launchSingleTop = true }
-            },
-            onNavigateToSettings = {
-              navController.navigate(Screen.Settings.route) { launchSingleTop = true }
-            },
-        )
-      }
+				MenuScreen(
+					uiState = menuUiState,
+					homeUiState = homeUiState,
+					isDarkTheme = settingsUiState.darkTheme,
+					onOpenRules = menuVm::openRulesBooklet,
+					onCloseRules = menuVm::closeRulesBooklet,
+					onOpenLogoutConfirm = menuVm::openLogoutConfirmation,
+					onCloseLogoutConfirm = menuVm::closeLogoutConfirmation,
+					onConfirmLogout = {
+						menuVm.logout {
+							navController.navigate(Screen.Login.route) {
+								popUpTo(0) { inclusive = true }
+							}
+						}
+					},
+					onNavigateHome = {
+						navController.navigate(Screen.Home.route) { launchSingleTop = true }
+					},
+					onNavigateGame = {
+						navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
+							launchSingleTop = true
+						}
+					},
+					onNavigateToProfile = {
+						navController.navigate(Screen.Profile.route) { launchSingleTop = true }
+					},
+					onNavigateToSettings = {
+						navController.navigate(Screen.Settings.route) { launchSingleTop = true }
+					},
+				)
+			}
 
-      // 6. Settings Screen
-      composable(Screen.Settings.route) {
-        SettingsScreen(
-            uiState = settingsUiState,
-            onToggleDarkTheme = settingsViewModel::toggleDarkTheme,
-            onToggleShowCardTotal = settingsViewModel::toggleShowCardTotal,
-            onToggleDealerRuleBanner = settingsViewModel::toggleDealerRuleBanner,
-            onToggleSoundEffects = settingsViewModel::toggleSoundEffects,
-            onToggleHapticVibration = settingsViewModel::toggleHapticVibration,
-            onToggleFastDeal = settingsViewModel::toggleFastDeal,
-            onToggleAutoStandOn21 = settingsViewModel::toggleAutoStandOn21,
-            onNavigateHome = {
-              navController.navigate(Screen.Home.route) { launchSingleTop = true }
-            },
-            onNavigateGame = {
-              navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
-                launchSingleTop = true
-              }
-            },
-            onNavigateMenu = {
-              navController.navigate(Screen.Menu.route) { launchSingleTop = true }
-            },
-        )
-      }
+			// 6. Settings Screen
+			composable(Screen.Settings.route) {
+				SettingsScreen(
+					uiState = settingsUiState,
+					onToggleDarkTheme = settingsViewModel::toggleDarkTheme,
+					onToggleShowCardTotal = settingsViewModel::toggleShowCardTotal,
+					onToggleDealerRuleBanner = settingsViewModel::toggleDealerRuleBanner,
+					onToggleSoundEffects = settingsViewModel::toggleSoundEffects,
+					onToggleHapticVibration = settingsViewModel::toggleHapticVibration,
+					onToggleFastDeal = settingsViewModel::toggleFastDeal,
+					onToggleAutoStandOn21 = settingsViewModel::toggleAutoStandOn21,
+					onNavigateHome = {
+						navController.navigate(Screen.Home.route) { launchSingleTop = true }
+					},
+					onNavigateGame = {
+						navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
+							launchSingleTop = true
+						}
+					},
+					onNavigateMenu = {
+						navController.navigate(Screen.Menu.route) { launchSingleTop = true }
+					},
+				)
+			}
 
-      // 7. Profile Screen
-      composable(Screen.Profile.route) {
-        val resolvedUserId by
-            produceState(initialValue = activeUserId, key1 = activeUserId) {
-              if (activeUserId.isNotBlank()) {
-                value = activeUserId
-              } else {
-                value = db.userDao().observeAll().first().firstOrNull()?.userId ?: "default_player"
-              }
-            }
-        if (resolvedUserId.isNotBlank()) {
-          val profileVm: ProfileViewModel =
-              viewModel(
-                  factory =
-                      ProfileViewModelFactory(db.userDao(), db.gameHistoryDao(), resolvedUserId),
-                  key = "profile_$resolvedUserId",
-              )
-          ProfileScreen(
-              viewModel = profileVm,
-              isDarkTheme = settingsUiState.darkTheme,
-              onNavigateHome = { navController.navigate(Screen.Home.route) },
-              onNavigateGame = {
-                navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name))
-              },
-              onNavigateMenu = { navController.navigate(Screen.Menu.route) },
-          )
-        }
-      }
-    }
-  }
+			// 7. Profile Screen
+			composable(Screen.Profile.route) {
+				val resolvedUserId by
+				produceState(initialValue = activeUserId, key1 = activeUserId) {
+					if (activeUserId.isNotBlank()) {
+						value = activeUserId
+					} else {
+						value = db.userDao().observeAll().first().firstOrNull()?.userId
+							?: "default_player"
+					}
+				}
+				if (resolvedUserId.isNotBlank()) {
+					val profileVm: ProfileViewModel =
+						viewModel(
+							factory =
+								ProfileViewModelFactory(
+									db.userDao(),
+									db.gameHistoryDao(),
+									resolvedUserId
+								),
+							key = "profile_$resolvedUserId",
+						)
+					ProfileScreen(
+						viewModel = profileVm,
+						isDarkTheme = settingsUiState.darkTheme,
+						onNavigateHome = { navController.navigate(Screen.Home.route) },
+						onNavigateGame = {
+							navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name))
+						},
+						onNavigateMenu = { navController.navigate(Screen.Menu.route) },
+					)
+				}
+			}
+		}
+	}
 }

@@ -74,138 +74,143 @@ private val TotalTextFontSize = 14.sp
 private val TotalTextTopPadding = 4.dp
 
 private fun chipColor(value: Int): Color =
-    when (value) {
-      FIVE_CHIP -> RedChipColor
-      TWENTY_FIVE_CHIP -> GreenChipColor
-      HUNDRED_CHIP -> BlueChipColor
-      else -> DefaultChipColor
-    }
+	when (value) {
+		FIVE_CHIP -> RedChipColor
+		TWENTY_FIVE_CHIP -> GreenChipColor
+		HUNDRED_CHIP -> BlueChipColor
+		else -> DefaultChipColor
+	}
 
 // A single casino chip
 @Composable
 fun ChipView(value: Int, modifier: Modifier = Modifier, chipSize: Dp = DefaultChipSize) {
-  val color = chipColor(value)
-  Box(
-      modifier = modifier.size(chipSize).shadow(DefaultChipElevation, CircleShape),
-      contentAlignment = Alignment.Center,
-  ) {
-    Canvas(Modifier.fillMaxSize()) {
-      val outer = size.minDimension / 2f
-      drawCircle(color)
+	val color = chipColor(value)
+	Box(
+		modifier = modifier
+            .size(chipSize)
+            .shadow(DefaultChipElevation, CircleShape),
+		contentAlignment = Alignment.Center,
+	) {
+		Canvas(Modifier.fillMaxSize()) {
+			val outer = size.minDimension / 2f
+			drawCircle(color)
 
-      // 12 white edge spots around the rim
-      val ringRadius = outer - RimRingMargin.toPx()
-      val seg = (2f * PI.toFloat() * ringRadius) / EDGE_SPOT_SEGMENT_COUNT
-      drawCircle(
-          color = Color.White.copy(alpha = OUTER_RING_ALPHA),
-          radius = ringRadius,
-          style =
-              Stroke(
-                  width = OuterRingStrokeWidth.toPx(),
-                  pathEffect = PathEffect.dashPathEffect(floatArrayOf(seg, seg)),
-              ),
-      )
+			// 12 white edge spots around the rim
+			val ringRadius = outer - RimRingMargin.toPx()
+			val seg = (2f * PI.toFloat() * ringRadius) / EDGE_SPOT_SEGMENT_COUNT
+			drawCircle(
+				color = Color.White.copy(alpha = OUTER_RING_ALPHA),
+				radius = ringRadius,
+				style =
+					Stroke(
+						width = OuterRingStrokeWidth.toPx(),
+						pathEffect = PathEffect.dashPathEffect(floatArrayOf(seg, seg)),
+					),
+			)
 
-      // Inner Face
-      drawCircle(color, radius = outer * INNER_FACE_RADIUS_RATIO)
-      drawCircle(
-          color = Color.White.copy(alpha = INNER_RING_ALPHA),
-          radius = outer * INNER_FACE_RADIUS_RATIO,
-          style = Stroke(InnerRingStrokeWidth.toPx()),
-      )
-    }
-    Text(
-        text = value.toString(),
-        color = Color.White,
-        fontSize = ChipTextFontSize,
-        fontWeight = FontWeight.Bold,
-    )
-  }
+			// Inner Face
+			drawCircle(color, radius = outer * INNER_FACE_RADIUS_RATIO)
+			drawCircle(
+				color = Color.White.copy(alpha = INNER_RING_ALPHA),
+				radius = outer * INNER_FACE_RADIUS_RATIO,
+				style = Stroke(InnerRingStrokeWidth.toPx()),
+			)
+		}
+		Text(
+			text = value.toString(),
+			color = Color.White,
+			fontSize = ChipTextFontSize,
+			fontWeight = FontWeight.Bold,
+		)
+	}
 }
 
 // A chip that drops onto the table when it first appears
 @Composable
 private fun DroppingChip(value: Int, modifier: Modifier = Modifier) {
-  val progress = remember { Animatable(0f) }
-  LaunchedEffect(Unit) {
-    progress.animateTo(
-        1f,
-        spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
-    )
-  }
-  ChipView(
-      value = value,
-      modifier =
-          modifier.graphicsLayer {
-            translationY = (1f - progress.value) * ChipDropStartOffsetY.toPx()
-            alpha = progress.value.coerceIn(0f, 1f)
-          },
-  )
+	val progress = remember { Animatable(0f) }
+	LaunchedEffect(Unit) {
+		progress.animateTo(
+			1f,
+			spring(
+				dampingRatio = Spring.DampingRatioMediumBouncy,
+				stiffness = Spring.StiffnessMedium
+			),
+		)
+	}
+	ChipView(
+		value = value,
+		modifier =
+			modifier.graphicsLayer {
+				translationY = (1f - progress.value) * ChipDropStartOffsetY.toPx()
+				alpha = progress.value.coerceIn(0f, 1f)
+			},
+	)
 }
 
 // All chips currently bet, stacked by value, with the total underneath
 @Composable
 fun BetChips(
-    chips: List<Int>,
-    modifier: Modifier = Modifier,
-    onUndo: () -> Unit = {},
+	chips: List<Int>,
+	modifier: Modifier = Modifier,
+	onUndo: () -> Unit = {},
 ) {
-  val stacks = chips.groupingBy { it }.eachCount().toSortedMap()
-  val total = chips.sum()
+	val stacks = chips.groupingBy { it }.eachCount().toSortedMap()
+	val total = chips.sum()
 
-  Column(
-      modifier =
-          modifier.clickable(
-              enabled = chips.isNotEmpty(),
-              indication = null,
-              interactionSource = remember { MutableInteractionSource() },
-              onClick = onUndo,
-          ),
-      horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    Box(Modifier.height(BetContainerHeight), contentAlignment = Alignment.BottomCenter) {
-      if (chips.isEmpty()) {
-        Text(
-            "TAP A CHIP TO BET",
-            color = GoldFoil.copy(alpha = PLACEHOLDER_TEXT_ALPHA),
-            fontSize = PlaceholderTextFontSize,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = PlaceholderLetterSpacing,
-            modifier = Modifier.padding(bottom = PlaceholderBottomPadding),
-        )
-      } else {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(StackSpacing),
-            verticalAlignment = Alignment.Bottom,
-        ) {
-          stacks.forEach { (value, count) ->
-            val shown = minOf(count, MAX_STACKED_CHIPS_SHOWN)
-            val stackHeight = DefaultChipSize + (ChipStackOffsetStep * (shown - 1))
+	Column(
+		modifier =
+			modifier.clickable(
+				enabled = chips.isNotEmpty(),
+				indication = null,
+				interactionSource = remember { MutableInteractionSource() },
+				onClick = onUndo,
+			),
+		horizontalAlignment = Alignment.CenterHorizontally,
+	) {
+		Box(Modifier.height(BetContainerHeight), contentAlignment = Alignment.BottomCenter) {
+			if (chips.isEmpty()) {
+				Text(
+					"TAP A CHIP TO BET",
+					color = GoldFoil.copy(alpha = PLACEHOLDER_TEXT_ALPHA),
+					fontSize = PlaceholderTextFontSize,
+					fontWeight = FontWeight.Bold,
+					letterSpacing = PlaceholderLetterSpacing,
+					modifier = Modifier.padding(bottom = PlaceholderBottomPadding),
+				)
+			} else {
+				Row(
+					horizontalArrangement = Arrangement.spacedBy(StackSpacing),
+					verticalAlignment = Alignment.Bottom,
+				) {
+					stacks.forEach { (value, count) ->
+						val shown = minOf(count, MAX_STACKED_CHIPS_SHOWN)
+						val stackHeight = DefaultChipSize + (ChipStackOffsetStep * (shown - 1))
 
-            Box(Modifier.size(width = DefaultChipSize, height = stackHeight)) {
-              for (i in 0 until shown) {
-                key(value, i) {
-                  DroppingChip(
-                      value = value,
-                      modifier = Modifier
-                          .align(Alignment.BottomCenter)
-                          .offset(y = -ChipStackOffsetStep * i),
-                  )
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    if (total > 0) {
-      Text(
-          text = "R$total",
-          color = GoldFoil,
-          fontSize = TotalTextFontSize,
-          fontWeight = FontWeight.Bold,
-          modifier = Modifier.padding(top = TotalTextTopPadding),
-      )
-    }
-  }
+						Box(Modifier.size(width = DefaultChipSize, height = stackHeight)) {
+							for (i in 0 until shown) {
+								key(value, i) {
+									DroppingChip(
+										value = value,
+										modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .offset(y = -ChipStackOffsetStep * i),
+									)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if (total > 0) {
+			Text(
+				text = "R$total",
+				color = GoldFoil,
+				fontSize = TotalTextFontSize,
+				fontWeight = FontWeight.Bold,
+				modifier = Modifier.padding(top = TotalTextTopPadding),
+			)
+		}
+	}
 }

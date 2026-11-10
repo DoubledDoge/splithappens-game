@@ -14,9 +14,9 @@ desyncs over time.
 Could be debatably be turned into a table again.
 */
 @DatabaseView(
-    viewName = "GameHistory",
-    value =
-        """
+	viewName = "GameHistory",
+	value =
+		"""
 		SELECT g.gameId AS gameId,
 			   s.userId AS userId,
 			   s.sessionId AS sessionId,
@@ -33,13 +33,13 @@ Could be debatably be turned into a table again.
 	""",
 )
 data class GameHistory(
-    val gameId: Long,
-    val userId: String,
-    val sessionId: Long,
-    val sessionStartedAt: Long,
-    val mode: GameMode,
-    val gameNum: Int,
-    val dealerTotal: Int,
-    val playerHands: Int,
-    val netChips: Long,
+	val gameId: Long,
+	val userId: String,
+	val sessionId: Long,
+	val sessionStartedAt: Long,
+	val mode: GameMode,
+	val gameNum: Int,
+	val dealerTotal: Int,
+	val playerHands: Int,
+	val netChips: Long,
 )

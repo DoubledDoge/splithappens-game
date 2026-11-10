@@ -1,9 +1,6 @@
 package io.github.doubleddoge.splithappens.screen
 
 import android.app.Application
-import android.graphics.Paint as AndroidPaint
-import android.graphics.Path as AndroidPath
-import android.graphics.PathMeasure as AndroidPathMeasure
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
@@ -61,22 +58,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.github.doubleddoge.splithappens.viewmodel.GameStage
-import io.github.doubleddoge.splithappens.viewmodel.GameViewModel
-import io.github.doubleddoge.splithappens.viewmodel.GameViewModelFactory
-import io.github.doubleddoge.splithappens.viewmodel.SettingUiState
+import io.github.doubleddoge.splithappens.data.buildDatabase
+import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.game.evaluateHand
+import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.components.BetChips
 import io.github.doubleddoge.splithappens.ui.components.GameActionBar
 import io.github.doubleddoge.splithappens.ui.components.HandRow
 import io.github.doubleddoge.splithappens.ui.components.OutcomeBanner
 import io.github.doubleddoge.splithappens.ui.components.UserHeaderCard
-import io.github.doubleddoge.splithappens.data.buildDatabase
-import io.github.doubleddoge.splithappens.data.enum.GameMode
-import io.github.doubleddoge.splithappens.game.evaluateHand
-import io.github.doubleddoge.splithappens.navigation.Screen
-import io.github.doubleddoge.splithappens.ui.theme.DangerRed
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
+import io.github.doubleddoge.splithappens.ui.theme.DangerRed
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
@@ -86,9 +79,16 @@ import io.github.doubleddoge.splithappens.ui.toTableCard
 import io.github.doubleddoge.splithappens.ui.toTableCards
 import io.github.doubleddoge.splithappens.util.triggerClickSound
 import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
+import io.github.doubleddoge.splithappens.viewmodel.GameStage
+import io.github.doubleddoge.splithappens.viewmodel.GameViewModel
+import io.github.doubleddoge.splithappens.viewmodel.GameViewModelFactory
+import io.github.doubleddoge.splithappens.viewmodel.SettingUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 
 // Theme Palettes
 
@@ -103,665 +103,711 @@ private const val ROUNDED_PERCENT = 50
 
 @Composable
 fun GameScreen(
-    modifier: Modifier = Modifier,
-    userId: String = "",
-    mode: GameMode = GameMode.TRADITIONAL,
-    displayName: String = "Player 1",
-    chipsOwned: Long = 2500L,
-    profilePictureBytes: ByteArray? = null,
-    isDarkTheme: Boolean = true,
-    settingsUiState: SettingUiState = SettingUiState(),
-    onNavigateHome: () -> Unit = {},
-    onNavigateMenu: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
+	modifier: Modifier = Modifier,
+	userId: String = "",
+	mode: GameMode = GameMode.TRADITIONAL,
+	displayName: String = "Player 1",
+	chipsOwned: Long = 2500L,
+	profilePictureBytes: ByteArray? = null,
+	isDarkTheme: Boolean = true,
+	settingsUiState: SettingUiState = SettingUiState(),
+	onNavigateHome: () -> Unit = {},
+	onNavigateMenu: () -> Unit = {},
+	onNavigateProfile: () -> Unit = {},
 ) {
-  val context = LocalContext.current
-  val triggerFeedback: (Long) -> Unit = { durationMs ->
-    if (settingsUiState.soundEffects) triggerClickSound()
-    if (settingsUiState.hapticVibration) triggerDeviceVibration(context, durationMs)
-  }
+	val context = LocalContext.current
+	val triggerFeedback: (Long) -> Unit = { durationMs ->
+		if (settingsUiState.soundEffects) triggerClickSound()
+		if (settingsUiState.hapticVibration) triggerDeviceVibration(context, durationMs)
+	}
 
-  val db = remember(context) { buildDatabase(context) }
-  val gameViewModel: GameViewModel =
-      viewModel(
-          key = "game_${userId}_${mode.name}",
-          factory =
-              GameViewModelFactory(
-                  application = context.applicationContext as Application,
-                  userDao = db.userDao(),
-                  sessionDao = db.sessionDao(),
-                  roundDao = db.roundDao(),
-                  targetUserId = userId,
-                  mode = mode,
-              ),
-      )
-  val uiState by gameViewModel.uiState.collectAsState()
-  LaunchedEffect(mode) {
-    if (uiState.gameMode != mode && uiState.stage == GameStage.BETTING) {
-      gameViewModel.setGameMode(mode)
-    }
-  }
+	val db = remember(context) { buildDatabase(context) }
+	val gameViewModel: GameViewModel =
+		viewModel(
+			key = "game_${userId}_${mode.name}",
+			factory =
+				GameViewModelFactory(
+					application = context.applicationContext as Application,
+					userDao = db.userDao(),
+					sessionDao = db.sessionDao(),
+					roundDao = db.roundDao(),
+					targetUserId = userId,
+					mode = mode,
+				),
+		)
+	val uiState by gameViewModel.uiState.collectAsState()
+	LaunchedEffect(mode) {
+		if (uiState.gameMode != mode && uiState.stage == GameStage.BETTING) {
+			gameViewModel.setGameMode(mode)
+		}
+	}
 
-  val isGameInProgress = uiState.isGameInProgress
+	val isGameInProgress = uiState.isGameInProgress
 
-  var betChipsList by remember { mutableStateOf(listOf<Int>()) }
-  var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
-  var showAllInDialog by remember { mutableStateOf(false) }
+	var betChipsList by remember { mutableStateOf(listOf<Int>()) }
+	var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
+	var showAllInDialog by remember { mutableStateOf(false) }
 
-  val bgCenter = if (isDarkTheme) CardBackground else LightSurface
-  val bgOuter = if (isDarkTheme) DarkBackground else LightBackground
-  val feltColor = if (isDarkTheme) FeltDarkSurface else LightBackground
+	val bgCenter = if (isDarkTheme) CardBackground else LightSurface
+	val bgOuter = if (isDarkTheme) DarkBackground else LightBackground
+	val feltColor = if (isDarkTheme) FeltDarkSurface else LightBackground
 
-  val safeNavigate: (() -> Unit) -> Unit = { destinationAction ->
-    if (isGameInProgress) {
-      pendingNavigation = destinationAction
-    } else {
-      destinationAction()
-    }
-  }
+	val safeNavigate: (() -> Unit) -> Unit = { destinationAction ->
+		if (isGameInProgress) {
+			pendingNavigation = destinationAction
+		} else {
+			destinationAction()
+		}
+	}
 
-  if (showAllInDialog) {
-    val available = uiState.chipsOwned - uiState.currentBet
-    AlertDialog(
-        onDismissRequest = { showAllInDialog = false },
-        title = { Text("Go All In?") },
-        text = {
-          Text(
-              "Are you sure you want to wager your entire remaining balance of R$available?"
-          )
-        },
-        confirmButton = {
-          TextButton(
-              onClick = {
-                showAllInDialog = false
-                if (available > 0L) {
-                  triggerFeedback(35L)
-                  betChipsList = betChipsList + available.toInt()
-                  gameViewModel.addBet(available)
-                }
-              }
-          ) {
-            Text("ALL IN", color = GoldFoil, fontWeight = FontWeight.Bold)
-          }
-        },
-        dismissButton = {
-          TextButton(onClick = { showAllInDialog = false }) { Text("Cancel") }
-        },
-    )
-  }
+	if (showAllInDialog) {
+		val available = uiState.chipsOwned - uiState.currentBet
+		AlertDialog(
+			onDismissRequest = { showAllInDialog = false },
+			title = { Text("Go All In?") },
+			text = {
+				Text(
+					"Are you sure you want to wager your entire remaining balance of R$available?"
+				)
+			},
+			confirmButton = {
+				TextButton(
+					onClick = {
+						showAllInDialog = false
+						if (available > 0L) {
+							triggerFeedback(35L)
+							betChipsList = betChipsList + available.toInt()
+							gameViewModel.addBet(available)
+						}
+					}
+				) {
+					Text("ALL IN", color = GoldFoil, fontWeight = FontWeight.Bold)
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { showAllInDialog = false }) { Text("Cancel") }
+			},
+		)
+	}
 
-  BackHandler {
-    if (isGameInProgress) {
-      pendingNavigation = onNavigateHome
-    } else {
-      onNavigateHome()
-    }
-  }
+	BackHandler {
+		if (isGameInProgress) {
+			pendingNavigation = onNavigateHome
+		} else {
+			onNavigateHome()
+		}
+	}
 
-  if (pendingNavigation != null) {
-    AlertDialog(
-        onDismissRequest = { pendingNavigation = null },
-        title = { Text("Quit Game?") },
-        text = { Text("You have an active bet in progress. Leaving now will forfeit your bet.") },
-        confirmButton = {
-          TextButton(
-              onClick = {
-                val action = pendingNavigation
-                pendingNavigation = null
-                gameViewModel.forfeitRound()
-                action?.invoke()
-              }
-          ) {
-            Text("Quit & Forfeit")
-          }
-        },
-        dismissButton = {
-          TextButton(onClick = { pendingNavigation = null }) { Text("Cancel") }
-        },
-    )
-  }
+	if (pendingNavigation != null) {
+		AlertDialog(
+			onDismissRequest = { pendingNavigation = null },
+			title = { Text("Quit Game?") },
+			text = { Text("You have an active bet in progress. Leaving now will forfeit your bet.") },
+			confirmButton = {
+				TextButton(
+					onClick = {
+						val action = pendingNavigation
+						pendingNavigation = null
+						gameViewModel.forfeitRound()
+						action?.invoke()
+					}
+				) {
+					Text("Quit & Forfeit")
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { pendingNavigation = null }) { Text("Cancel") }
+			},
+		)
+	}
 
-  Scaffold(
-      modifier = modifier,
-      topBar = {
-        val displayedChips =
-            when (uiState.stage) {
-              GameStage.ROUND_OVER -> uiState.chipsOwned
-              else -> uiState.chipsOwned - uiState.currentBet - uiState.insuranceBet
-            }
-        UserHeaderCard(
-            displayName = uiState.displayName.ifBlank { displayName },
-            chipsOwned = displayedChips,
-            profilePictureBytes = profilePictureBytes,
-            isDarkTheme = isDarkTheme,
-            onProfileClick = { safeNavigate(onNavigateProfile) },
-        )
-      },
-      bottomBar = {
-        AppBottomBar(
-            currentRoute = Screen.Game.route,
-            isDarkTheme = isDarkTheme,
-            onNavigateHome = { safeNavigate(onNavigateHome) },
-            onNavigateGame = { /* Already on Game */ },
-            onNavigateMenu = { safeNavigate(onNavigateMenu) },
-        )
-      },
-      containerColor = bgOuter,
-  ) { innerPadding ->
-    Box(
-        modifier =
-            Modifier.fillMaxSize()
-                .padding(innerPadding)
-                .background(
-                    brush =
-                        Brush.radialGradient(
-                            colors = listOf(bgCenter, bgOuter),
-                            radius = 1200f,
-                        )
-                )
-    ) {
-      Column(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
-        // Table Rail Structure
-        val railRadius = 36.dp
-        val railThickness = 10.dp
-        val railShape = RoundedCornerShape(topStart = railRadius, topEnd = railRadius)
-        val feltShape =
-            RoundedCornerShape(
-                topStart = railRadius - railThickness,
-                topEnd = railRadius - railThickness,
-            )
-
-        Box(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .weight(1f)
-                    .padding(top = 12.dp, bottom = 12.dp)
-                    .shadow(12.dp, railShape)
+	Scaffold(
+		modifier = modifier,
+		topBar = {
+			val displayedChips =
+				when (uiState.stage) {
+					GameStage.ROUND_OVER -> uiState.chipsOwned
+					else -> uiState.chipsOwned - uiState.currentBet - uiState.insuranceBet
+				}
+			UserHeaderCard(
+				displayName = uiState.displayName.ifBlank { displayName },
+				chipsOwned = displayedChips,
+				profilePictureBytes = profilePictureBytes,
+				isDarkTheme = isDarkTheme,
+				onProfileClick = { safeNavigate(onNavigateProfile) },
+			)
+		},
+		bottomBar = {
+			AppBottomBar(
+				currentRoute = Screen.Game.route,
+				isDarkTheme = isDarkTheme,
+				onNavigateHome = { safeNavigate(onNavigateHome) },
+				onNavigateGame = { /* Already on Game */ },
+				onNavigateMenu = { safeNavigate(onNavigateMenu) },
+			)
+		},
+		containerColor = bgOuter,
+	) { innerPadding ->
+		Box(
+			modifier =
+				Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
                     .background(
                         brush =
-                            Brush.verticalGradient(
-                                colors = listOf(WoodRailInner, WoodRailOuter, WoodRailInner)
+                            Brush.radialGradient(
+                                colors = listOf(bgCenter, bgOuter),
+                                radius = 1200f,
                             )
                     )
-                    .border(
-                        width = 1.dp,
-                        brush =
-                            Brush.verticalGradient(
-                                colors = listOf(Color.White.copy(alpha = 0.22f), Color.Transparent)
-                            ),
-                        shape = railShape,
-                    )
-                    .padding(top = railThickness, start = railThickness, end = railThickness)
-        ) {
-          // Inner Felt Playfield
-          Box(
-              modifier =
-                  Modifier.fillMaxSize()
-                      .clip(feltShape)
-                      .border(1.dp, GoldFoil.copy(alpha = 0.22f), feltShape)
-          ) {
-            // Felt Arc Markings Canvas
-            Canvas(modifier = Modifier.fillMaxSize()) {
-              val w = size.width
-              val h = size.height
+		) {
+			Column(
+				modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp)
+			) {
+				// Table Rail Structure
+				val railRadius = 36.dp
+				val railThickness = 10.dp
+				val railShape = RoundedCornerShape(topStart = railRadius, topEnd = railRadius)
+				val feltShape =
+					RoundedCornerShape(
+						topStart = railRadius - railThickness,
+						topEnd = railRadius - railThickness,
+					)
 
-              drawRect(
-                  Brush.radialGradient(
-                      colors =
-                          listOf(
-                              lerp(feltColor, Color.White, 0.08f),
-                              feltColor,
-                              lerp(feltColor, Color.Black, 0.45f),
-                          ),
-                      center = Offset(w / 2f, h * 0.45f),
-                      radius = w * 1.15f,
-                  )
-              )
+				Box(
+					modifier =
+						Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(top = 12.dp, bottom = 12.dp)
+                            .shadow(12.dp, railShape)
+                            .background(
+                                brush =
+                                    Brush.verticalGradient(
+                                        colors = listOf(WoodRailInner, WoodRailOuter, WoodRailInner)
+                                    )
+                            )
+                            .border(
+                                width = 1.dp,
+                                brush =
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.White.copy(alpha = 0.22f),
+                                            Color.Transparent
+                                        )
+                                    ),
+                                shape = railShape,
+                            )
+                            .padding(
+                                top = railThickness,
+                                start = railThickness,
+                                end = railThickness
+                            )
+				) {
+					// Inner Felt Playfield
+					Box(
+						modifier =
+							Modifier
+                                .fillMaxSize()
+                                .clip(feltShape)
+                                .border(1.dp, GoldFoil.copy(alpha = 0.22f), feltShape)
+					) {
+						// Felt Arc Markings Canvas
+						Canvas(modifier = Modifier.fillMaxSize()) {
+							val w = size.width
+							val h = size.height
 
-              val outerR = w * 0.52f
-              val innerR = outerR - 30.dp.toPx()
-              val center = Offset(w / 2f, h * 0.50f - outerR)
+							drawRect(
+								Brush.radialGradient(
+									colors =
+										listOf(
+											lerp(feltColor, Color.White, 0.08f),
+											feltColor,
+											lerp(feltColor, Color.Black, 0.45f),
+										),
+									center = Offset(w / 2f, h * 0.45f),
+									radius = w * 1.15f,
+								)
+							)
 
-              fun arc(radius: Float, alpha: Float, strokeWidth: Float) =
-                  drawArc(
-                      color = GoldFoil.copy(alpha = alpha),
-                      startAngle = 90f - ARC_SWEEP / 2f,
-                      sweepAngle = ARC_SWEEP,
-                      useCenter = false,
-                      topLeft = Offset(center.x - radius, center.y - radius),
-                      size = Size(radius * 2, radius * 2),
-                      style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-                  )
+							val outerR = w * 0.52f
+							val innerR = outerR - 30.dp.toPx()
+							val center = Offset(w / 2f, h * 0.50f - outerR)
 
-              if (settingsUiState.dealerRuleBanner) {
-                arc(outerR, 0.45f, 1.5.dp.toPx())
-                arc(innerR, 0.25f, 1.dp.toPx())
+							fun arc(radius: Float, alpha: Float, strokeWidth: Float) =
+								drawArc(
+									color = GoldFoil.copy(alpha = alpha),
+									startAngle = 90f - ARC_SWEEP / 2f,
+									sweepAngle = ARC_SWEEP,
+									useCenter = false,
+									topLeft = Offset(center.x - radius, center.y - radius),
+									size = Size(radius * 2, radius * 2),
+									style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+								)
 
-                drawArcText(
-                    "BLACKJACK PAYS 3 TO 2",
-                    center,
-                    outerR - 8.dp.toPx(),
-                    GoldFoil.copy(alpha = 0.85f),
-                    12.sp.toPx(),
-                )
-                drawArcText(
-                    "INSURANCE PAYS 2 TO 1",
-                    center,
-                    innerR - 8.dp.toPx(),
-                    GoldFoil.copy(alpha = 0.55f),
-                    9.sp.toPx(),
-                    spacingEm = 0.14f,
-                )
-              }
-            }
+							if (settingsUiState.dealerRuleBanner) {
+								arc(outerR, 0.45f, 1.5.dp.toPx())
+								arc(innerR, 0.25f, 1.dp.toPx())
 
-            // DEALER AREA (Top)
-            Column(
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-              // Mode Selector Pill
-              val canSwitchMode = uiState.stage == GameStage.BETTING
+								drawArcText(
+									"BLACKJACK PAYS 3 TO 2",
+									center,
+									outerR - 8.dp.toPx(),
+									GoldFoil.copy(alpha = 0.85f),
+									12.sp.toPx(),
+								)
+								drawArcText(
+									"INSURANCE PAYS 2 TO 1",
+									center,
+									innerR - 8.dp.toPx(),
+									GoldFoil.copy(alpha = 0.55f),
+									9.sp.toPx(),
+									spacingEm = 0.14f,
+								)
+							}
+						}
 
-              Row(
-                  modifier =
-                      Modifier.padding(bottom = 6.dp)
-                          .clip(RoundedCornerShape(ROUNDED_PERCENT))
-                          .background(Color.Black.copy(alpha = 0.35f))
-                          .border(
-                              1.dp,
-                              GoldFoil.copy(alpha = 0.45f),
-                              RoundedCornerShape(ROUNDED_PERCENT),
-                          )
-                          .padding(2.dp),
-                  horizontalArrangement = Arrangement.spacedBy(4.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-              ) {
-                GameMode.entries.forEach { entry ->
-                  val isSelected = uiState.gameMode == entry
-                  val label = if (entry == GameMode.WILDCARD) "WILDCARD" else "TRADITIONAL"
+						// DEALER AREA (Top)
+						Column(
+							modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 10.dp),
+							horizontalAlignment = Alignment.CenterHorizontally,
+						) {
+							// Mode Selector Pill
+							val canSwitchMode = uiState.stage == GameStage.BETTING
 
-                  Box(
-                      modifier =
-                          Modifier.clip(RoundedCornerShape(ROUNDED_PERCENT))
-                              .background(if (isSelected) GoldFoil else Color.Transparent)
-                              .clickable(enabled = canSwitchMode && !isSelected) {
-                                triggerFeedback(25L)
-                                gameViewModel.setGameMode(entry)
-                              }
-                              .padding(horizontal = 10.dp, vertical = 4.dp),
-                      contentAlignment = Alignment.Center,
-                  ) {
-                    Text(
-                        text = label,
-                        color =
-                            if (isSelected) Color(0xFF1A1208)
-                            else GoldFoil.copy(alpha = if (canSwitchMode) 0.75f else 0.4f),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                    )
-                  }
-                }
-              }
+							Row(
+								modifier =
+									Modifier
+                                        .padding(bottom = 6.dp)
+                                        .clip(RoundedCornerShape(ROUNDED_PERCENT))
+                                        .background(Color.Black.copy(alpha = 0.35f))
+                                        .border(
+                                            1.dp,
+                                            GoldFoil.copy(alpha = 0.45f),
+                                            RoundedCornerShape(ROUNDED_PERCENT),
+                                        )
+                                        .padding(2.dp),
+								horizontalArrangement = Arrangement.spacedBy(4.dp),
+								verticalAlignment = Alignment.CenterVertically,
+							) {
+								GameMode.entries.forEach { entry ->
+									val isSelected = uiState.gameMode == entry
+									val label =
+										if (entry == GameMode.WILDCARD) "WILDCARD" else "TRADITIONAL"
 
-              TableLabel(
-                  text = "DEALER",
-                  total =
-                      if (
-                          settingsUiState.showCardTotal &&
-                              uiState.dealerCards.isNotEmpty() &&
-                              !uiState.hideHoleCard
-                      ) {
-                        uiState.dealerCards.evaluateHand().total
-                      } else {
-                        null
-                      },
-              )
-              Spacer(modifier = Modifier.height(6.dp))
-              HandRow(
-                  hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard),
-                  fastDeal = settingsUiState.fastDeal,
-              )
-            }
+									Box(
+										modifier =
+											Modifier
+                                                .clip(RoundedCornerShape(ROUNDED_PERCENT))
+                                                .background(if (isSelected) GoldFoil else Color.Transparent)
+                                                .clickable(enabled = canSwitchMode && !isSelected) {
+                                                    triggerFeedback(25L)
+                                                    gameViewModel.setGameMode(entry)
+                                                }
+                                                .padding(horizontal = 10.dp, vertical = 4.dp),
+										contentAlignment = Alignment.Center,
+									) {
+										Text(
+											text = label,
+											color =
+												if (isSelected) Color(0xFF1A1208)
+												else GoldFoil.copy(alpha = if (canSwitchMode) 0.75f else 0.4f),
+											fontSize = 10.sp,
+											fontWeight = FontWeight.Bold,
+											letterSpacing = 1.sp,
+										)
+									}
+								}
+							}
 
-            // PLAYER AREA, STATUS BANNER & CONTROLS (Bottom)
-            Column(
-                modifier =
-                    Modifier.align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-              // OUTCOME BANNER
-              if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
-                OutcomeBanner(
-                    text = uiState.statusText,
-                    results = uiState.results,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-              }
+							TableLabel(
+								text = "DEALER",
+								total =
+									if (
+										settingsUiState.showCardTotal &&
+										uiState.dealerCards.isNotEmpty() &&
+										!uiState.hideHoleCard
+									) {
+										uiState.dealerCards.evaluateHand().total
+									} else {
+										null
+									},
+							)
+							Spacer(modifier = Modifier.height(6.dp))
+							HandRow(
+								hand = uiState.dealerCards.toTableCards(uiState.hideHoleCard),
+								fastDeal = settingsUiState.fastDeal,
+							)
+						}
 
-              // PLAYER HAND DISPLAY
-              if (uiState.playerHands.size <= 1) {
-                val primaryHand = uiState.playerHands.firstOrNull()
+						// PLAYER AREA, STATUS BANNER & CONTROLS (Bottom)
+						Column(
+							modifier =
+								Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+							horizontalAlignment = Alignment.CenterHorizontally,
+						) {
+							// OUTCOME BANNER
+							if (uiState.stage != GameStage.BETTING && uiState.statusText.isNotEmpty()) {
+								OutcomeBanner(
+									text = uiState.statusText,
+									results = uiState.results,
+									modifier = Modifier.padding(bottom = 8.dp),
+								)
+							}
 
-                if (primaryHand != null) {
-                  HandRow(
-                      hand = primaryHand.cards.toTableCards(),
-                      fastDeal = settingsUiState.fastDeal,
-                  )
-                }
+							// PLAYER HAND DISPLAY
+							if (uiState.playerHands.size <= 1) {
+								val primaryHand = uiState.playerHands.firstOrNull()
 
-                Spacer(modifier = Modifier.height(6.dp))
+								if (primaryHand != null) {
+									HandRow(
+										hand = primaryHand.cards.toTableCards(),
+										fastDeal = settingsUiState.fastDeal,
+									)
+								}
 
-                TableLabel(
-                    text = "PLAYER",
-                    total = if (settingsUiState.showCardTotal) primaryHand?.value?.total else null,
-                )
-              } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement =
-                        Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                  uiState.playerHands.forEachIndexed { index, hand ->
-                    val isActiveHand =
-                        uiState.stage == GameStage.PLAYER_TURN && index == uiState.activeHandIndex
+								Spacer(modifier = Modifier.height(6.dp))
 
-                    Column(
-                        modifier =
-                            Modifier.clip(RoundedCornerShape(10.dp))
-                                .background(
-                                    if (isActiveHand) GoldFoil.copy(alpha = 0.12f)
-                                    else Color.Transparent
-                                )
-                                .border(
-                                    width = if (isActiveHand) 1.5.dp else 0.dp,
-                                    color = if (isActiveHand) GoldFoil else Color.Transparent,
-                                    shape = RoundedCornerShape(10.dp),
-                                )
-                                .padding(horizontal = 8.dp, vertical = 6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                      HandRow(
-                          hand =
-                              hand.cards.mapIndexed { cardIdx, card ->
-                                card.toTableCard(
-                                    uid = index * 10000L + cardIdx.toLong() + card.cardId * 100L,
-                                    isFaceUp = true,
-                                )
-                              },
-                          overlap = 26.dp,
-                          fastDeal = settingsUiState.fastDeal,
-                      )
-                      Spacer(modifier = Modifier.height(4.dp))
+								TableLabel(
+									text = "PLAYER",
+									total = if (settingsUiState.showCardTotal) primaryHand?.value?.total else null,
+								)
+							} else {
+								Row(
+									modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState()),
+									horizontalArrangement =
+										Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+									verticalAlignment = Alignment.Bottom,
+								) {
+									uiState.playerHands.forEachIndexed { index, hand ->
+										val isActiveHand =
+											uiState.stage == GameStage.PLAYER_TURN && index == uiState.activeHandIndex
 
-                      TableLabel(
-                          text = "HAND ${index + 1}",
-                          total = if (settingsUiState.showCardTotal) hand.value.total else null,
-                      )
-                    }
-                  }
-                }
-              }
+										Column(
+											modifier =
+												Modifier
+                                                    .clip(RoundedCornerShape(10.dp))
+                                                    .background(
+                                                        if (isActiveHand) GoldFoil.copy(alpha = 0.12f)
+                                                        else Color.Transparent
+                                                    )
+                                                    .border(
+                                                        width = if (isActiveHand) 1.5.dp else 0.dp,
+                                                        color = if (isActiveHand) GoldFoil else Color.Transparent,
+                                                        shape = RoundedCornerShape(10.dp),
+                                                    )
+                                                    .padding(horizontal = 8.dp, vertical = 6.dp),
+											horizontalAlignment = Alignment.CenterHorizontally,
+										) {
+											HandRow(
+												hand =
+													hand.cards.mapIndexed { cardIdx, card ->
+														card.toTableCard(
+															uid = index * 10000L + cardIdx.toLong() + card.cardId * 100L,
+															isFaceUp = true,
+														)
+													},
+												overlap = 26.dp,
+												fastDeal = settingsUiState.fastDeal,
+											)
+											Spacer(modifier = Modifier.height(4.dp))
 
-              if (uiState.stage == GameStage.BETTING && uiState.userId.isNotBlank() && uiState.chipsOwned <= 100L) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFF3B1C1C),
-                    border = BorderStroke(1.dp, DangerRed),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                ) {
-                  Column(
-                      modifier = Modifier.padding(12.dp),
-                      horizontalAlignment = Alignment.CenterHorizontally,
-                  ) {
-                    Text(
-                        text = "LOW BALANCE (< R100)",
-                        color = DangerRed,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text =
-                            "Minimum stake is R100. Your daily R500 reward arrives every 24 hours, or you can top up below!",
-                        color = Color.White.copy(alpha = 0.85f),
-                        fontSize = 11.sp,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                          // Optional one-time emergency top-up
-                          val activeUserId = userId
+											TableLabel(
+												text = "HAND ${index + 1}",
+												total = if (settingsUiState.showCardTotal) hand.value.total else null,
+											)
+										}
+									}
+								}
+							}
 
-                          if (activeUserId.isNotBlank()) {
-                            CoroutineScope(Dispatchers.IO)
-                                .launch {
-                                  db.userDao().setChips(activeUserId, 1000L)
-                                }
-                          }
-                        },
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = GoldFoil,
-                                contentColor = Color.Black,
-                            ),
-                        modifier = Modifier.height(36.dp),
-                    ) {
-                      Text("CLAIM R1,000 TOP-UP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                  }
-                }
-              }
+							if (uiState.stage == GameStage.BETTING && uiState.userId.isNotBlank() && uiState.chipsOwned <= 100L) {
+								Spacer(modifier = Modifier.height(8.dp))
+								Surface(
+									shape = RoundedCornerShape(12.dp),
+									color = Color(0xFF3B1C1C),
+									border = BorderStroke(1.dp, DangerRed),
+									modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+								) {
+									Column(
+										modifier = Modifier.padding(12.dp),
+										horizontalAlignment = Alignment.CenterHorizontally,
+									) {
+										Text(
+											text = "LOW BALANCE (< R100)",
+											color = DangerRed,
+											fontWeight = FontWeight.Bold,
+											fontSize = 12.sp,
+										)
+										Spacer(modifier = Modifier.height(4.dp))
+										Text(
+											text =
+												"Minimum stake is R100. Your daily R500 reward arrives every 24 hours, or you can top up below!",
+											color = Color.White.copy(alpha = 0.85f),
+											fontSize = 11.sp,
+											textAlign = TextAlign.Center,
+										)
+										Spacer(modifier = Modifier.height(8.dp))
+										Button(
+											onClick = {
+												// Optional one-time emergency top-up
+												val activeUserId = userId
 
-              if (uiState.stage == GameStage.BETTING) {
-                Spacer(modifier = Modifier.height(6.dp))
-                BetChips(
-                    chips = betChipsList,
-                    onUndo = {
-                      if (betChipsList.isNotEmpty()) {
-                        triggerFeedback(25L)
-                        gameViewModel.clearBet()
-                        betChipsList = emptyList()
-                      }
-                    },
-                )
-              }
+												if (activeUserId.isNotBlank()) {
+													CoroutineScope(Dispatchers.IO)
+														.launch {
+															db.userDao()
+																.setChips(activeUserId, 1000L)
+														}
+												}
+											},
+											colors =
+												ButtonDefaults.buttonColors(
+													containerColor = GoldFoil,
+													contentColor = Color.Black,
+												),
+											modifier = Modifier.height(36.dp),
+										) {
+											Text(
+												"CLAIM R1,000 TOP-UP",
+												fontSize = 11.sp,
+												fontWeight = FontWeight.Bold
+											)
+										}
+									}
+								}
+							}
 
-              Spacer(modifier = Modifier.height(8.dp))
+							if (uiState.stage == GameStage.BETTING) {
+								Spacer(modifier = Modifier.height(6.dp))
+								BetChips(
+									chips = betChipsList,
+									onUndo = {
+										if (betChipsList.isNotEmpty()) {
+											triggerFeedback(25L)
+											gameViewModel.clearBet()
+											betChipsList = emptyList()
+										}
+									},
+								)
+							}
 
-              if (uiState.stage == GameStage.ROUND_OVER) {
-                Button(
-                    onClick = {
-                      betChipsList = emptyList()
-                      gameViewModel.resetForNextRound()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = GoldFoil,
-                            contentColor = Color(0xFF1A1208),
-                        ),
-                ) {
-                  Text(
-                      text = "PLAY AGAIN",
-                      fontWeight = FontWeight.Bold,
-                      fontSize = 14.sp,
-                      letterSpacing = 1.5.sp,
-                  )
-                }
-              } else {
-                GameActionBar(
-                    isBetting = uiState.stage == GameStage.BETTING,
-                    canBet = uiState.currentBet > 0L,
-                    availableChips = uiState.chipsOwned - uiState.currentBet,
-                    legalActions = uiState.legalActions,
-                    onChip = { amount ->
-                      if ((uiState.chipsOwned - uiState.currentBet) >= amount) {
-                        triggerFeedback(25L)
-                        betChipsList = betChipsList + amount.toInt()
-                        gameViewModel.addBet(amount)
-                      }
-                    },
-                    onAllIn = {
-                      val available = uiState.chipsOwned - uiState.currentBet
-                      if (available > 0L) {
-                        showAllInDialog = true
-                      }
-                    },
-                    onDeal = {
-                      triggerFeedback(35L)
-                      gameViewModel.deal()
-                    },
-                    onAction = { action ->
-                      triggerFeedback(35L)
-                      gameViewModel.performAction(action)
-                    },
-                )
-              }
-            }
+							Spacer(modifier = Modifier.height(8.dp))
 
-            // Insurance overlay prompt (Direct child of the Felt Box so Alignment.Center works)
-            if (uiState.stage == GameStage.INSURANCE) {
-              val canAffordInsurance = uiState.chipsOwned >= uiState.currentBet / 2
-              Surface(
-                  shape = RoundedCornerShape(16.dp),
-                  color = DarkBackground,
-                  border = BorderStroke(2.dp, GoldFoil),
-                  shadowElevation = 12.dp,
-                  modifier = Modifier.align(Alignment.Center).padding(24.dp),
-              ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                  Text(
-                      text = "INSURANCE OFFERED",
-                      color = GoldFoil,
-                      fontSize = 16.sp,
-                      fontWeight = FontWeight.Bold,
-                      letterSpacing = 1.2.sp,
-                  )
-                  Spacer(modifier = Modifier.height(12.dp))
-                  Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(
-                        onClick = { gameViewModel.resolveInsurance(true) },
-                        enabled = canAffordInsurance,
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                contentColor = GoldFoil,
-                                containerColor = Color.Black,
-                            ),
-                    ) {
-                      Text("ACCEPT")
-                    }
-                    Button(
-                        onClick = { gameViewModel.resolveInsurance(false) },
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF2A3B32),
-                                contentColor = Color.White,
-                            ),
-                    ) {
-                      Text("DECLINE")
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+							if (uiState.stage == GameStage.ROUND_OVER) {
+								Button(
+									onClick = {
+										betChipsList = emptyList()
+										gameViewModel.resetForNextRound()
+									},
+									modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(48.dp),
+									shape = RoundedCornerShape(12.dp),
+									colors =
+										ButtonDefaults.buttonColors(
+											containerColor = GoldFoil,
+											contentColor = Color(0xFF1A1208),
+										),
+								) {
+									Text(
+										text = "PLAY AGAIN",
+										fontWeight = FontWeight.Bold,
+										fontSize = 14.sp,
+										letterSpacing = 1.5.sp,
+									)
+								}
+							} else {
+								GameActionBar(
+									isBetting = uiState.stage == GameStage.BETTING,
+									canBet = uiState.currentBet > 0L,
+									availableChips = uiState.chipsOwned - uiState.currentBet,
+									legalActions = uiState.legalActions,
+									onChip = { amount ->
+										if ((uiState.chipsOwned - uiState.currentBet) >= amount) {
+											triggerFeedback(25L)
+											betChipsList = betChipsList + amount.toInt()
+											gameViewModel.addBet(amount)
+										}
+									},
+									onAllIn = {
+										val available = uiState.chipsOwned - uiState.currentBet
+										if (available > 0L) {
+											showAllInDialog = true
+										}
+									},
+									onDeal = {
+										triggerFeedback(35L)
+										gameViewModel.deal()
+									},
+									onAction = { action ->
+										triggerFeedback(35L)
+										gameViewModel.performAction(action)
+									},
+								)
+							}
+						}
+
+						// Insurance overlay prompt (Direct child of the Felt Box so Alignment.Center works)
+						if (uiState.stage == GameStage.INSURANCE) {
+							val canAffordInsurance = uiState.chipsOwned >= uiState.currentBet / 2
+							Surface(
+								shape = RoundedCornerShape(16.dp),
+								color = DarkBackground,
+								border = BorderStroke(2.dp, GoldFoil),
+								shadowElevation = 12.dp,
+								modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .padding(24.dp),
+							) {
+								Column(
+									modifier = Modifier.padding(20.dp),
+									horizontalAlignment = Alignment.CenterHorizontally,
+								) {
+									Text(
+										text = "INSURANCE OFFERED",
+										color = GoldFoil,
+										fontSize = 16.sp,
+										fontWeight = FontWeight.Bold,
+										letterSpacing = 1.2.sp,
+									)
+									Spacer(modifier = Modifier.height(12.dp))
+									Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+										Button(
+											onClick = { gameViewModel.resolveInsurance(true) },
+											enabled = canAffordInsurance,
+											colors =
+												ButtonDefaults.buttonColors(
+													contentColor = GoldFoil,
+													containerColor = Color.Black,
+												),
+										) {
+											Text("ACCEPT")
+										}
+										Button(
+											onClick = { gameViewModel.resolveInsurance(false) },
+											colors =
+												ButtonDefaults.buttonColors(
+													containerColor = Color(0xFF2A3B32),
+													contentColor = Color.White,
+												),
+										) {
+											Text("DECLINE")
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 private fun DrawScope.drawArcText(
-    text: String,
-    center: Offset,
-    radius: Float,
-    color: Color,
-    textSizePx: Float,
-    spacingEm: Float = 0.16f,
+	text: String,
+	center: Offset,
+	radius: Float,
+	color: Color,
+	textSizePx: Float,
+	spacingEm: Float = 0.16f,
 ) {
-  val oval =
-      RectF(
-          center.x - radius,
-          center.y - radius,
-          center.x + radius,
-          center.y + radius,
-      )
-  val androidPath = AndroidPath().apply { arcTo(oval, 90f + ARC_SWEEP / 2f, -ARC_SWEEP, true) }
-  val paint =
-      AndroidPaint().apply {
-        isAntiAlias = true
-        this.color = color.toArgb()
-        textSize = textSizePx
-        typeface = Typeface.DEFAULT_BOLD
-        letterSpacing = spacingEm
-      }
-  val pathLength = AndroidPathMeasure(androidPath, false).length
-  val textWidth = paint.measureText(text)
+	val oval =
+		RectF(
+			center.x - radius,
+			center.y - radius,
+			center.x + radius,
+			center.y + radius,
+		)
+	val androidPath = AndroidPath().apply { arcTo(oval, 90f + ARC_SWEEP / 2f, -ARC_SWEEP, true) }
+	val paint =
+		AndroidPaint().apply {
+			isAntiAlias = true
+			this.color = color.toArgb()
+			textSize = textSizePx
+			typeface = Typeface.DEFAULT_BOLD
+			letterSpacing = spacingEm
+		}
+	val pathLength = AndroidPathMeasure(androidPath, false).length
+	val textWidth = paint.measureText(text)
 
-  drawIntoCanvas { canvas ->
-    canvas.nativeCanvas.drawTextOnPath(
-        text,
-        androidPath,
-        (pathLength - textWidth) / 2f,
-        0f,
-        paint,
-    )
-  }
+	drawIntoCanvas { canvas ->
+		canvas.nativeCanvas.drawTextOnPath(
+			text,
+			androidPath,
+			(pathLength - textWidth) / 2f,
+			0f,
+			paint,
+		)
+	}
 }
 
 @Composable
 private fun TableLabel(
-    text: String,
-    total: Int? = null,
-    modifier: Modifier = Modifier,
+	text: String,
+	total: Int? = null,
+	modifier: Modifier = Modifier,
 ) {
-  val labelText = if (total != null) "$text · $total" else text
+	val labelText = if (total != null) "$text · $total" else text
 
-  Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-    Box(
-        Modifier.width(28.dp)
-            .height(1.dp)
-            .background(
-                Brush.horizontalGradient(listOf(Color.Transparent, GoldFoil.copy(alpha = 0.55f)))
-            )
-    )
-    Text(
-        text = labelText,
-        color = GoldFoil.copy(alpha = 0.75f),
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 2.sp,
-        modifier = Modifier.padding(horizontal = 10.dp),
-    )
-    Box(
-        Modifier.width(28.dp)
-            .height(1.dp)
-            .background(
-                Brush.horizontalGradient(listOf(GoldFoil.copy(alpha = 0.55f), Color.Transparent))
-            )
-    )
-  }
+	Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+		Box(
+			Modifier
+                .width(28.dp)
+                .height(1.dp)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            Color.Transparent,
+                            GoldFoil.copy(alpha = 0.55f)
+                        )
+                    )
+                )
+		)
+		Text(
+			text = labelText,
+			color = GoldFoil.copy(alpha = 0.75f),
+			fontSize = 12.sp,
+			fontWeight = FontWeight.Bold,
+			letterSpacing = 2.sp,
+			modifier = Modifier.padding(horizontal = 10.dp),
+		)
+		Box(
+			Modifier
+                .width(28.dp)
+                .height(1.dp)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(
+                            GoldFoil.copy(alpha = 0.55f),
+                            Color.Transparent
+                        )
+                    )
+                )
+		)
+	}
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun GameScreenPreview() {
-  SplitHappensTheme {
-    GameScreen(
-        displayName = "Player 1",
-        chipsOwned = 2500L,
-        isDarkTheme = true,
-    )
-  }
+	SplitHappensTheme {
+		GameScreen(
+			displayName = "Player 1",
+			chipsOwned = 2500L,
+			isDarkTheme = true,
+		)
+	}
 }

@@ -1,19 +1,19 @@
 package io.github.doubleddoge.splithappens.navigation
 
 sealed class Screen(val route: String) {
-  object Splash : Screen("splash")
+	object Splash : Screen("splash")
 
-  object Login : Screen("login")
+	object Login : Screen("login")
 
-  object Home : Screen("home")
+	object Home : Screen("home")
 
-  object Profile : Screen("profile")
+	object Profile : Screen("profile")
 
-  object Game : Screen("game/{mode}") {
-    fun createRoute(mode: String) = "game/$mode"
-  }
+	object Game : Screen("game/{mode}") {
+		fun createRoute(mode: String) = "game/$mode"
+	}
 
-  object Settings : Screen("settings")
+	object Settings : Screen("settings")
 
-  object Menu : Screen("menu")
+	object Menu : Screen("menu")
 }

@@ -56,76 +56,76 @@ private val DefaultText = Color(0xFFE2E8F0)
 
 @Composable
 fun OutcomeBanner(
-    text: String,
-    results: List<HandResult>,
-    modifier: Modifier = Modifier,
+	text: String,
+	results: List<HandResult>,
+	modifier: Modifier = Modifier,
 ) {
-    val primaryResult = results.firstOrNull()
+	val primaryResult = results.firstOrNull()
 
-    // Dynamic styling based on game outcome
-    val (backgroundColors, borderColor, textColor) = when (primaryResult) {
-        HandResult.BLACKJACK,
-        HandResult.NATURAL_BLACKJACK,
-        HandResult.QUEEN_JACK -> Triple(
-            listOf(GoldGradientTop, GoldGradientBottom),
-            GoldBorder,
-            GoldText
-        )
+	// Dynamic styling based on game outcome
+	val (backgroundColors, borderColor, textColor) = when (primaryResult) {
+		HandResult.BLACKJACK,
+		HandResult.NATURAL_BLACKJACK,
+		HandResult.QUEEN_JACK -> Triple(
+			listOf(GoldGradientTop, GoldGradientBottom),
+			GoldBorder,
+			GoldText
+		)
 
-        HandResult.WIN,
-        HandResult.TRIPLE_SEVEN,
-        HandResult.SIX_CARD,
-        HandResult.SEVEN_CARD -> Triple(
-            listOf(WinGradientTop, WinGradientBottom),
-            WinBorder,
-            WinText
-        )
+		HandResult.WIN,
+		HandResult.TRIPLE_SEVEN,
+		HandResult.SIX_CARD,
+		HandResult.SEVEN_CARD -> Triple(
+			listOf(WinGradientTop, WinGradientBottom),
+			WinBorder,
+			WinText
+		)
 
-        HandResult.PUSH -> Triple(
-            listOf(PushGradientTop, PushGradientBottom),
-            PushBorder,
-            PushText
-        )
+		HandResult.PUSH -> Triple(
+			listOf(PushGradientTop, PushGradientBottom),
+			PushBorder,
+			PushText
+		)
 
-        HandResult.LOSS -> Triple(
-            listOf(LossGradientTop, LossGradientBottom),
-            LossBorder,
-            LossText
-        )
+		HandResult.LOSS -> Triple(
+			listOf(LossGradientTop, LossGradientBottom),
+			LossBorder,
+			LossText
+		)
 
-        else -> Triple(
-            listOf(DefaultGradientTop, DefaultGradientBottom),
-            DefaultBorder,
-            DefaultText
-        )
-    }
+		else -> Triple(
+			listOf(DefaultGradientTop, DefaultGradientBottom),
+			DefaultBorder,
+			DefaultText
+		)
+	}
 
-    AnimatedVisibility(
-        visible = text.isNotEmpty(),
-        enter = fadeIn() + scaleIn(initialScale = 0.8f) + slideInVertically(initialOffsetY = { -20 }),
-        modifier = modifier
-    ) {
-        Box(
-            modifier = Modifier
-                .shadow(12.dp, shape = RoundedCornerShape(24.dp))
-                .background(
-                    brush = Brush.verticalGradient(backgroundColors),
-                    shape = RoundedCornerShape(24.dp)
-                )
-                .border(
-                    border = BorderStroke(1.5.dp, borderColor),
-                    shape = RoundedCornerShape(24.dp)
-                )
-                .padding(horizontal = 24.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                color = textColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.5.sp
-            )
-        }
-    }
+	AnimatedVisibility(
+		visible = text.isNotEmpty(),
+		enter = fadeIn() + scaleIn(initialScale = 0.8f) + slideInVertically(initialOffsetY = { -20 }),
+		modifier = modifier
+	) {
+		Box(
+			modifier = Modifier
+				.shadow(12.dp, shape = RoundedCornerShape(24.dp))
+				.background(
+					brush = Brush.verticalGradient(backgroundColors),
+					shape = RoundedCornerShape(24.dp)
+				)
+				.border(
+					border = BorderStroke(1.5.dp, borderColor),
+					shape = RoundedCornerShape(24.dp)
+				)
+				.padding(horizontal = 24.dp, vertical = 8.dp),
+			contentAlignment = Alignment.Center
+		) {
+			Text(
+				text = text,
+				color = textColor,
+				fontSize = 16.sp,
+				fontWeight = FontWeight.ExtraBold,
+				letterSpacing = 1.5.sp
+			)
+		}
+	}
 }

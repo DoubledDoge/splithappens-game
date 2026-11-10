@@ -8,5 +8,5 @@
     <!-- Deep Green Felt Background -->
     <path
         android:fillColor="#071B12"
-        android:pathData="M0,0h108v108h-108z"/>
+        android:pathData="M0,0h108v108h-108z" />
 </vector>

@@ -7,24 +7,24 @@ import io.github.doubleddoge.splithappens.data.enum.Rank
 import io.github.doubleddoge.splithappens.data.enum.Suit
 
 @Entity(
-    tableName = "Cards",
-    indices = [Index(value = ["suit", "rank"], unique = true)],
+	tableName = "Cards",
+	indices = [Index(value = ["suit", "rank"], unique = true)],
 )
 data class CardEntity(
-    @PrimaryKey
-    val cardId: Int, // Make sure an card always has the same id no matter what (export/import)
-    val suit: Suit,
-    val rank: Rank,
+	@PrimaryKey
+	val cardId: Int, // Make sure an card always has the same id no matter what (export/import)
+	val suit: Suit,
+	val rank: Rank,
 ) {
-    companion object {
-        fun idOf(
-            suit: Suit,
-            rank: Rank,
-        ): Int = suit.ordinal * Rank.entries.size + rank.ordinal
+	companion object {
+		fun idOf(
+			suit: Suit,
+			rank: Rank,
+		): Int = suit.ordinal * Rank.entries.size + rank.ordinal
 
-        fun standardDeck(): List<CardEntity> =
-            Suit.entries.flatMap { suit ->
-                Rank.entries.map { rank -> CardEntity(idOf(suit, rank), suit, rank) }
-            }
-    }
+		fun standardDeck(): List<CardEntity> =
+			Suit.entries.flatMap { suit ->
+				Rank.entries.map { rank -> CardEntity(idOf(suit, rank), suit, rank) }
+			}
+	}
 }
