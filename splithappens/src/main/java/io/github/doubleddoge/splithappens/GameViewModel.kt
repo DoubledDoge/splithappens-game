@@ -70,7 +70,7 @@ data class GameUiState(
     val hasActiveHand: Boolean = false,
 ) {
   val isGameInProgress: Boolean
-    get() = stage != GameStage.BETTING || currentBet > 0L || hasActiveHand
+    get() = stage == GameStage.DEALING || stage == GameStage.INSURANCE || stage == GameStage.PLAYER_TURN
 }
 
 class GameViewModel(
@@ -167,7 +167,12 @@ class GameViewModel(
 
   fun addBet(amount: Long) {
     val s = _uiState.value
-    if (s.stage != GameStage.BETTING || (s.chipsOwned - s.currentBet) < amount) return
+    if (s.stage != GameStage.BETTING) return
+    val available = s.chipsOwned - s.currentBet
+    if (available < amount) {
+      _uiState.update { it.copy(statusText = "Not enough chips!") }
+      return
+    }
 
     val newBet = s.currentBet + amount
     _uiState.update {
@@ -195,7 +200,7 @@ class GameViewModel(
 
     if (s.stage != GameStage.BETTING) return
 
-    if (s.chipsOwned < BALANCE_THRESHOLD) {
+    if (s.chipsOwned <= BALANCE_THRESHOLD) {
       _uiState.update {
         it.copy(statusText = "Balance below R100 minimum. Daily reward gives R500 every 24h!")
       }
@@ -319,23 +324,68 @@ class GameViewModel(
     if (round.phase != Phase.INSURANCE) return
 
     val maxInsurance = _uiState.value.currentBet / 2
+    val available = _uiState.value.chipsOwned - _uiState.value.currentBet - round.insuranceBet
     val amount = if (accept) maxInsurance else 0L
-    round.resolveInsurance(amount)
 
-    _uiState.update {
-      it.copy(
-          insuranceBet = amount,
-          stage =
-              if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
-          playerHands = round.hands.snapshot(),
-          dealerCards = round.dealerCards.toList(),
-          hideHoleCard = round.holeHidden,
-          legalActions = round.legalActions(),
-          statusText = if (round.phase == Phase.FINISHED) it.statusText else "Hit or Stand?",
-      )
+    if (accept && amount > available) {
+      _uiState.update {
+        it.copy(
+            statusText = "Not enough chips for insurance!",
+        )
+      }
+      try {
+        round.resolveInsurance(0L)
+      } catch (@Suppress("TooGenericExceptionCaught") _: Exception) {}
+      _uiState.update {
+        it.copy(
+            insuranceBet = 0L,
+            stage = if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
+            playerHands = round.hands.snapshot(),
+            dealerCards = round.dealerCards.toList(),
+            hideHoleCard = round.holeHidden,
+            legalActions = round.legalActions(),
+        )
+      }
+      if (round.phase == Phase.FINISHED) finishRound()
+      return
     }
 
-    if (round.phase == Phase.FINISHED) finishRound()
+    try {
+      round.resolveInsurance(amount)
+      _uiState.update {
+        it.copy(
+            insuranceBet = amount,
+            stage =
+                if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
+            playerHands = round.hands.snapshot(),
+            dealerCards = round.dealerCards.toList(),
+            hideHoleCard = round.holeHidden,
+            legalActions = round.legalActions(),
+            statusText = if (round.phase == Phase.FINISHED) it.statusText else "Hit or Stand?",
+        )
+      }
+      if (round.phase == Phase.FINISHED) finishRound()
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+      _uiState.update {
+        it.copy(
+            statusText = e.localizedMessage ?: "Not enough chips for insurance!",
+        )
+      }
+      try {
+        round.resolveInsurance(0L)
+      } catch (@Suppress("TooGenericExceptionCaught") _: Exception) {}
+      _uiState.update {
+        it.copy(
+            insuranceBet = 0L,
+            stage = if (round.phase == Phase.FINISHED) GameStage.ROUND_OVER else GameStage.PLAYER_TURN,
+            playerHands = round.hands.snapshot(),
+            dealerCards = round.dealerCards.toList(),
+            hideHoleCard = round.holeHidden,
+            legalActions = round.legalActions(),
+        )
+      }
+      if (round.phase == Phase.FINISHED) finishRound()
+    }
   }
 
   private fun finishRound() {
@@ -413,11 +463,19 @@ class GameViewModel(
       val wins = results.count { it.multiplier > 1.0 }
       val pushes = results.count { it == HandResult.PUSH }
       val losses = results.count { it == HandResult.LOSS || it == HandResult.SURRENDER }
+
       return when {
-        wins > 0 && losses == 0 -> "WON $wins OF ${results.size} HANDS!"
-        wins > 0 -> "SPLIT: $wins WON, $losses LOST" + if (pushes > 0) ", $pushes PUSH" else ""
-        pushes > 0 && losses == 0 -> "ALL HANDS PUSHED"
-        else -> "DEALER WINS SPLIT HANDS"
+        wins == results.size -> "ALL HANDS WON!"
+        losses == results.size -> "ALL HANDS LOST"
+        pushes == results.size -> "ALL HANDS PUSHED"
+        else -> {
+          val parts = buildList {
+            if (wins > 0) add("$wins WON")
+            if (losses > 0) add("$losses LOST")
+            if (pushes > 0) add("$pushes PUSH")
+          }
+          "SPLIT: ${parts.joinToString(", ")}"
+        }
       }
     }
 

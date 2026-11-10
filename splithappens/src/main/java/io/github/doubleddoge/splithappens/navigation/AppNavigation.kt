@@ -91,19 +91,20 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         val loginVm: LoginViewModel =
             viewModel(factory = LoginViewModelFactory(db.userDao(), context))
         SplashScreen(
-            onTimeout = {
-              loginVm.checkAutoLogin {
-                navController.navigate(Screen.Home.route) {
-                  popUpTo(Screen.Splash.route) { inclusive = true }
-                }
-              }
-              if (navController.currentDestination?.route == Screen.Splash.route) {
-                navController.navigate(Screen.Login.route) {
-                  popUpTo(Screen.Splash.route) { inclusive = true }
-                }
+            awaitReady = {
+              app.seedJob.join()
+              loginVm.tryAutoLogin()
+            },
+            onNavigateHome = {
+              navController.navigate(Screen.Home.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
               }
             },
-            awaitReady = { app.seedJob.join() },
+            onNavigateLogin = {
+              navController.navigate(Screen.Login.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+              }
+            },
         )
       }
 

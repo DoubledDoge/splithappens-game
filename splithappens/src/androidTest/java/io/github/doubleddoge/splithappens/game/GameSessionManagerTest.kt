@@ -7,6 +7,8 @@ import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -53,4 +55,39 @@ class GameSessionManagerTest : DatabaseTest() {
         assertEquals(SessionStatus.COMPLETED, session?.status)
         assertTrue(session?.endedAt != null)
     }
+
+    /**
+     * 6. Card Reshuffling Timing Test
+     * Tests that the shoe reshuffles between rounds when remaining cards drop below threshold,
+     * and never reshuffles mid-round.
+     */
+    @Test
+    fun testCardReshufflingTimingBetweenRounds() {
+        val shoe = Shoe(deckCount = 1)
+        val initialRemaining = shoe.remaining
+        assertEquals(52, initialRemaining)
+
+        // Deal some cards (mid-round simulation)
+        val card1 = shoe.deal()
+        val card2 = shoe.deal()
+        assertNotNull(card1)
+        assertNotNull(card2)
+        assertEquals(50, shoe.remaining)
+
+        // Reshuffle should not have happened mid-round automatically unless explicitly triggered or threshold reached
+        assertFalse(shoe.needsReshuffle)
+
+        // Exhaust shoe until threshold (cutCardAt = 52 / 4 = 13 remaining)
+        while (shoe.remaining > 13) {
+            shoe.deal()
+        }
+
+        assertTrue(shoe.needsReshuffle)
+
+        // Reshuffle between rounds
+        shoe.reshuffle()
+        assertEquals(52, shoe.remaining)
+        assertFalse(shoe.needsReshuffle)
+    }
+
 }
