@@ -30,20 +30,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.screen.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
+import io.github.doubleddoge.splithappens.ui.theme.GoldBright
+import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
 // Dark Theme Colors
 private val CardBgDark = Color(0xFF072C1E)
-private val AvatarBgDark = Color(0xFF0F4D35)
 private val ChipBadgeBgDark = Color(0xFF041910)
 
 // Light Theme Colors
-private val CardBgLight = Color(0xFF1B6349)
 private val AvatarBgLight = Color(0xFF237D5D)
 private val ChipBadgeBgLight = Color(0xFF124533)
-
-private val ChipGold = Color(0xFFFFD700)
 
 @Composable
 fun UserHeaderCard(
@@ -54,8 +54,8 @@ fun UserHeaderCard(
     isDarkTheme: Boolean = true,
     onProfileClick: () -> Unit = {}
 ) {
-    val cardBg = if (isDarkTheme) CardBgDark else CardBgLight
-    val avatarBg = if (isDarkTheme) AvatarBgDark else AvatarBgLight
+    val cardBg = if (isDarkTheme) CardBgDark else LightSurface
+    val avatarBg = if (isDarkTheme) FeltDarkRaised else AvatarBgLight
     val chipBadgeBg = if (isDarkTheme) ChipBadgeBgDark else ChipBadgeBgLight
 
     val bitmap = remember(profilePictureBytes) {
@@ -97,7 +97,7 @@ fun UserHeaderCard(
             } else {
                 Text(
                     text = displayName.take(1).uppercase(),
-                    color = ChipGold,
+                    color = GoldBright,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -125,7 +125,7 @@ fun UserHeaderCard(
             ) {
                 Text(
                     text = "🪙 R$chipsOwned",
-                    color = ChipGold,
+                    color = GoldBright,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -140,7 +140,7 @@ fun UserHeaderCardPreview() {
     SplitHappensTheme {
         Box(
             modifier = Modifier
-                .background(Color(0xFF0B1B15))
+                .background(DarkBackground)
                 .padding(16.dp)
         ) {
             UserHeaderCard(

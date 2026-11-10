@@ -41,10 +41,9 @@ import io.github.doubleddoge.splithappens.viewmodel.SettingViewModelFactory
 import io.github.doubleddoge.splithappens.screen.SplashScreen
 import io.github.doubleddoge.splithappens.SplitHappensApp
 import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import kotlinx.coroutines.flow.first
-
-private val NavDarkBackground = Color(0xFF071B12)
-private val NavLightBackground = Color(0xFF144D38)
 
 @Composable
 fun AppNavigation(navController: NavHostController = rememberNavController()) {
@@ -78,7 +77,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
       viewModel(factory = SettingViewModelFactory(context.applicationContext as Application))
   val settingsUiState by settingsViewModel.uiState.collectAsState()
 
-  val navBgColor = if (settingsUiState.darkTheme) NavDarkBackground else NavLightBackground
+  val navBgColor = if (settingsUiState.darkTheme) FeltDarkOuter else LightBackground
 
   Box(modifier = Modifier.fillMaxSize().background(navBgColor)) {
     NavHost(

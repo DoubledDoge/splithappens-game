@@ -32,9 +32,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import kotlin.math.PI
 
-private val ChipGold = Color(0xFFE5B036)
 private val RedChipColor = Color(0xFFB83A3A)
 private val GreenChipColor = Color(0xFF3A9A63)
 private val BlueChipColor = Color(0xFF4A62A0)
@@ -167,7 +167,7 @@ fun BetChips(
       if (chips.isEmpty()) {
         Text(
             "TAP A CHIP TO BET",
-            color = ChipGold.copy(alpha = PLACEHOLDER_TEXT_ALPHA),
+            color = GoldFoil.copy(alpha = PLACEHOLDER_TEXT_ALPHA),
             fontSize = PlaceholderTextFontSize,
             fontWeight = FontWeight.Bold,
             letterSpacing = PlaceholderLetterSpacing,
@@ -201,7 +201,7 @@ fun BetChips(
     if (total > 0) {
       Text(
           text = "R$total",
-          color = ChipGold,
+          color = GoldFoil,
           fontSize = TotalTextFontSize,
           fontWeight = FontWeight.Bold,
           modifier = Modifier.padding(top = TotalTextTopPadding),

@@ -53,6 +53,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.doubleddoge.splithappens.viewmodel.MenuUiState
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
+import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCenter
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
+import io.github.doubleddoge.splithappens.ui.theme.LightBackground
+import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import io.github.doubleddoge.splithappens.util.triggerClickSound
 import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
@@ -60,9 +67,6 @@ import io.github.doubleddoge.splithappens.viewmodel.HomeUiState
 import kotlin.math.abs
 
 // Standard Dark Theme Colors
-private val MenuTheme_BackgroundDark = Color(0xFF071B12)
-private val MenuTheme_GlowCenter = Color(0xFF0F3022)
-private val MenuTheme_GreenSurface = Color(0xFF133827)
 private val MenuTheme_MutedText = Color(0xFF9EBAAA)
 
 @Composable
@@ -87,10 +91,10 @@ fun MenuScreen(
   var showStatsDialog by remember { mutableStateOf(false) }
 
   // Dynamic color palette based on theme
-  val bgGlowCenter = if (isDarkTheme) MenuTheme_GlowCenter else Color(0xFF1B634A)
-  val bgOuterDark = if (isDarkTheme) MenuTheme_BackgroundDark else Color(0xFF144D38)
-  val surfaceColor = if (isDarkTheme) MenuTheme_GreenSurface else Color(0xFF1C6349)
-  val surfaceBorder = if (isDarkTheme) Color.White.copy(alpha = 0.12f) else Color(0xFF288160)
+  val bgGlowCenter = if (isDarkTheme) FeltDarkCenter else Color(0xFF1B634A)
+  val bgOuterDark = if (isDarkTheme) FeltDarkOuter else LightBackground
+  val surfaceColor = if (isDarkTheme) FeltDarkCard else LightSurface
+  val surfaceBorder = if (isDarkTheme) Color.White.copy(alpha = 0.12f) else FeltLightBorder
   val mutedTextColor = if (isDarkTheme) MenuTheme_MutedText else Color(0xFFBCE0CF)
 
   val runFeedback: (() -> Unit) -> Unit = { action ->
@@ -305,7 +309,7 @@ private fun MenuButton(
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
-            color = if (isPrimary) MenuTheme_BackgroundDark else Color.White,
+            color = if (isPrimary) FeltDarkOuter else Color.White,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.2.sp,
@@ -313,7 +317,7 @@ private fun MenuButton(
       }
       Text(
           text = "›",
-          color = if (isPrimary) MenuTheme_BackgroundDark else Color.White.copy(alpha = 0.5f),
+          color = if (isPrimary) FeltDarkOuter else Color.White.copy(alpha = 0.5f),
           fontSize = 20.sp,
           fontWeight = FontWeight.Light,
       )

@@ -55,6 +55,12 @@ import coil.compose.AsyncImage
 import io.github.doubleddoge.splithappens.viewmodel.ProfileUiState
 import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
+import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.CardBackground
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
+import io.github.doubleddoge.splithappens.ui.theme.LightBackground
+import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import java.io.ByteArrayOutputStream
 import java.util.Locale
 import kotlin.math.abs
@@ -104,9 +110,9 @@ fun ProfileScreenContent(
 ) {
   val context = LocalContext.current
 
-  val currentBackground = if (isDarkTheme) DarkBackground else Color(0xFF144D38)
-  val currentCardBg = if (isDarkTheme) CardBackground else Color(0xFF1C6349)
-  val currentCardBorder = if (isDarkTheme) Color(0xFF134530) else Color(0xFF288160)
+  val currentBackground = if (isDarkTheme) DarkBackground else LightBackground
+  val currentCardBg = if (isDarkTheme) CardBackground else LightSurface
+  val currentCardBorder = if (isDarkTheme) Color(0xFF134530) else FeltLightBorder
 
   var isEditingName by remember { mutableStateOf(false) }
   var tempName by remember { mutableStateOf(uiState.displayName) }

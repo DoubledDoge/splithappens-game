@@ -75,6 +75,12 @@ import io.github.doubleddoge.splithappens.data.buildDatabase
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
+import io.github.doubleddoge.splithappens.ui.theme.DangerRed
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCenter
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
+import io.github.doubleddoge.splithappens.ui.theme.LightBackground
+import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import io.github.doubleddoge.splithappens.ui.toTableCard
 import io.github.doubleddoge.splithappens.ui.toTableCards
@@ -85,17 +91,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 // Theme Palettes
-private val GameBgDarkCenter = Color(0xFF0F3022)
-private val GameBgDarkOuter = Color(0xFF071B12)
-private val GameBgLightCenter = Color(0xFF1B634A)
-private val GameBgLightOuter = Color(0xFF144D38)
 
 private val FeltDarkSurface = Color(0xFF0B2D21)
-private val FeltLightSurface = Color(0xFF124B37)
 
 private val WoodRailOuter = Color(0xFF332014)
 private val WoodRailInner = Color(0xFF5A3924)
-private val GoldFoil = Color(0xFFE5B036)
 
 private const val ARC_SWEEP = 110f
 
@@ -148,9 +148,9 @@ fun GameScreen(
   var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
   var showAllInDialog by remember { mutableStateOf(false) }
 
-  val bgCenter = if (isDarkTheme) GameBgDarkCenter else GameBgLightCenter
-  val bgOuter = if (isDarkTheme) GameBgDarkOuter else GameBgLightOuter
-  val feltColor = if (isDarkTheme) FeltDarkSurface else FeltLightSurface
+  val bgCenter = if (isDarkTheme) FeltDarkCenter else LightSurface
+  val bgOuter = if (isDarkTheme) FeltDarkOuter else LightBackground
+  val feltColor = if (isDarkTheme) FeltDarkSurface else LightBackground
 
   val safeNavigate: (() -> Unit) -> Unit = { destinationAction ->
     if (isGameInProgress) {
@@ -512,7 +512,7 @@ fun GameScreen(
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = Color(0xFF3B1C1C),
-                    border = BorderStroke(1.dp, Color(0xFFFF5252)),
+                    border = BorderStroke(1.dp, DangerRed),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 ) {
                   Column(
@@ -521,7 +521,7 @@ fun GameScreen(
                   ) {
                     Text(
                         text = "LOW BALANCE (< R100)",
-                        color = Color(0xFFFF5252),
+                        color = DangerRed,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
                     )

@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import io.github.doubleddoge.splithappens.ui.theme.GoldMuted
 
 // ---------- Palette ----------
 private val SuitBlack = Color(0xFF101513)
@@ -37,7 +38,6 @@ private val SuitHighlight = Color(0xFF343D38)
 private val SuitJacketDark = Color(0xFF070A09)
 private val ShirtWhite = Color(0xFFF5F1E8)
 private val ShirtShade = Color(0xFFD9D5CB)
-private val Gold = Color(0xFFD4A64A)
 private val GoldDark = Color(0xFF8C6A2A)
 private val Skin = Color(0xFFE8BC9C)
 private val SkinLight = Color(0xFFF3CFB0)
@@ -178,7 +178,7 @@ private fun DrawScope.drawDealerBody(f: Frame) {
         strokeWidth = 1.5.dp.toPx(),
     )
     drawLine(
-        color = Gold.copy(alpha = 0.8f),
+        color = GoldMuted.copy(alpha = 0.8f),
         start = f.o(0.34f, 0.882f),
         end = f.o(0.52f, 0.882f),
         strokeWidth = 1.dp.toPx(),
@@ -257,7 +257,7 @@ private fun DrawScope.drawDealerShirt(f: Frame) {
     for (i in 0..2) {
         val cy = 0.74f + (i * 0.09f)
         drawCircle(GoldDark, radius = 0.0085f * f.u, center = f.o(0f, cy))
-        drawCircle(Gold, radius = 0.006f * f.u, center = f.o(0f, cy))
+        drawCircle(GoldMuted, radius = 0.006f * f.u, center = f.o(0f, cy))
     }
 }
 
@@ -281,14 +281,14 @@ private fun DrawScope.drawDealerLapels(f: Frame) {
         )
         drawPath(
             lapel,
-            color = Gold.copy(alpha = 0.65f),
+            color = GoldMuted.copy(alpha = 0.65f),
             style = Stroke(width = 1.dp.toPx()),
         )
     }
 
     // Lapel pin (viewer's right)
     drawCircle(GoldDark, radius = 0.019f * f.u, center = f.o(0.17f, 0.735f))
-    drawCircle(Gold, radius = 0.015f * f.u, center = f.o(0.17f, 0.735f))
+    drawCircle(GoldMuted, radius = 0.015f * f.u, center = f.o(0.17f, 0.735f))
     drawCircle(
         Color.White.copy(alpha = 0.55f),
         radius = 0.0045f * f.u,
@@ -349,7 +349,7 @@ private fun DrawScope.drawDealerCollarAndTie(f: Frame) {
         size = Size(0.030f * f.u, 0.030f * f.u),
         cornerRadius = CornerRadius(0.008f * f.u),
     )
-    drawCircle(Gold, radius = 0.0055f * f.u, center = f.o(0f, 0.612f))
+    drawCircle(GoldMuted, radius = 0.0055f * f.u, center = f.o(0f, 0.612f))
 }
 
 //Head

@@ -34,19 +34,19 @@ private val GoldText = Color(0xFF100C08)
 private val WinGradientTop = Color(0xFF1E703A)
 private val WinGradientBottom = Color(0xFF0D3D1E)
 private val WinBorder = Color(0xFF4ADE80)
-private val WinText = Color(0xFFFFFFFF)
+private val WinText = Color.White
 
 // Push (Gray Theme)
 private val PushGradientTop = Color(0xFF4A5568)
 private val PushGradientBottom = Color(0xFF2D3748)
 private val PushBorder = Color(0xFFA0AEC0)
-private val PushText = Color(0xFFFFFFFF)
+private val PushText = Color.White
 
 // Loss / Bust (Red Theme)
 private val LossGradientTop = Color(0xFF8C1D1D)
 private val LossGradientBottom = Color(0xFF4A0E0E)
 private val LossBorder = Color(0xFFFCA5A5)
-private val LossText = Color(0xFFFFFFFF)
+private val LossText = Color.White
 
 // Default / In-Progress (Slate Theme)
 private val DefaultGradientTop = Color(0xFF1E293B)

@@ -59,24 +59,23 @@ import io.github.doubleddoge.splithappens.viewmodel.LoginUiState
 import io.github.doubleddoge.splithappens.viewmodel.LoginViewModel
 import io.github.doubleddoge.splithappens.viewmodel.UserProfileItem
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
+import io.github.doubleddoge.splithappens.ui.theme.DangerRed
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCenter
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
+import io.github.doubleddoge.splithappens.ui.theme.LightBackground
+import io.github.doubleddoge.splithappens.ui.theme.LightSurface
+import io.github.doubleddoge.splithappens.ui.theme.OnGold
+import io.github.doubleddoge.splithappens.ui.theme.PaperWhite
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 
 // Dark Theme Palette
-private val LoginBgDarkCenter = Color(0xFF0F3022)
-private val LoginBgDarkOuter = Color(0xFF071B12)
-private val LoginCardSurfaceDark = Color(0xFF133827)
 
 // Light Theme Palette
-private val LoginBgLightCenter = Color(0xFF1B634A)
-private val LoginBgLightOuter = Color(0xFF144D38)
 private val LoginCardSurfaceLight = Color(0xFF1D5A43)
-
-private val GoldFoil = Color(0xFFE5B036)
-private val DangerRed = Color(0xFFFF5252)
-private val PlayingCardBg = Color(0xFFF9F9F9)
 private val CheckMark = Color(0xFF140E06)
-private val LoginButton = Color(0xFF1A1208)
-private val ItemCard = Color(0xFF0F4D35)
 
 @Composable
 fun LoginScreen(
@@ -115,9 +114,9 @@ fun LoginScreenContent(
     onConfirmDeleteUser: () -> Unit,
     onCancelDeleteUser: () -> Unit,
 ) {
-  val bgCenter = if (isDarkTheme) LoginBgDarkCenter else LoginBgLightCenter
-  val bgOuter = if (isDarkTheme) LoginBgDarkOuter else LoginBgLightOuter
-  val cardSurface = if (isDarkTheme) LoginCardSurfaceDark else LoginCardSurfaceLight
+  val bgCenter = if (isDarkTheme) FeltDarkCenter else LightSurface
+  val bgOuter = if (isDarkTheme) FeltDarkOuter else LightBackground
+  val cardSurface = if (isDarkTheme) FeltDarkCard else LoginCardSurfaceLight
 
   Box(
       modifier =
@@ -142,7 +141,7 @@ fun LoginScreenContent(
       Surface(
           modifier = Modifier.size(width = 90.dp, height = 124.dp),
           shape = RoundedCornerShape(12.dp),
-          color = PlayingCardBg,
+          color = PaperWhite,
           shadowElevation = 8.dp,
           border = BorderStroke(1.dp, GoldFoil.copy(alpha = 0.6f)),
       ) {
@@ -272,15 +271,15 @@ fun LoginScreenContent(
               colors =
                   ButtonDefaults.buttonColors(
                       containerColor = GoldFoil,
-                      contentColor = LoginButton,
+                      contentColor = OnGold,
                       disabledContainerColor = GoldFoil.copy(alpha = 0.4f),
-                      disabledContentColor = LoginButton.copy(alpha = 0.4f),
+                      disabledContentColor = OnGold.copy(alpha = 0.4f),
                   ),
           ) {
             if (uiState.isLoading) {
               CircularProgressIndicator(
                   modifier = Modifier.size(24.dp),
-                  color = LoginButton,
+                  color = OnGold,
                   strokeWidth = 2.5.dp,
               )
             } else {
@@ -444,7 +443,7 @@ private fun ProfileItemCard(
           modifier =
               Modifier.size(40.dp)
                   .clip(CircleShape)
-                  .background(ItemCard)
+                  .background(FeltDarkRaised)
                   .border(1.dp, GoldFoil, CircleShape),
           contentAlignment = Alignment.Center,
       ) {

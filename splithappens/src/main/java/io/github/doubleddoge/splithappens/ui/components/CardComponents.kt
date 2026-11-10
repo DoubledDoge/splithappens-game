@@ -37,9 +37,9 @@ import io.github.doubleddoge.splithappens.ui.TableCard
 import io.github.doubleddoge.splithappens.ui.isRed
 import io.github.doubleddoge.splithappens.ui.label
 import io.github.doubleddoge.splithappens.ui.symbol
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 
 // Colors
-private val GoldFoil = Color(0xFFE5B036)
 private val RedSuitColor = Color(0xFFC62828)
 private val BlackSuitColor = Color(0xFF1A1A1A)
 private val CardFaceBackgroundColor = Color(0xFFFAF7F0)

@@ -30,12 +30,12 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.game.Action
+import io.github.doubleddoge.splithappens.ui.theme.GoldMuted
+import io.github.doubleddoge.splithappens.ui.theme.OnGold
 
-private val Gold = Color(0xFFD4A64A)
 private val GoldDark = Color(0xFF9C7425)
-private val DealTextColor = Color(0xFF1A1208)
 private val DefaultTextColor = Color.White
-private const val PREVIEW_BACKGROUND_COLOR = 0xFF071B12L
+private const val PREVIEW_BACKGROUND_COLOR = 0xFF071B12
 
 private const val BUTTON_ENABLED_ALPHA = 1f
 private const val BUTTON_DISABLED_ALPHA = 0.35f
@@ -88,7 +88,7 @@ fun GameActionBar(
     if (isBetting) {
       GameButton(
           label = CHIP_VALUE_LOW.toString(),
-          topColor = Gold,
+          topColor = GoldMuted,
           bottomColor = GoldDark,
           modifier = Modifier.weight(WEIGHT_NORMAL),
           enabled = availableChips >= CHIP_VALUE_LOW,
@@ -96,7 +96,7 @@ fun GameActionBar(
       )
       GameButton(
           label = CHIP_VALUE_MEDIUM.toString(),
-          topColor = Gold,
+          topColor = GoldMuted,
           bottomColor = GoldDark,
           modifier = Modifier.weight(WEIGHT_NORMAL),
           enabled = availableChips >= CHIP_VALUE_MEDIUM,
@@ -104,7 +104,7 @@ fun GameActionBar(
       )
       GameButton(
           label = CHIP_VALUE_HIGH.toString(),
-          topColor = Gold,
+          topColor = GoldMuted,
           bottomColor = GoldDark,
           modifier = Modifier.weight(WEIGHT_NORMAL),
           enabled = availableChips >= CHIP_VALUE_HIGH,
@@ -112,26 +112,26 @@ fun GameActionBar(
       )
       GameButton(
           label = "ALL IN",
-          topColor = Gold,
+          topColor = GoldMuted,
           bottomColor = GoldDark,
           modifier = Modifier.weight(1.2f),
-          textColor = DealTextColor,
+          textColor = OnGold,
           enabled = availableChips > 0L,
           onClick = onAllIn,
       )
       GameButton(
           label = "DEAL",
-          topColor = Gold,
+          topColor = GoldMuted,
           bottomColor = GoldDark,
           modifier = Modifier.weight(WEIGHT_DEAL),
-          textColor = DealTextColor,
+          textColor = OnGold,
           enabled = canBet,
           onClick = onDeal,
       )
     } else {
       GameButton(
           label = "HIT",
-          topColor = Gold,
+          topColor = GoldMuted,
           bottomColor = GoldDark,
           modifier = Modifier.weight(WEIGHT_NORMAL),
           enabled = Action.HIT in legalActions,
@@ -139,7 +139,7 @@ fun GameActionBar(
       )
       GameButton(
           label = "STAND",
-          topColor = Gold,
+          topColor = GoldMuted,
           bottomColor = GoldDark,
           modifier = Modifier.weight(WEIGHT_NORMAL),
           enabled = Action.STAND in legalActions,
@@ -148,7 +148,7 @@ fun GameActionBar(
       if (Action.DOUBLE in legalActions) {
         GameButton(
             label = "DOUBLE",
-            topColor = Gold,
+            topColor = GoldMuted,
             bottomColor = GoldDark,
             modifier = Modifier.weight(WEIGHT_NORMAL),
             enabled = availableChips >= 0L,
@@ -158,7 +158,7 @@ fun GameActionBar(
       if (Action.SPLIT in legalActions) {
         GameButton(
             label = "SPLIT",
-            topColor = Gold,
+            topColor = GoldMuted,
             bottomColor = GoldDark,
             modifier = Modifier.weight(WEIGHT_NORMAL),
             onClick = { onAction(Action.SPLIT) },
@@ -167,7 +167,7 @@ fun GameActionBar(
       if (Action.SURRENDER in legalActions) {
         GameButton(
             label = "SURRENDER",
-            topColor = Gold,
+            topColor = GoldMuted,
             bottomColor = GoldDark,
             modifier = Modifier.weight(WEIGHT_NORMAL),
             onClick = { onAction(Action.SURRENDER) },

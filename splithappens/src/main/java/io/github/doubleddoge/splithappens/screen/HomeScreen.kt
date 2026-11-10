@@ -53,15 +53,16 @@ import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.components.BannerAd
 import io.github.doubleddoge.splithappens.ui.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.ButtonBackground
+import io.github.doubleddoge.splithappens.ui.theme.ButtonTextColor
+import io.github.doubleddoge.splithappens.ui.theme.CardBackground
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
+import io.github.doubleddoge.splithappens.ui.theme.LightBackground
+import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlin.math.abs
-
-// Standard Dark Theme Colors
-val DarkBackground = Color(0xFF0B1B15)
-val CardBackground = Color(0xFF0F3A2E)
-val BorderGold = Color(0xFFD4A311)
-val ButtonBackground = Color(0xFFD8D8D8)
-val ButtonTextColor = Color(0xFF1E1E1E)
 
 private const val TWO_SECONDS = 2000
 
@@ -129,9 +130,9 @@ fun HomeScreenContent(
   }
 
   // Dynamic emerald colors based on isDarkTheme
-  val currentBackground = if (isDarkTheme) DarkBackground else Color(0xFF144D38)
-  val currentCardBg = if (isDarkTheme) CardBackground else Color(0xFF1C6349)
-  val currentCardBorder = if (isDarkTheme) Color(0xFF1A5243) else Color(0xFF288160)
+  val currentBackground = if (isDarkTheme) DarkBackground else LightBackground
+  val currentCardBg = if (isDarkTheme) CardBackground else LightSurface
+  val currentCardBorder = if (isDarkTheme) Color(0xFF1A5243) else FeltLightBorder
 
   Scaffold(
       modifier = modifier,

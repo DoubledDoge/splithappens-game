@@ -27,11 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.screen.BorderGold
 import io.github.doubleddoge.splithappens.R
+import io.github.doubleddoge.splithappens.ui.theme.BorderGold
+import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.GoldBright
+import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
-
-private val ActiveGold = Color(0xFFFFD700)
 
 @Composable
 fun AppBottomBar(
@@ -43,7 +44,7 @@ fun AppBottomBar(
     modifier: Modifier = Modifier
 ) {
     // Dynamic BottomBar colors based on theme
-    val barBackground = if (isDarkTheme) Color(0xFF072C1E) else Color(0xFF144D38)
+    val barBackground = if (isDarkTheme) Color(0xFF072C1E) else LightBackground
     val barBorder = if (isDarkTheme) BorderGold else Color(0xFFE5B82C)
     val circleBackground = if (isDarkTheme) Color(0xFF041A12) else Color(0xFF0D3828)
     val circleBorder = if (isDarkTheme) Color(0xFF0D3D2B) else Color(0xFF23654B)
@@ -72,7 +73,7 @@ fun AppBottomBar(
             Icon(
                 painter = painterResource(id = R.drawable.ic_home),
                 contentDescription = "Home",
-                tint = ActiveGold,
+                tint = GoldBright,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -87,7 +88,7 @@ fun AppBottomBar(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_blackjackicon),
                     contentDescription = "Game",
-                    tint = ActiveGold,
+                    tint = GoldBright,
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
@@ -109,7 +110,7 @@ fun AppBottomBar(
             Icon(
                 imageVector = Icons.Default.Menu,
                 contentDescription = "Menu",
-                tint = ActiveGold,
+                tint = GoldBright,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -141,7 +142,7 @@ fun AppBottomBarPreview() {
     SplitHappensTheme {
         Box(
             modifier = Modifier
-                .background(Color(0xFF0B1B15))
+                .background(DarkBackground)
                 .padding(16.dp)
         ) {
             AppBottomBar(

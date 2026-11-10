@@ -30,14 +30,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkOuter
+import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
+import io.github.doubleddoge.splithappens.ui.theme.PaperWhite
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
-
-val CasinoBackgroundDark = Color(0xFF071B12)
-val CasinoGlowCenter = Color(0xFF0F3022)
-val CasinoGoldAccent = Color(0xFFE5B036)
-val CasinoCardBackground = Color(0xFFF9F9F9)
 
 @Composable
 fun SplashScreen(
@@ -72,7 +70,7 @@ fun SplashScreen(
               .background(
                   brush =
                       Brush.radialGradient(
-                          colors = listOf(CasinoGlowCenter, CasinoBackgroundDark),
+                          colors = listOf(FeltDarkOuter, FeltDarkOuter),
                           radius = 1200f,
                       )
               ),
@@ -86,7 +84,7 @@ fun SplashScreen(
       Surface(
           modifier = Modifier.size(width = 110.dp, height = 150.dp),
           shape = RoundedCornerShape(12.dp),
-          color = CasinoCardBackground,
+          color = PaperWhite,
           shadowElevation = 8.dp,
       ) {
         Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
@@ -110,7 +108,7 @@ fun SplashScreen(
 
       Text(
           text = "BLACKJACK",
-          color = CasinoGoldAccent,
+          color = GoldFoil,
           fontSize = 28.sp,
           fontWeight = FontWeight.Black,
           letterSpacing = 4.sp,
@@ -145,7 +143,7 @@ fun SplashScreen(
       ) {
         Box(
             modifier =
-                Modifier.fillMaxWidth(animatedProgress).height(3.dp).background(CasinoGoldAccent)
+                Modifier.fillMaxWidth(animatedProgress).height(3.dp).background(GoldFoil)
         )
       }
     }
