@@ -184,4 +184,32 @@ class HandValueTest {
 		assertEquals(21, hand.total)
 		assertTrue(hand.isBlackjack)
 	}
+
+	@Test
+	fun testQueenAceRequiresNoSplit() {
+		assertFalse(HandValue.of(queenHearts, aceClubs, isSplit = true).isQueenAce)
+		assertFalse(HandValue.of(queenHearts, kingDiamonds).isQueenAce)
+	}
+
+	@Test
+	fun testTripleSevenRequiresThreeSevens() {
+		val hand = HandValue.of(Card(Suit.CLUBS, Rank.FIVE), sixDiamonds, tenClubs) // 3-card 21
+		assertFalse(hand.isTripleSeven)
+	}
+
+	@Test
+	fun testEightCardsStillCountAsSevenCard() {
+		val hand = HandValue.of(
+			twoClubs, twoSpades, twoHearts, twoDiamonds, threeClubs, threeSpades, aceClubs, threeClubs,
+		)
+		assertEquals(18, hand.total)
+		assertTrue(hand.isSevenCard)
+	}
+
+	@Test
+	fun testBustSixCardHandIsNotSixCard() {
+		val hand = HandValue.of(tenClubs, tenClubs, twoClubs, twoClubs, twoClubs, twoClubs)
+		assertTrue(hand.isBust)
+		assertFalse(hand.isSixCard)
+	}
 }
