@@ -41,7 +41,7 @@ import io.github.doubleddoge.splithappens.viewmodel.MenuViewModelFactory
 import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
 import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModelFactory
 import io.github.doubleddoge.splithappens.viewmodel.SettingViewModel
-import io.github.doubleddoge.splithappens.viewmodel.SettingViewModelFactory
+import io.github.doubleddoge.splithappens.viewmodel.SettingsViewModelFactory
 import kotlinx.coroutines.flow.first
 
 @Composable
@@ -73,7 +73,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 	}
 
 	val settingsViewModel: SettingViewModel =
-		viewModel(factory = SettingViewModelFactory(context.applicationContext as Application))
+		viewModel(factory = SettingsViewModelFactory(context.applicationContext as Application))
 	val settingsUiState by settingsViewModel.uiState.collectAsState()
 
 	val navBgColor = if (settingsUiState.darkTheme) DarkBackground else LightBackground

@@ -34,7 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.viewmodel.SettingUiState
+import io.github.doubleddoge.splithappens.viewmodel.SettingsUiState
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
@@ -49,17 +49,17 @@ import io.github.doubleddoge.splithappens.ui.theme.TextMuted
 
 @Composable
 fun SettingsScreen(
-    uiState: SettingUiState,
-    onToggleDarkTheme: (Boolean) -> Unit = {},
-    onToggleShowCardTotal: (Boolean) -> Unit = {},
-    onToggleDealerRuleBanner: (Boolean) -> Unit = {},
-    onToggleSoundEffects: (Boolean) -> Unit = {},
-    onToggleHapticVibration: (Boolean) -> Unit = {},
-    onToggleFastDeal: (Boolean) -> Unit = {},
-    onToggleAutoStandOn21: (Boolean) -> Unit = {},
-    onNavigateHome: () -> Unit = {},
-    onNavigateGame: () -> Unit = {},
-    onNavigateMenu: () -> Unit = {}
+	uiState: SettingsUiState,
+	onToggleDarkTheme: (Boolean) -> Unit = {},
+	onToggleShowCardTotal: (Boolean) -> Unit = {},
+	onToggleDealerRuleBanner: (Boolean) -> Unit = {},
+	onToggleSoundEffects: (Boolean) -> Unit = {},
+	onToggleHapticVibration: (Boolean) -> Unit = {},
+	onToggleFastDeal: (Boolean) -> Unit = {},
+	onToggleAutoStandOn21: (Boolean) -> Unit = {},
+	onNavigateHome: () -> Unit = {},
+	onNavigateGame: () -> Unit = {},
+	onNavigateMenu: () -> Unit = {}
 ) {
     val context = LocalContext.current
 

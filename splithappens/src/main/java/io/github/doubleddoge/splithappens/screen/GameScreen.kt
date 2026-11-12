@@ -82,7 +82,7 @@ import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
 import io.github.doubleddoge.splithappens.viewmodel.GameStage
 import io.github.doubleddoge.splithappens.viewmodel.GameViewModel
 import io.github.doubleddoge.splithappens.viewmodel.GameViewModelFactory
-import io.github.doubleddoge.splithappens.viewmodel.SettingUiState
+import io.github.doubleddoge.splithappens.viewmodel.SettingsUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -110,7 +110,7 @@ fun GameScreen(
 	chipsOwned: Long = 2500L,
 	profilePictureBytes: ByteArray? = null,
 	isDarkTheme: Boolean = true,
-	settingsUiState: SettingUiState = SettingUiState(),
+	settingsUiState: SettingsUiState = SettingsUiState(),
 	onNavigateHome: () -> Unit = {},
 	onNavigateMenu: () -> Unit = {},
 	onNavigateProfile: () -> Unit = {},
