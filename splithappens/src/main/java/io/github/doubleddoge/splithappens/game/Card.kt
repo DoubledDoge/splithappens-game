@@ -1,8 +1,8 @@
 package io.github.doubleddoge.splithappens.game
 
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
-import io.github.doubleddoge.splithappens.game.enum.Rank
-import io.github.doubleddoge.splithappens.game.enum.Suit
+import io.github.doubleddoge.splithappens.game.model.Rank
+import io.github.doubleddoge.splithappens.game.model.Suit
 
 data class Card(val suit: Suit, val rank: Rank) {
 	val cardId: Int get() = CardEntity.idOf(suit, rank)

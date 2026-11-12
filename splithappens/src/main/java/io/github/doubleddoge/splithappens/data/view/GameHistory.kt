@@ -1,7 +1,7 @@
 package io.github.doubleddoge.splithappens.data.view
 
 import androidx.room3.DatabaseView
-import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.model.GameMode
 
 /*
 Made into a derived view rather than a stored table since
@@ -11,7 +11,7 @@ and also acting as a log conflicts.
 This will still have the stats be read as simple rows but nothing
 desyncs over time.
 
-Could be debatably be turned into a table again.
+'PLAYER' must match HandOwner.PLAYER.name
 */
 @DatabaseView(
 	viewName = "GameHistory",

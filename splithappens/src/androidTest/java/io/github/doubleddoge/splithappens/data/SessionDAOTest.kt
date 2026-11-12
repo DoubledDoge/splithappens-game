@@ -2,7 +2,7 @@ package io.github.doubleddoge.splithappens.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
-import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking

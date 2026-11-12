@@ -1,8 +1,8 @@
 package io.github.doubleddoge.splithappens.data
 
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
-import io.github.doubleddoge.splithappens.game.enum.HandResult
-import io.github.doubleddoge.splithappens.game.enum.HandStatus
+import io.github.doubleddoge.splithappens.game.model.HandResult
+import io.github.doubleddoge.splithappens.game.model.HandStatus
 import org.junit.Assert
 import org.junit.Test
 import kotlin.test.assertEquals

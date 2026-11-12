@@ -2,7 +2,7 @@ package io.github.doubleddoge.splithappens.data.dao
 
 import androidx.room3.Dao
 import androidx.room3.Query
-import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.data.view.GameHistory
 import kotlinx.coroutines.flow.Flow
 

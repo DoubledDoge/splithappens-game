@@ -1,7 +1,7 @@
 package io.github.doubleddoge.splithappens.game
 
-import io.github.doubleddoge.splithappens.game.enum.Rank
-import io.github.doubleddoge.splithappens.game.enum.Suit
+import io.github.doubleddoge.splithappens.game.model.Rank
+import io.github.doubleddoge.splithappens.game.model.Suit
 import org.jetbrains.annotations.VisibleForTesting
 import kotlin.random.Random
 

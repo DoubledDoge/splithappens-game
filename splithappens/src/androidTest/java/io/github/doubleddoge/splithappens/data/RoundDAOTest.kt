@@ -9,10 +9,10 @@ import io.github.doubleddoge.splithappens.data.entity.HandCardEntity
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
 import io.github.doubleddoge.splithappens.data.enum.HandOwner
-import io.github.doubleddoge.splithappens.game.enum.HandResult
-import io.github.doubleddoge.splithappens.game.enum.HandStatus
-import io.github.doubleddoge.splithappens.game.enum.Rank
-import io.github.doubleddoge.splithappens.game.enum.Suit
+import io.github.doubleddoge.splithappens.game.model.HandResult
+import io.github.doubleddoge.splithappens.game.model.HandStatus
+import io.github.doubleddoge.splithappens.game.model.Rank
+import io.github.doubleddoge.splithappens.game.model.Suit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals

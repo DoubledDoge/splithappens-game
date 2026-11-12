@@ -1,8 +1,8 @@
 package io.github.doubleddoge.splithappens.game
 
-import io.github.doubleddoge.splithappens.game.enum.HandStatus
+import io.github.doubleddoge.splithappens.game.model.HandStatus
 import io.github.doubleddoge.splithappens.data.enum.HandType
-import io.github.doubleddoge.splithappens.game.enum.Rank
+import io.github.doubleddoge.splithappens.game.model.Rank
 
 /**
  * Calculates and holds the estimated total value, card count, and status of a Blackjack hand,

@@ -18,7 +18,7 @@ interface SessionDao {
 	@Query("SELECT * FROM Sessions WHERE userId = :userId ORDER BY startedAt DESC")
 	fun observeForUser(userId: String): Flow<List<SessionEntity>>
 
-	//initiating a cascading deletion
+	// Initiating a cascading deletion
 	@Query("DELETE FROM Sessions WHERE sessionId = :sessionId")
 	suspend fun deleteById(sessionId: Long)
 

@@ -4,10 +4,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.data.enum.Action
-import io.github.doubleddoge.splithappens.game.enum.GameMode
-import io.github.doubleddoge.splithappens.game.enum.Rank
+import io.github.doubleddoge.splithappens.game.model.GameMode
+import io.github.doubleddoge.splithappens.game.model.Rank
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
-import io.github.doubleddoge.splithappens.game.enum.Suit
+import io.github.doubleddoge.splithappens.game.model.Suit
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

@@ -1,9 +1,9 @@
 package io.github.doubleddoge.splithappens.game
 
-import io.github.doubleddoge.splithappens.game.enum.GameMode
-import io.github.doubleddoge.splithappens.game.enum.HandResult
-import io.github.doubleddoge.splithappens.game.enum.Rank
-import io.github.doubleddoge.splithappens.game.enum.Suit
+import io.github.doubleddoge.splithappens.game.model.GameMode
+import io.github.doubleddoge.splithappens.game.model.HandResult
+import io.github.doubleddoge.splithappens.game.model.Rank
+import io.github.doubleddoge.splithappens.game.model.Suit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

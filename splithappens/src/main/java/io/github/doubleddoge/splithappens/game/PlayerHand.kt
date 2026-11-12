@@ -1,6 +1,6 @@
 package io.github.doubleddoge.splithappens.game
 
-import io.github.doubleddoge.splithappens.game.enum.HandStatus
+import io.github.doubleddoge.splithappens.game.model.HandStatus
 
 class PlayerHand(
 	val cards: MutableList<Card>,

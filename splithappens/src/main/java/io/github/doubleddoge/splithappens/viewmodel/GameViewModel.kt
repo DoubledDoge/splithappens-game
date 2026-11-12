@@ -9,8 +9,8 @@ import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.dao.RoundDao
 import io.github.doubleddoge.splithappens.data.dao.SessionDao
 import io.github.doubleddoge.splithappens.data.dao.UserDao
-import io.github.doubleddoge.splithappens.game.enum.GameMode
-import io.github.doubleddoge.splithappens.game.enum.HandResult
+import io.github.doubleddoge.splithappens.game.model.GameMode
+import io.github.doubleddoge.splithappens.game.model.HandResult
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 import io.github.doubleddoge.splithappens.data.enum.Action
 import io.github.doubleddoge.splithappens.game.Card

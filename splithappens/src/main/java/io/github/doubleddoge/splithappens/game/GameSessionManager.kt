@@ -3,7 +3,7 @@ package io.github.doubleddoge.splithappens.game
 import io.github.doubleddoge.splithappens.data.dao.RoundDao
 import io.github.doubleddoge.splithappens.data.dao.SessionDao
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
-import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.data.enum.Phase
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 

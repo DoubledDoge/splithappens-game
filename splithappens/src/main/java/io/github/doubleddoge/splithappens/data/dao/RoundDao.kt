@@ -39,7 +39,6 @@ abstract class RoundDao {
 	@Insert
 	abstract suspend fun insertHandCards(cards: List<HandCardEntity>)
 
-	// New constraints mentioned, helper functions for unit tests.
 	@Query("SELECT * FROM Hands WHERE gameId = :gameId ORDER BY handId")
 	abstract suspend fun getHands(gameId: Long): List<HandEntity>
 

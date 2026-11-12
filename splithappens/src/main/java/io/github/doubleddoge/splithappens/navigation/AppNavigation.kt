@@ -22,7 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.doubleddoge.splithappens.SplitHappensApp
-import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.screen.GameScreen
 import io.github.doubleddoge.splithappens.screen.HomeScreen
 import io.github.doubleddoge.splithappens.screen.LoginScreen

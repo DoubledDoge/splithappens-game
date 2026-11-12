@@ -11,9 +11,9 @@ import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
-import io.github.doubleddoge.splithappens.game.enum.GameMode
-import io.github.doubleddoge.splithappens.game.enum.HandResult
-import io.github.doubleddoge.splithappens.game.enum.HandStatus
+import io.github.doubleddoge.splithappens.game.model.GameMode
+import io.github.doubleddoge.splithappens.game.model.HandResult
+import io.github.doubleddoge.splithappens.game.model.HandStatus
 import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
