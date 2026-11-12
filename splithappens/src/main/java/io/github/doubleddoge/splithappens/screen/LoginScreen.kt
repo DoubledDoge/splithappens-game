@@ -512,7 +512,7 @@ private fun ProfileItemCard(
 					fontSize = 14.sp,
 				)
 				Text(
-					text = "🪙 R${item.user.chipsOwned}  •  Last used: ${item.lastUsedFormatted}",
+					text = "R${item.user.chipsOwned} • ${item.lastUsedFormatted}",
 					color = Color.White.copy(alpha = 0.65f),
 					fontSize = 11.sp,
 				)

@@ -157,7 +157,7 @@ fun SettingsScreen(
             SettingsSectionCard(cardBg = currentCardBg, cardBorder = currentCardBorder) {
                 SettingItemRow(
                     title = "Sound Effects",
-                    subtitle = "Card deals, chip stacks, and win fanfare",
+                    subtitle = "(To be implemented)",
                     subtitleColor = currentSubtitle,
                     checked = uiState.soundEffects,
                     onCheckedChange = onToggleSoundEffects,
@@ -169,7 +169,7 @@ fun SettingsScreen(
                 SettingItemDivider(dividerColor = currentDivider)
                 SettingItemRow(
                     title = "Haptic Vibration",
-                    subtitle = "Physical pulses on hit, stand, double, and bust",
+                    subtitle = "(To be implemented)",
                     subtitleColor = currentSubtitle,
                     checked = uiState.hapticVibration,
                     onCheckedChange = { enabled ->
