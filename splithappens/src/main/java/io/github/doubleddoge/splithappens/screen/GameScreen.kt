@@ -61,7 +61,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.doubleddoge.splithappens.data.getDatabase
 import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
-import io.github.doubleddoge.splithappens.navigation.Screen
+import io.github.doubleddoge.splithappens.game.model.GameStage
+import io.github.doubleddoge.splithappens.ui.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.components.BetChips
 import io.github.doubleddoge.splithappens.ui.components.GameActionBar
@@ -77,12 +78,11 @@ import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import io.github.doubleddoge.splithappens.ui.toTableCard
 import io.github.doubleddoge.splithappens.ui.toTableCards
-import io.github.doubleddoge.splithappens.util.triggerClickSound
-import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
-import io.github.doubleddoge.splithappens.viewmodel.GameStage
+import io.github.doubleddoge.splithappens.util.PlayerName
+import io.github.doubleddoge.splithappens.util.rememberFeedback
+import io.github.doubleddoge.splithappens.util.viewModelFactoryOf
 import io.github.doubleddoge.splithappens.viewmodel.GameViewModel
-import io.github.doubleddoge.splithappens.viewmodel.GameViewModelFactory
-import io.github.doubleddoge.splithappens.viewmodel.SettingsUiState
+import io.github.doubleddoge.splithappens.viewmodel.uistate.SettingsUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -106,7 +106,7 @@ fun GameScreen(
 	modifier: Modifier = Modifier,
 	userId: String = "",
 	mode: GameMode = GameMode.TRADITIONAL,
-	displayName: String = "Player 1",
+	displayName: String = PlayerName.DEFAULT_NAME,
 	chipsOwned: Long = 2500L,
 	profilePictureBytes: ByteArray? = null,
 	isDarkTheme: Boolean = true,
@@ -116,24 +116,21 @@ fun GameScreen(
 	onNavigateProfile: () -> Unit = {},
 ) {
 	val context = LocalContext.current
-	val triggerFeedback: (Long) -> Unit = { durationMs ->
-		if (settingsUiState.soundEffects) triggerClickSound()
-		if (settingsUiState.hapticVibration) triggerDeviceVibration(context, durationMs)
-	}
+	val feedback = rememberFeedback(settingsUiState)
 
 	val db = remember(context) { getDatabase(context) }
 	val gameViewModel: GameViewModel =
 		viewModel(
 			key = "game_${userId}_${mode.name}",
 			factory =
-				GameViewModelFactory(
+				viewModelFactoryOf { GameViewModel(
 					application = context.applicationContext as Application,
 					userDao = db.userDao(),
 					sessionDao = db.sessionDao(),
 					roundDao = db.roundDao(),
 					targetUserId = userId,
-					mode = mode,
-				),
+					initialMode = mode,
+				) },
 		)
 	val uiState by gameViewModel.uiState.collectAsState()
 	LaunchedEffect(mode) {
@@ -175,7 +172,7 @@ fun GameScreen(
 					onClick = {
 						showAllInDialog = false
 						if (available > 0L) {
-							triggerFeedback(35L)
+							feedback.click(35L)
 							betChipsList = betChipsList + available.toInt()
 							gameViewModel.addBet(available)
 						}
@@ -405,7 +402,7 @@ fun GameScreen(
                                                 .clip(RoundedCornerShape(ROUNDED_PERCENT))
                                                 .background(if (isSelected) GoldFoil else Color.Transparent)
                                                 .clickable(enabled = canSwitchMode && !isSelected) {
-                                                    triggerFeedback(25L)
+	                                                feedback.click(25L)
                                                     gameViewModel.setGameMode(entry)
                                                 }
                                                 .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -595,7 +592,7 @@ fun GameScreen(
 									chips = betChipsList,
 									onUndo = {
 										if (betChipsList.isNotEmpty()) {
-											triggerFeedback(25L)
+											feedback.click(25L)
 											gameViewModel.clearBet()
 											betChipsList = emptyList()
 										}
@@ -609,7 +606,7 @@ fun GameScreen(
 								Button(
 									onClick = {
 										betChipsList = emptyList()
-										gameViewModel.resetForNextRound()
+										gameViewModel.forfeitRound()
 									},
 									modifier = Modifier
                                         .fillMaxWidth()
@@ -636,7 +633,7 @@ fun GameScreen(
 									legalActions = uiState.legalActions,
 									onChip = { amount ->
 										if ((uiState.chipsOwned - uiState.currentBet) >= amount) {
-											triggerFeedback(25L)
+											feedback.click(25L)
 											betChipsList = betChipsList + amount.toInt()
 											gameViewModel.addBet(amount)
 										}
@@ -648,11 +645,11 @@ fun GameScreen(
 										}
 									},
 									onDeal = {
-										triggerFeedback(35L)
+										feedback.click(35L)
 										gameViewModel.deal()
 									},
 									onAction = { action ->
-										triggerFeedback(35L)
+										feedback.click(35L)
 										gameViewModel.performAction(action)
 									},
 								)
@@ -805,7 +802,7 @@ private fun TableLabel(
 fun GameScreenPreview() {
 	SplitHappensTheme {
 		GameScreen(
-			displayName = "Player 1",
+			displayName = PlayerName.DEFAULT_NAME,
 			chipsOwned = 2500L,
 			isDarkTheme = true,
 		)

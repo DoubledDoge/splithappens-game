@@ -3,7 +3,7 @@ package io.github.doubleddoge.splithappens.game
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
-import io.github.doubleddoge.splithappens.data.enum.Action
+import io.github.doubleddoge.splithappens.game.model.Action
 import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.game.model.Rank
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
@@ -75,7 +75,7 @@ class GameSessionManagerTest : DatabaseTest() {
 	 * and never reshuffles mid-round.
 	 */
 	@Test
-	fun testCardReshufflingTimingBetweenRounds() {
+	fun testCardReshufflingTimingBetweenRounds() = runBlocking {
 		val shoe = Shoe(deckCount = 1)
 		val initialRemaining = shoe.remaining
 		assertEquals(52, initialRemaining)
@@ -86,12 +86,10 @@ class GameSessionManagerTest : DatabaseTest() {
 		assertNotNull(card1)
 		assertNotNull(card2)
 		assertEquals(50, shoe.remaining)
-
-		// Reshuffle should not have happened mid-round automatically unless explicitly triggered or threshold reached
 		assertFalse(shoe.needsReshuffle)
 
-		// Exhaust shoe until threshold (cutCardAt = 52 / 4 = 13 remaining)
-		while (shoe.remaining > 13) {
+		// Exhaust shoe until threshold (cutCardAt = 52 / 4 = 13 remaining, deal drops it strictly below threshold)
+		while (shoe.remaining >= 13) {
 			shoe.deal()
 		}
 

@@ -65,8 +65,8 @@ import io.github.doubleddoge.splithappens.ui.theme.TextMint
 import io.github.doubleddoge.splithappens.ui.theme.TextMuted
 import io.github.doubleddoge.splithappens.util.triggerClickSound
 import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
-import io.github.doubleddoge.splithappens.viewmodel.HomeUiState
-import io.github.doubleddoge.splithappens.viewmodel.MenuUiState
+import io.github.doubleddoge.splithappens.viewmodel.uistate.HomeUiState
+import io.github.doubleddoge.splithappens.viewmodel.uistate.MenuUiState
 import kotlin.math.abs
 
 @Composable

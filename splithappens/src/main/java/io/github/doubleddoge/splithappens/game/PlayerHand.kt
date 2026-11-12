@@ -15,10 +15,6 @@ class PlayerHand(
 	val value
 		get() = HandValue(cards, isSplit = afterSplit)
 
-	// TODO: To be used?
-	val isDone
-		get() = stood || surrendered || isDoubled || value.total >= GameRules.BLACKJACK_TOTAL
-
 	fun status(): HandStatus =
 		if (surrendered) HandStatus.SURRENDERED else value.toHandStatus()
 

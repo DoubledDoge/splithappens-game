@@ -9,6 +9,7 @@ import io.github.doubleddoge.splithappens.data.getDatabase
 import io.github.doubleddoge.splithappens.data.pref.PrefFiles
 import io.github.doubleddoge.splithappens.data.pref.PrefKeys
 import io.github.doubleddoge.splithappens.util.DailyReward
+import io.github.doubleddoge.splithappens.util.PlayerName.LEGACY_DEFAULT_USER_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 private const val TAG = "SplitHappensApp"
-private const val LEGACY_DEFAULT_USER_ID = "default_player"
 
 class SplitHappensApp : Application() {
 	val database: AppDatabase by lazy { getDatabase(this) }

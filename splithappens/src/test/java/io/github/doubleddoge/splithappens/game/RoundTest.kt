@@ -1,9 +1,9 @@
 package io.github.doubleddoge.splithappens.game
 
-import io.github.doubleddoge.splithappens.data.enum.Action
+import io.github.doubleddoge.splithappens.game.model.Action
 import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.game.model.HandResult
-import io.github.doubleddoge.splithappens.data.enum.Phase
+import io.github.doubleddoge.splithappens.game.model.Phase
 import io.github.doubleddoge.splithappens.game.model.Rank
 import io.github.doubleddoge.splithappens.game.model.Suit
 import kotlin.random.Random

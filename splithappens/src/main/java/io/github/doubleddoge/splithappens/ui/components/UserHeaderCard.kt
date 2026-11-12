@@ -38,6 +38,7 @@ import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import io.github.doubleddoge.splithappens.util.PlayerName
 
 // Dark Theme Colors
 private val CardBgDark = Color(0xFF072C1E)
@@ -141,7 +142,7 @@ fun UserHeaderCardPreview() {
                 .padding(16.dp)
         ) {
             UserHeaderCard(
-                displayName = "Player 1",
+                displayName = PlayerName.DEFAULT_NAME,
                 chipsOwned = 2500L,
                 profilePictureBytes = null,
                 isDarkTheme = true

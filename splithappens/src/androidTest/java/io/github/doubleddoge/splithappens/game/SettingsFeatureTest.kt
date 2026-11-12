@@ -5,9 +5,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.game.model.GameMode
-import io.github.doubleddoge.splithappens.viewmodel.GameStage
-import io.github.doubleddoge.splithappens.viewmodel.GameUiState
+import io.github.doubleddoge.splithappens.game.model.GameStage
 import io.github.doubleddoge.splithappens.viewmodel.SettingViewModel
+import io.github.doubleddoge.splithappens.viewmodel.uistate.GameUiState
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

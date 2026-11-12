@@ -5,7 +5,11 @@ object GameRules {
 	const val BLACKJACK_TOTAL = 21
 	const val DEALER_STAND_TOTAL = 17
 
-	// Card values
+	// Card rules
+	const val NUM_CARDS = 52
+	const val RANK_ORDINAL_OFFSET = 1
+	const val DEFAULT_NUM_DECKS = 6
+	const val CUT_CARD_FRACTION = 4
 	const val ACE_HIGH_VALUE = 11
 	const val ACE_LOW_VALUE = 1
 	const val FACE_CARD_VALUE = 10

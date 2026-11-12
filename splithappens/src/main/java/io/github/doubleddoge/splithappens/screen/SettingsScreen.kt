@@ -34,7 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.doubleddoge.splithappens.viewmodel.SettingsUiState
+import io.github.doubleddoge.splithappens.viewmodel.uistate.SettingsUiState
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground

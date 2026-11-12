@@ -4,30 +4,19 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import io.github.doubleddoge.splithappens.data.pref.PrefFiles
 import io.github.doubleddoge.splithappens.data.pref.PrefKeys
 import io.github.doubleddoge.splithappens.util.triggerDeviceVibration
+import io.github.doubleddoge.splithappens.viewmodel.uistate.SettingsUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-data class SettingsUiState(
-	val darkTheme: Boolean = true,
-	val showCardTotal: Boolean = true,
-	val dealerRuleBanner: Boolean = true,
-	val soundEffects: Boolean = true,
-	val hapticVibration: Boolean = true,
-	val fastDeal: Boolean = false,
-	val autoStandOn21: Boolean = true,
-)
-
 private const val TOGGLE_HAPTIC_MILLIS = 30L
 
-class SettingViewModel(application: Application) : AndroidViewModel(application) {
+class SettingViewModel(private val application: Application) : ViewModel() {
 
 	private val prefs: SharedPreferences =
 		application.getSharedPreferences(PrefFiles.APP, Context.MODE_PRIVATE)
@@ -66,7 +55,7 @@ class SettingViewModel(application: Application) : AndroidViewModel(application)
 
 	fun toggleHapticVibration(enabled: Boolean) {
 		store(PrefKeys.HAPTIC_VIBRATION, enabled) { it.copy(hapticVibration = enabled) }
-		if (enabled) triggerHaptic(force = true) // confirm the setting you just switched on
+		if (enabled) triggerHaptic(force = true) // confirms the setting
 	}
 
 	private fun readPreferences(): SettingsUiState {
@@ -94,24 +83,10 @@ class SettingViewModel(application: Application) : AndroidViewModel(application)
 
 	private fun triggerHaptic(force: Boolean = false) {
 		if (!force && !_uiState.value.hapticVibration) return
-		triggerDeviceVibration(getApplication(), TOGGLE_HAPTIC_MILLIS)
+		triggerDeviceVibration(application, TOGGLE_HAPTIC_MILLIS)
 	}
 
 	override fun onCleared() {
 		prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener)
 	}
-}
-
-class SettingsViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
-	override fun <T : ViewModel> create(modelClass: Class<T>): T =
-		when {
-			modelClass.isAssignableFrom(SettingViewModel::class.java) -> {
-				@Suppress("UNCHECKED_CAST")
-				SettingViewModel(application) as T
-			}
-
-			else -> {
-				throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-			}
-		}
 }

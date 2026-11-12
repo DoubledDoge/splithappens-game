@@ -52,7 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import io.github.doubleddoge.splithappens.viewmodel.ProfileUiState
+import io.github.doubleddoge.splithappens.viewmodel.uistate.ProfileUiState
 import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil

@@ -20,4 +20,7 @@ object PrefKeys {
 
 	const val SAVED_USER_ID = "saved_user_id"
 	const val SAVED_USERNAME = "saved_username"
+	const val REMEMBER_ME = "remember_me"
+	private const val LAST_USED_PREFIX = "last_used_"
+	fun lastUsed(userId: String) = "$LAST_USED_PREFIX$userId"
 }

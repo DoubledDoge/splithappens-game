@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.data.enum
+package io.github.doubleddoge.splithappens.game.model
 
 enum class Phase {
 	BETTING,

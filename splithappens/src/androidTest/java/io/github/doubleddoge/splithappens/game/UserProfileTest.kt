@@ -8,6 +8,7 @@ import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.data.entity.GameEntity
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
+import io.github.doubleddoge.splithappens.data.pref.PrefKeys
 import io.github.doubleddoge.splithappens.game.model.HandResult
 import io.github.doubleddoge.splithappens.game.model.HandStatus
 import kotlinx.coroutines.flow.first
@@ -37,7 +38,7 @@ class UserProfileTest : DatabaseTest() {
 
 		// Simulate active user switching in SharedPreferences
 		val prefs = context.getSharedPreferences("split_happens_prefs", Context.MODE_PRIVATE)
-		prefs.edit().putString("active_user_id", user1.userId).apply()
+		prefs.edit().putString(PrefKeys.ACTIVE_USER_ID, user1.userId).apply()
 
 		// Play game for User 1
 		val session1 = db.sessionDao().insert(SessionEntity(userId = user1.userId, stakes = 50))
@@ -50,7 +51,7 @@ class UserProfileTest : DatabaseTest() {
 		db.userDao().setChips(user1.userId, 1100L)
 
 		// Switch active user to User 2
-		prefs.edit().putString("active_user_id", user2.userId).apply()
+		prefs.edit().putString(PrefKeys.ACTIVE_USER_ID, user2.userId).apply()
 
 		// Verify User 2 data is isolated and untouched by User 1's game
 		val loadedUser1 = db.userDao().getById(user1.userId)!!

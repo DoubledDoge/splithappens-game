@@ -1,18 +1,15 @@
 package io.github.doubleddoge.splithappens.ui
 
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
+import io.github.doubleddoge.splithappens.game.GameRules
+import io.github.doubleddoge.splithappens.game.GameRules.ACE_HIGH_VALUE
+import io.github.doubleddoge.splithappens.game.GameRules.CUT_CARD_FRACTION
+import io.github.doubleddoge.splithappens.game.GameRules.DEFAULT_NUM_DECKS
+import io.github.doubleddoge.splithappens.game.GameRules.FACE_CARD_VALUE
+import io.github.doubleddoge.splithappens.game.GameRules.NUM_CARDS
+import io.github.doubleddoge.splithappens.game.GameRules.RANK_ORDINAL_OFFSET
 import io.github.doubleddoge.splithappens.game.model.Rank
 import io.github.doubleddoge.splithappens.game.model.Suit
-
-private const val BLACKJACK_VALUE = 21
-private const val ACE_HIGH_VALUE = 11
-private const val FACE_CARD_VALUE = 10
-private const val ACE_LOW_REDUCTION = 10
-private const val RANK_ORDINAL_OFFSET = 1
-
-private const val DEFAULT_NUM_DECKS = 6
-private const val NUM_CARDS = 52
-private const val CUT_CARD_FRACTION = 4
 
 val Suit.symbol: String
 	get() =
@@ -66,18 +63,6 @@ data class TableCard(
 		get() = CardEntity.idOf(suit, rank) // maps straight to HandCardEntity.cardId
 }
 
-/** Returns (total, isSoft). Hidden cards are ignored unless [includeHidden] is true. */
-fun calculateHandValue(cards: List<TableCard>, includeHidden: Boolean = false): Pair<Int, Boolean> {
-	val counted = if (includeHidden) cards else cards.filter { it.isFaceUp }
-	var sum = counted.sumOf { it.value }
-	var aces = counted.count { it.rank == Rank.ACE }
-	while (sum > BLACKJACK_VALUE && aces > 0) {
-		sum -= ACE_LOW_REDUCTION
-		aces--
-	}
-	return sum to (aces > 0)
-}
-
 class Shoe(private val decks: Int = DEFAULT_NUM_DECKS) {
 
 	private val cards = ArrayDeque<TableCard>()
@@ -98,11 +83,6 @@ class Shoe(private val decks: Int = DEFAULT_NUM_DECKS) {
 		cards.shuffle()
 		cutCardAt =
 			(decks * NUM_CARDS) / CUT_CARD_FRACTION // reshuffle when a quarter of the shoe is left
-	}
-
-	/** Call between rounds only, so cards in play are never duplicated. */
-	fun shuffleIfNeeded() {
-		if (cards.size < cutCardAt) shuffle()
 	}
 
 	fun draw(faceUp: Boolean = true): TableCard {

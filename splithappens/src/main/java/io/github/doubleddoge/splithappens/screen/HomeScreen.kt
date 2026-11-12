@@ -60,8 +60,9 @@ import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
-import io.github.doubleddoge.splithappens.viewmodel.HomeUiState
+import io.github.doubleddoge.splithappens.util.PlayerName
 import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
+import io.github.doubleddoge.splithappens.viewmodel.uistate.HomeUiState
 import kotlin.math.abs
 
 private const val TWO_SECONDS = 2000
@@ -747,7 +748,7 @@ fun HomeScreenPreview() {
 		HomeScreenContent(
 			uiState =
 				HomeUiState(
-					displayName = "Player 1",
+					displayName = PlayerName.DEFAULT_NAME,
 					chipsOwned = 2500L,
 					totalGamesPlayed = 12,
 					totalWins = 7,

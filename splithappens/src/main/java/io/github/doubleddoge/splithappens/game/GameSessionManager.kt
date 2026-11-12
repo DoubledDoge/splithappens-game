@@ -4,7 +4,7 @@ import io.github.doubleddoge.splithappens.data.dao.RoundDao
 import io.github.doubleddoge.splithappens.data.dao.SessionDao
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
 import io.github.doubleddoge.splithappens.game.model.GameMode
-import io.github.doubleddoge.splithappens.data.enum.Phase
+import io.github.doubleddoge.splithappens.game.model.Phase
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 
 //Mini repo to keep track of round/hand progress

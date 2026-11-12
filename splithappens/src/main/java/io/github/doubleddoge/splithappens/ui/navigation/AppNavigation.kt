@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.navigation
+package io.github.doubleddoge.splithappens.ui.navigation
 
 import android.app.Application
 import android.content.Context
@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.doubleddoge.splithappens.SplitHappensApp
+import io.github.doubleddoge.splithappens.data.AppDatabase
+import io.github.doubleddoge.splithappens.data.pref.PrefFiles
+import io.github.doubleddoge.splithappens.data.pref.PrefKeys
 import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.screen.GameScreen
 import io.github.doubleddoge.splithappens.screen.HomeScreen
@@ -32,16 +36,13 @@ import io.github.doubleddoge.splithappens.screen.SettingsScreen
 import io.github.doubleddoge.splithappens.screen.SplashScreen
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
+import io.github.doubleddoge.splithappens.util.PlayerName
+import io.github.doubleddoge.splithappens.util.viewModelFactoryOf
 import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
-import io.github.doubleddoge.splithappens.viewmodel.HomeViewModelFactory
 import io.github.doubleddoge.splithappens.viewmodel.LoginViewModel
-import io.github.doubleddoge.splithappens.viewmodel.LoginViewModelFactory
 import io.github.doubleddoge.splithappens.viewmodel.MenuViewModel
-import io.github.doubleddoge.splithappens.viewmodel.MenuViewModelFactory
 import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModel
-import io.github.doubleddoge.splithappens.viewmodel.ProfileViewModelFactory
 import io.github.doubleddoge.splithappens.viewmodel.SettingViewModel
-import io.github.doubleddoge.splithappens.viewmodel.SettingsViewModelFactory
 import kotlinx.coroutines.flow.first
 
 @Composable
@@ -52,18 +53,18 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 
 	val authPrefs =
 		remember(context) {
-			context.getSharedPreferences("split_happens_auth", Context.MODE_PRIVATE)
+			context.getSharedPreferences(PrefFiles.AUTH, Context.MODE_PRIVATE)
 		}
 
 	// Reactive state for the active user ID so navigation updates when profiles switch
 	var activeUserId by remember {
-		mutableStateOf(authPrefs.getString("saved_user_id", "") ?: "")
+		mutableStateOf(authPrefs.getString(PrefKeys.SAVED_USER_ID, "") ?: "")
 	}
 
 	DisposableEffect(authPrefs) {
 		val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-			if (key == "saved_user_id") {
-				activeUserId = authPrefs.getString("saved_user_id", "") ?: ""
+			if (key == PrefKeys.SAVED_USER_ID) {
+				activeUserId = authPrefs.getString(PrefKeys.SAVED_USER_ID, "") ?: ""
 			}
 		}
 		authPrefs.registerOnSharedPreferenceChangeListener(listener)
@@ -73,7 +74,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 	}
 
 	val settingsViewModel: SettingViewModel =
-		viewModel(factory = SettingsViewModelFactory(context.applicationContext as Application))
+		viewModel(factory = viewModelFactoryOf { SettingViewModel(context.applicationContext as Application) })
 	val settingsUiState by settingsViewModel.uiState.collectAsState()
 
 	val navBgColor = if (settingsUiState.darkTheme) DarkBackground else LightBackground
@@ -93,7 +94,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 			// 1. Splash Screen
 			composable(Screen.Splash.route) {
 				val loginVm: LoginViewModel =
-					viewModel(factory = LoginViewModelFactory(db.userDao(), context))
+					viewModel(factory = viewModelFactoryOf { LoginViewModel(db.userDao(), context.applicationContext as Application) })
 				SplashScreen(
 					awaitReady = {
 						app.seedJob.join()
@@ -115,7 +116,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 			// 2. Login Screen
 			composable(Screen.Login.route) {
 				val loginVm: LoginViewModel =
-					viewModel(factory = LoginViewModelFactory(db.userDao(), context))
+					viewModel(factory = viewModelFactoryOf { LoginViewModel(db.userDao(), context.applicationContext as Application) })
 				LoginScreen(
 					viewModel = loginVm,
 					isDarkTheme = settingsUiState.darkTheme,
@@ -129,34 +130,16 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 
 			// 3. Home Screen
 			composable(Screen.Home.route) {
-				val homeVm: HomeViewModel =
-					viewModel(
-						factory = HomeViewModelFactory(
-							db.userDao(),
-							db.gameHistoryDao(),
-							activeUserId
-						),
-						key = "home_$activeUserId",
-					)
+				val homeVm: HomeViewModel = rememberHomeViewModel(db, activeUserId, "home")
 
 				HomeScreen(
 					viewModel = homeVm,
 					isDarkTheme = settingsUiState.darkTheme,
-					onPlayClick = { mode -> navController.navigate(Screen.Game.createRoute(mode.name)) },
-					onNavigateSettings = {
-						navController.navigate(Screen.Settings.route) { launchSingleTop = true }
-					},
-					onNavigateMenu = {
-						navController.navigate(Screen.Menu.route) { launchSingleTop = true }
-					},
-					onNavigateGame = {
-						navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
-							launchSingleTop = true
-						}
-					},
-					onNavigateProfile = {
-						navController.navigate(Screen.Profile.route) { launchSingleTop = true }
-					},
+					onPlayClick = { mode -> navController.navigateToGame(mode) },
+					onNavigateSettings = { navController.navigateSingleTop(Screen.Settings.route) },
+					onNavigateMenu = { navController.navigateSingleTop(Screen.Menu.route) },
+					onNavigateGame = { navController.navigateToGame(GameMode.WILDCARD) },
+					onNavigateProfile = { navController.navigateSingleTop(Screen.Profile.route) },
 				)
 			}
 
@@ -165,19 +148,11 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 				val modeString =
 					backStackEntry.arguments?.getString("mode") ?: GameMode.TRADITIONAL.name
 				val mode = GameMode.valueOf(modeString)
-				val homeVm: HomeViewModel =
-					viewModel(
-						factory = HomeViewModelFactory(
-							db.userDao(),
-							db.gameHistoryDao(),
-							activeUserId
-						),
-						key = "game_header_$activeUserId",
-					)
+				val homeVm: HomeViewModel = rememberHomeViewModel(db, activeUserId, "game_header")
 
 				val homeUiState by homeVm.uiState.collectAsState()
 
-				androidx.compose.runtime.LaunchedEffect(activeUserId) {
+				LaunchedEffect(activeUserId) {
 					homeVm.refreshProfilePicture()
 				}
 
@@ -201,26 +176,16 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 							restoreState = true
 						}
 					},
-					onNavigateProfile = {
-						navController.navigate(Screen.Profile.route) { launchSingleTop = true }
-					},
+					onNavigateProfile = { navController.navigateSingleTop(Screen.Profile.route) },
 				)
 			}
 
 			// 5. Menu Screen
 			composable(Screen.Menu.route) {
 				val menuVm: MenuViewModel =
-					viewModel(factory = MenuViewModelFactory(context.applicationContext as Application))
+					viewModel(factory = viewModelFactoryOf { MenuViewModel(context.applicationContext as Application) })
 				val menuUiState by menuVm.uiState.collectAsState()
-				val homeVm: HomeViewModel =
-					viewModel(
-						factory = HomeViewModelFactory(
-							db.userDao(),
-							db.gameHistoryDao(),
-							activeUserId
-						),
-						key = "menu_$activeUserId",
-					)
+				val homeVm: HomeViewModel = rememberHomeViewModel(db, activeUserId, "menu")
 				val homeUiState by homeVm.uiState.collectAsState()
 
 				MenuScreen(
@@ -238,20 +203,10 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 							}
 						}
 					},
-					onNavigateHome = {
-						navController.navigate(Screen.Home.route) { launchSingleTop = true }
-					},
-					onNavigateGame = {
-						navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
-							launchSingleTop = true
-						}
-					},
-					onNavigateToProfile = {
-						navController.navigate(Screen.Profile.route) { launchSingleTop = true }
-					},
-					onNavigateToSettings = {
-						navController.navigate(Screen.Settings.route) { launchSingleTop = true }
-					},
+					onNavigateHome = { navController.navigateSingleTop(Screen.Home.route) },
+					onNavigateGame = { navController.navigateToGame(GameMode.WILDCARD) },
+					onNavigateToProfile = { navController.navigateSingleTop(Screen.Profile.route) },
+					onNavigateToSettings = { navController.navigateSingleTop(Screen.Settings.route) },
 				)
 			}
 
@@ -266,17 +221,9 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 					onToggleHapticVibration = settingsViewModel::toggleHapticVibration,
 					onToggleFastDeal = settingsViewModel::toggleFastDeal,
 					onToggleAutoStandOn21 = settingsViewModel::toggleAutoStandOn21,
-					onNavigateHome = {
-						navController.navigate(Screen.Home.route) { launchSingleTop = true }
-					},
-					onNavigateGame = {
-						navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name)) {
-							launchSingleTop = true
-						}
-					},
-					onNavigateMenu = {
-						navController.navigate(Screen.Menu.route) { launchSingleTop = true }
-					},
+					onNavigateHome = { navController.navigateSingleTop(Screen.Home.route) },
+					onNavigateGame = { navController.navigateToGame(GameMode.WILDCARD) },
+					onNavigateMenu = { navController.navigateSingleTop(Screen.Menu.route) },
 				)
 			}
 
@@ -284,35 +231,43 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 			composable(Screen.Profile.route) {
 				val resolvedUserId by
 				produceState(initialValue = activeUserId, key1 = activeUserId) {
-					if (activeUserId.isNotBlank()) {
-						value = activeUserId
-					} else {
-						value = db.userDao().observeAll().first().firstOrNull()?.userId
-							?: "default_player"
-					}
+					value = activeUserId.takeIf { it.isNotBlank() }
+						?: db.userDao().observeAll().first().firstOrNull()?.userId
+						?: PlayerName.LEGACY_DEFAULT_USER_ID
 				}
 				if (resolvedUserId.isNotBlank()) {
 					val profileVm: ProfileViewModel =
 						viewModel(
 							factory =
-								ProfileViewModelFactory(
+								viewModelFactoryOf { ProfileViewModel(
 									db.userDao(),
 									db.gameHistoryDao(),
 									resolvedUserId
-								),
+								) },
 							key = "profile_$resolvedUserId",
 						)
 					ProfileScreen(
 						viewModel = profileVm,
 						isDarkTheme = settingsUiState.darkTheme,
-						onNavigateHome = { navController.navigate(Screen.Home.route) },
-						onNavigateGame = {
-							navController.navigate(Screen.Game.createRoute(GameMode.WILDCARD.name))
-						},
-						onNavigateMenu = { navController.navigate(Screen.Menu.route) },
+						onNavigateHome = { navController.navigateSingleTop(Screen.Home.route) },
+						onNavigateGame = { navController.navigateToGame(GameMode.WILDCARD) },
+						onNavigateMenu = { navController.navigateSingleTop(Screen.Menu.route) },
 					)
 				}
 			}
 		}
 	}
 }
+
+private fun NavHostController.navigateSingleTop(route: String) =
+	navigate(route) { launchSingleTop = true }
+
+private fun NavHostController.navigateToGame(mode: GameMode) =
+	navigateSingleTop(Screen.Game.createRoute(mode.name))
+
+@Composable
+private fun rememberHomeViewModel(db: AppDatabase, userId: String, keyPrefix: String): HomeViewModel =
+	viewModel(
+		factory = viewModelFactoryOf { HomeViewModel(db.userDao(), db.gameHistoryDao(), userId) },
+		key = "${keyPrefix}_$userId",
+	)

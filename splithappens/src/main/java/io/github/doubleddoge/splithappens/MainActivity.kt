@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.graphics.toColorInt
 import com.google.android.gms.ads.MobileAds
 import io.github.doubleddoge.pulsemonitor.ui.ProfilerOverlay
-import io.github.doubleddoge.splithappens.navigation.AppNavigation
+import io.github.doubleddoge.splithappens.ui.navigation.AppNavigation
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

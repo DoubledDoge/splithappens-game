@@ -144,8 +144,8 @@ class GameHistoryDaoTest : DatabaseTest() {
 		val user = newUser()
 		game(session(user.userId), 1, listOf(100L to HandResult.WIN)) // +100
 		game(session(user.userId), 1, listOf(100L to HandResult.LOSS)) // -100
-		game(session(user.userId), 1, listOf(100L to HandResult.BLACKJACK)) // +200
-		assertEquals(200L, dao.observeNetChips(user.userId).first())
+		game(session(user.userId), 1, listOf(100L to HandResult.BLACKJACK)) // payout 250 -> +150
+		assertEquals(150L, dao.observeNetChips(user.userId).first())
 	}
 
 	@Test

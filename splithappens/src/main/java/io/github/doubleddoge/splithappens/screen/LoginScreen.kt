@@ -67,9 +67,10 @@ import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import io.github.doubleddoge.splithappens.ui.theme.OnGold
 import io.github.doubleddoge.splithappens.ui.theme.PaperWhite
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
-import io.github.doubleddoge.splithappens.viewmodel.LoginUiState
+import io.github.doubleddoge.splithappens.util.PlayerName
 import io.github.doubleddoge.splithappens.viewmodel.LoginViewModel
-import io.github.doubleddoge.splithappens.viewmodel.UserProfileItem
+import io.github.doubleddoge.splithappens.viewmodel.uistate.LoginUiState
+import io.github.doubleddoge.splithappens.viewmodel.uistate.UserProfileItem
 
 // Light Theme Palette
 private val LoginCardSurfaceLight = Color(0xFF1D5A43)
@@ -541,7 +542,7 @@ private fun ProfileItemCard(
 fun LoginScreenPreview() {
 	SplitHappensTheme {
 		LoginScreenContent(
-			uiState = LoginUiState(username = "Player 1", rememberMe = true),
+			uiState = LoginUiState(username = PlayerName.DEFAULT_NAME, rememberMe = true),
 			isDarkTheme = true,
 			onUsernameChange = {},
 			onRememberMeChange = {},

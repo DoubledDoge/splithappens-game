@@ -2,7 +2,6 @@ package io.github.doubleddoge.splithappens.game
 
 import io.github.doubleddoge.splithappens.game.model.Rank
 import io.github.doubleddoge.splithappens.game.model.Suit
-import org.jetbrains.annotations.VisibleForTesting
 import kotlin.random.Random
 
 class Shoe(
@@ -29,16 +28,14 @@ class Shoe(
 		return cards.removeFirst()
 	}
 
-	// TODO: Used for testing perhaps?
-	@VisibleForTesting
-	fun stackTop(top: List<Card>) {
-		cards.addAll(0, top)
-	}
-
 	fun reshuffle() {
 		cards.clear()
 		repeat(deckCount) { cards.addAll(freshDeck()) }
 		cards.shuffle(random)
+	}
+
+	internal fun stackTop(newCards: List<Card>) {
+		newCards.reversed().forEach { cards.addFirst(it) }
 	}
 
 	private companion object {

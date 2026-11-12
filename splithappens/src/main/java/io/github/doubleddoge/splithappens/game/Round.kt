@@ -5,10 +5,10 @@ import io.github.doubleddoge.splithappens.data.dao.RoundRecord
 import io.github.doubleddoge.splithappens.data.entity.GameEntity
 import io.github.doubleddoge.splithappens.data.entity.HandCardEntity
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
-import io.github.doubleddoge.splithappens.data.enum.Action
+import io.github.doubleddoge.splithappens.game.model.Action
 import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.game.model.HandResult
-import io.github.doubleddoge.splithappens.data.enum.Phase
+import io.github.doubleddoge.splithappens.game.model.Phase
 
 // One Round. Bets do NOT deduct funds on placement, Bankroll is the balance at round start.
 // Reshuffles between rounds.
@@ -21,12 +21,12 @@ class Round(
 	private val maxHands: Int = GameRules.DEFAULT_MAX_HANDS,
 	private val autoStandOn21: Boolean = true,
 ) {
-
 	private val dealerUpCard get() = dealerCards[DEALER_UP_CARD_INDEX]
 
-	private val maxInsurance get() = hands[0].bet / GameRules.INSURANCE_MAX_BET_DIVISOR
 	var phase = Phase.BETTING
 		private set
+
+	val maxInsurance get() = hands[0].bet / GameRules.INSURANCE_MAX_BET_DIVISOR
 
 	val hands = mutableListOf<PlayerHand>()
 	val dealerCards = mutableListOf<Card>() // index 1 is the hidden "hole" card.
@@ -171,6 +171,8 @@ class Round(
 						),
 		)
 	}
+
+	fun canAffordInsurance(amount: Long): Boolean = amount <= available
 
 	private fun startPlay() {
 		phase = Phase.PLAYER_TURN

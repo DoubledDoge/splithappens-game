@@ -6,9 +6,34 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import io.github.doubleddoge.splithappens.viewmodel.uistate.SettingsUiState
 
 private const val TAG = "FeedbackUtils"
 const val DEFAULT_VIBRATION_MILLIS = 35L
+
+@Stable
+class Feedback internal constructor(
+	private val context: Context,
+	private val soundEnabled: Boolean,
+	private val hapticsEnabled: Boolean,
+) {
+	fun click(vibrationMillis: Long = DEFAULT_VIBRATION_MILLIS) {
+		if (soundEnabled) triggerClickSound()
+		if (hapticsEnabled) triggerDeviceVibration(context, vibrationMillis)
+	}
+}
+
+@Composable
+fun rememberFeedback(settings: SettingsUiState): Feedback {
+	val context = LocalContext.current
+	return remember(context, settings.soundEffects, settings.hapticVibration) {
+		Feedback(context, settings.soundEffects, settings.hapticVibration)
+	}
+}
 
 // TODO: Integrate actual sound pool/audio asset playback when table audio assets are merged
 fun triggerClickSound() {

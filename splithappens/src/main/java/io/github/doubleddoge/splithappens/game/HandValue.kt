@@ -31,8 +31,8 @@ data class HandValue(
 	val isSixCard: Boolean get() = cardCount == GameRules.SIX_CARD_COUNT && !isBust
 	val isTripleSeven: Boolean
 		get() = cardCount == GameRules.TRIPLE_SEVEN_CARD_COUNT && cards.all { it.rank == Rank.SEVEN }
-	val isQueenAce: Boolean get() = isNaturalPair(Rank.QUEEN, Rank.ACE)
-	val isJackAce: Boolean get() = isNaturalPair(Rank.JACK, Rank.ACE)
+	val isQueenAce: Boolean get() = isNaturalPair(Rank.QUEEN)
+	val isJackAce: Boolean get() = isNaturalPair(Rank.JACK)
 
 	val type: HandType
 		get() = when {
@@ -55,9 +55,9 @@ data class HandValue(
 		isSoft = softAceCount > 0
 	}
 
-	private fun isNaturalPair(first: Rank, second: Rank): Boolean =
+	private fun isNaturalPair(first: Rank): Boolean =
 		cardCount == GameRules.NATURAL_CARD_COUNT && !isSplit &&
-				cards.any { it.rank == first } && cards.any { it.rank == second }
+				cards.any { it.rank == first } && cards.any { it.rank == Rank.ACE }
 
 	val displayString: String
 		get() = when {

@@ -1,11 +1,12 @@
 package io.github.doubleddoge.splithappens.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.dao.GameHistoryDao
 import io.github.doubleddoge.splithappens.data.dao.UserDao
 import io.github.doubleddoge.splithappens.data.entity.ProfilePictureEntity
+import io.github.doubleddoge.splithappens.util.PlayerName
+import io.github.doubleddoge.splithappens.viewmodel.uistate.ProfileUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,69 +18,13 @@ import kotlinx.coroutines.launch
 private const val MAX_NAME_LENGTH = 20
 private const val PERCENTAGE_MULTIPLIER = 100
 
-data class ProfileUiState(
-	val userId: String = "default_player",
-	val displayName: String = "Player 1",
-	val chipsOwned: Long = 2500L,
-	val profilePictureBytes: ByteArray? = null,
-	val gamesPlayed: Int = 0,
-	val wins: Int = 0,
-	val losses: Int = 0,
-	val winRate: Double = 0.0,
-	val netChipsEarned: Long = 0L,
-	val isLoading: Boolean = true,
-	val errorMessage: String? = null,
-) {
-	override fun equals(other: Any?): Boolean {
-		if (this === other) return true
-		if (other !is ProfileUiState) return false
-
-		return userId == other.userId &&
-				displayName == other.displayName &&
-				chipsOwned == other.chipsOwned &&
-				profilePictureBytes.contentEqualsNullable(other.profilePictureBytes) &&
-				gamesPlayed == other.gamesPlayed &&
-				wins == other.wins &&
-				losses == other.losses &&
-				winRate == other.winRate &&
-				netChipsEarned == other.netChipsEarned &&
-				isLoading == other.isLoading &&
-				errorMessage == other.errorMessage
-	}
-
-	override fun hashCode(): Int {
-		var result = userId.hashCode()
-		result = 31 * result + displayName.hashCode()
-		result = 31 * result + chipsOwned.hashCode()
-		result = 31 * result + (profilePictureBytes?.contentHashCode() ?: 0)
-		result = 31 * result + gamesPlayed
-		result = 31 * result + wins
-		result = 31 * result + losses
-		result = 31 * result + winRate.hashCode()
-		result = 31 * result + netChipsEarned.hashCode()
-		result = 31 * result + isLoading.hashCode()
-		result = 31 * result + errorMessage.hashCode()
-		return result
-	}
-}
-
-private fun ByteArray?.contentEqualsNullable(other: ByteArray?): Boolean {
-	return when {
-		this == null && other == null -> true
-		this == null || other == null -> false
-		else -> this.contentEquals(other)
-	}
-}
-
-// PROFILE VIEW MODEL
-
 class ProfileViewModel(
 	private val userDao: UserDao,
 	private val gameHistoryDao: GameHistoryDao,
-	private val userId: String = "default_player",
+	private val userId: String = PlayerName.LEGACY_DEFAULT_USER_ID,
 ) : ViewModel() {
 
-	private val targetUserId = userId.ifBlank { "default_player" }
+	private val targetUserId = userId.ifBlank { PlayerName.LEGACY_DEFAULT_USER_ID }
 
 	private val _uiState =
 		MutableStateFlow(
@@ -105,7 +50,7 @@ class ProfileViewModel(
 				if (user == null) {
 					ProfileUiState(
 						userId = targetUserId,
-						displayName = "Player 1",
+						displayName = PlayerName.DEFAULT_NAME,
 						chipsOwned = 2500L,
 						isLoading = false,
 					)
@@ -201,25 +146,4 @@ class ProfileViewModel(
 	}
 }
 
-class ProfileViewModelFactory(
-	private val userDao: UserDao,
-	private val gameHistoryDao: GameHistoryDao,
-	private val userId: String = "default_player",
-) : ViewModelProvider.Factory {
-	@Suppress("UNCHECKED_CAST")
-	override fun <T : ViewModel> create(modelClass: Class<T>): T =
-		when {
-			modelClass.isAssignableFrom(ProfileViewModel::class.java) -> {
-				ProfileViewModel(
-					userDao = userDao,
-					gameHistoryDao = gameHistoryDao,
-					userId = userId.ifBlank { "default_player" },
-				)
-						as T
-			}
 
-			else -> {
-				throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
-			}
-		}
-}
