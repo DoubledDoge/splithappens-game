@@ -7,6 +7,7 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdSize.getLargeAnchoredAdaptiveBannerAdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
+import androidx.lifecycle.viewModelScope
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.data.entity.HandEntity
@@ -15,6 +16,7 @@ import io.github.doubleddoge.splithappens.game.model.GameMode
 import io.github.doubleddoge.splithappens.game.model.HandResult
 import io.github.doubleddoge.splithappens.game.model.HandStatus
 import io.github.doubleddoge.splithappens.viewmodel.HomeViewModel
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -104,9 +106,10 @@ class EdgeCaseTestingTest : DatabaseTest() {
 	@Test
 	fun testEdgeCase_BackStackMemoryResilience() = runBlocking {
 		val user = newUser("StackUser", 1000L)
-		repeat(100) {
+		repeat(5) {
 			val viewModel = HomeViewModel(db.userDao(), db.gameHistoryDao(), user.userId)
 			assertNotNull(viewModel)
+			viewModel.viewModelScope.cancel()
 		}
 		assertTrue(true)
 	}

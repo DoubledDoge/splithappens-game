@@ -28,4 +28,7 @@ interface SessionDao {
 		status: SessionStatus,
 		endedAt: Long?,
 	)
+
+	@Query("UPDATE Sessions SET userId = :newUserId WHERE userId = :oldUserId")
+	suspend fun reassignUserId(oldUserId: String, newUserId: String)
 }

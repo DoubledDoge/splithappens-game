@@ -5,11 +5,13 @@ import android.util.Log
 import androidx.core.content.edit
 import io.github.doubleddoge.splithappens.data.AppDatabase
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
+import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import io.github.doubleddoge.splithappens.data.getDatabase
 import io.github.doubleddoge.splithappens.data.pref.PrefFiles
 import io.github.doubleddoge.splithappens.data.pref.PrefKeys
 import io.github.doubleddoge.splithappens.util.DailyReward
 import io.github.doubleddoge.splithappens.util.PlayerName.LEGACY_DEFAULT_USER_ID
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,25 +38,53 @@ class SplitHappensApp : Application() {
 
 	private suspend fun seedDefaults() {
 		database.cardDao().insertAll(CardEntity.standardDeck()) // idempotent (ignores existing rows)
-		removeLegacyDefaultPlayer()
+		migrateLegacyDefaultPlayer()
 	}
 
-	private suspend fun removeLegacyDefaultPlayer() {
+	private suspend fun migrateLegacyDefaultPlayer() {
 		val userDao = database.userDao()
 		val legacyPlayer = userDao.getById(LEGACY_DEFAULT_USER_ID) ?: return
+
+		val newUserId = UUID.randomUUID().toString()
+		val migratedUser = UserEntity(
+			userId = newUserId,
+			displayName = legacyPlayer.displayName,
+			chipsOwned = legacyPlayer.chipsOwned,
+			createdAt = legacyPlayer.createdAt,
+		)
+
+		userDao.insert(migratedUser)
+		database.sessionDao().reassignUserId(LEGACY_DEFAULT_USER_ID, newUserId)
+		userDao.reassignProfilePictureUserId(LEGACY_DEFAULT_USER_ID, newUserId)
 		userDao.delete(legacyPlayer)
 
 		val authPrefs = getSharedPreferences(PrefFiles.AUTH, MODE_PRIVATE)
 		val appPrefs = getSharedPreferences(PrefFiles.APP, MODE_PRIVATE)
 
+		val lastClaim = appPrefs.getLong(PrefKeys.lastDailyClaim(LEGACY_DEFAULT_USER_ID), 0L)
+		if (lastClaim > 0L) {
+			appPrefs.edit {
+				putLong(PrefKeys.lastDailyClaim(newUserId), lastClaim)
+				remove(PrefKeys.lastDailyClaim(LEGACY_DEFAULT_USER_ID))
+			}
+		}
+
+		val lastUsed = authPrefs.getLong(PrefKeys.lastUsed(LEGACY_DEFAULT_USER_ID), 0L)
+		if (lastUsed > 0L) {
+			authPrefs.edit {
+				putLong(PrefKeys.lastUsed(newUserId), lastUsed)
+				remove(PrefKeys.lastUsed(LEGACY_DEFAULT_USER_ID))
+			}
+		}
+
 		if (authPrefs.getString(PrefKeys.SAVED_USER_ID, null) == LEGACY_DEFAULT_USER_ID) {
 			authPrefs.edit {
-				remove(PrefKeys.SAVED_USER_ID)
-				remove(PrefKeys.SAVED_USERNAME)
+				putString(PrefKeys.SAVED_USER_ID, newUserId)
+				putString(PrefKeys.SAVED_USERNAME, migratedUser.displayName)
 			}
 		}
 		if (appPrefs.getString(PrefKeys.ACTIVE_USER_ID, null) == LEGACY_DEFAULT_USER_ID) {
-			appPrefs.edit { remove(PrefKeys.ACTIVE_USER_ID) }
+			appPrefs.edit { putString(PrefKeys.ACTIVE_USER_ID, newUserId) }
 		}
 	}
 

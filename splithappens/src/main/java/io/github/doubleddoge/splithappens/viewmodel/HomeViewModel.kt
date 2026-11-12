@@ -10,6 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -79,6 +80,8 @@ class HomeViewModel(
 						)
 					}
 				}
+			}.catch { e ->
+				if (e !is IllegalStateException || e.message?.contains("closed") != true) throw e
 			}.collect { state ->
 				val existingPicture = if (state.userId == _uiState.value.userId) {
 					_uiState.value.profilePictureBytes

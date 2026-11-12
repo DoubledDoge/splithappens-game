@@ -130,7 +130,7 @@ class UserProfileTest : DatabaseTest() {
 		val sessionId = db.sessionDao().insert(SessionEntity(userId = user.userId, stakes = 100))
 		val roundDao = db.roundDao()
 
-		// Game 1: Win (+200 net)
+		// Game 1: Win (+100 net profit, payout 200)
 		val g1 = roundDao.insertGame(GameEntity.create(sessionId, 1, 18))
 		roundDao.insertHand(
 			HandEntity.player(100, HandStatus.STOOD, HandResult.WIN).copy(gameId = g1)
@@ -163,6 +163,6 @@ class UserProfileTest : DatabaseTest() {
 		assertEquals(2, wins)
 		assertEquals(1, losses)
 		assertEquals(66.66666666666666, winRate, 0.001)
-		assertEquals(200L, totalNet) // +200 - 100 + 100 = 200
+		assertEquals(100L, totalNet) // +100 - 100 + 100 = 100
 	}
 }

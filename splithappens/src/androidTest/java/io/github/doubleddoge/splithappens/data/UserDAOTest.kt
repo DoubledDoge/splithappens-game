@@ -109,4 +109,20 @@ class UserDaoTest : DatabaseTest() {
 			dao.savePicture(ProfilePictureEntity("ghost", byteArrayOf(1)))
 		}
 	}
+
+	@Test
+	fun reassignUserId_and_reassignProfilePictureUserId_preservesRelatedData() = runBlocking {
+		val oldUser = newUser("Legacy", 1000)
+		val newUser = newUser("NewUser", 500)
+		val sessionId = db.sessionDao().insert(SessionEntity(userId = oldUser.userId, stakes = 100))
+		val bytes = byteArrayOf(1, 2, 3)
+		dao.savePicture(ProfilePictureEntity(oldUser.userId, bytes))
+
+		db.sessionDao().reassignUserId(oldUser.userId, newUser.userId)
+		dao.reassignProfilePictureUserId(oldUser.userId, newUser.userId)
+		dao.delete(oldUser)
+
+		assertEquals(newUser.userId, db.sessionDao().getById(sessionId)?.userId)
+		assertArrayEquals(bytes, dao.getPicture(newUser.userId))
+	}
 }

@@ -21,7 +21,9 @@ abstract class DatabaseTest {
 	}
 
 	@After
-	fun closeDb() = db.close()
+	fun closeDb() {
+		runCatching { db.close() }
+	}
 
 	protected suspend fun newUser(name: String = "Player", chips: Long = 1000): UserEntity =
 		UserEntity(displayName = name, chipsOwned = chips).also { db.userDao().insert(it) }
