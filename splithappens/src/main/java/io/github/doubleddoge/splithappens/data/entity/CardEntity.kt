@@ -3,8 +3,8 @@ package io.github.doubleddoge.splithappens.data.entity
 import androidx.room3.Entity
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
-import io.github.doubleddoge.splithappens.data.enum.Rank
-import io.github.doubleddoge.splithappens.data.enum.Suit
+import io.github.doubleddoge.splithappens.game.enum.Rank
+import io.github.doubleddoge.splithappens.game.enum.Suit
 
 @Entity(
 	tableName = "Cards",
@@ -12,7 +12,7 @@ import io.github.doubleddoge.splithappens.data.enum.Suit
 )
 data class CardEntity(
 	@PrimaryKey
-	val cardId: Int, // Make sure an card always has the same id no matter what (export/import)
+	val cardId: Int, // Stable for a given suit and rank, so exports and imports keep working
 	val suit: Suit,
 	val rank: Rank,
 ) {

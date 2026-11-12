@@ -1,6 +1,6 @@
 @file:Suppress("MagicNumber")
 
-package io.github.doubleddoge.splithappens.data.enum
+package io.github.doubleddoge.splithappens.game.enum
 
 // Has a multiplier to enable different payouts decided by game logic.
 // Multipliers are TOTAL RETURN (bet included): WIN 2.0 = even money, BLACKJACK 2.5 = pays 3:2.

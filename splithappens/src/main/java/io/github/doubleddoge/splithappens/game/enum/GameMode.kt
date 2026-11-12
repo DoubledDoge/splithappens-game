@@ -1,4 +1,4 @@
-package io.github.doubleddoge.splithappens.data.enum
+package io.github.doubleddoge.splithappens.game.enum
 
 enum class GameMode(val allowedResults: Set<HandResult>) {
 	// Full experience

@@ -4,7 +4,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
-import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.game.enum.GameMode
 import io.github.doubleddoge.splithappens.viewmodel.GameStage
 import io.github.doubleddoge.splithappens.viewmodel.GameUiState
 import io.github.doubleddoge.splithappens.viewmodel.SettingViewModel

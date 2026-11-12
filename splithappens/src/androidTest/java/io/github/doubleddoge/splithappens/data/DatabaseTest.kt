@@ -11,13 +11,13 @@ import org.junit.Before
 
 // Fresh in-memory database per test
 abstract class DatabaseTest {
-	protected lateinit var db: Database
+	protected lateinit var db: AppDatabase
 
 	@Before
 	fun createDb() {
 		val context = InstrumentationRegistry.getInstrumentation().targetContext
 		db =
-			Room.inMemoryDatabaseBuilder<Database>(context).setDriver(AndroidSQLiteDriver()).build()
+			Room.inMemoryDatabaseBuilder<AppDatabase>(context).setDriver(AndroidSQLiteDriver()).build()
 	}
 
 	@After

@@ -1,8 +1,8 @@
 package io.github.doubleddoge.splithappens.ui
 
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
-import io.github.doubleddoge.splithappens.data.enum.Rank
-import io.github.doubleddoge.splithappens.data.enum.Suit
+import io.github.doubleddoge.splithappens.game.enum.Rank
+import io.github.doubleddoge.splithappens.game.enum.Suit
 
 private const val BLACKJACK_VALUE = 21
 private const val ACE_HIGH_VALUE = 11

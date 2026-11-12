@@ -1,11 +1,11 @@
 package io.github.doubleddoge.splithappens.game
 
 import io.github.doubleddoge.splithappens.data.enum.Action
-import io.github.doubleddoge.splithappens.data.enum.GameMode
-import io.github.doubleddoge.splithappens.data.enum.HandResult
+import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.enum.HandResult
 import io.github.doubleddoge.splithappens.data.enum.Phase
-import io.github.doubleddoge.splithappens.data.enum.Rank
-import io.github.doubleddoge.splithappens.data.enum.Suit
+import io.github.doubleddoge.splithappens.game.enum.Rank
+import io.github.doubleddoge.splithappens.game.enum.Suit
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -97,11 +97,17 @@ class RoundTest {
 		assertTrue(Action.STAND in round.legalActions())
 	}
 
-	// Known issue
 	@Test
 	fun startBetting_twiceIsRejected() {
 		val round = roundWith(Rank.TEN, Rank.SIX, Rank.EIGHT, Rank.TEN)
 		round.startBetting(10)
 		assertThrows(IllegalStateException::class.java) { round.startBetting(10) }
+	}
+
+	@Test
+	fun startBetting_rejectsZeroAndNegativeBets() {
+		val round = Round(Shoe(random = Random(1)), GameMode.WILDCARD, bankroll = 1000L)
+		assertThrows(IllegalArgumentException::class.java) { round.startBetting(0) }
+		assertThrows(IllegalArgumentException::class.java) { round.startBetting(-100) }
 	}
 }

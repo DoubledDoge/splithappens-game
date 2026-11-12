@@ -5,8 +5,8 @@ import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
 import io.github.doubleddoge.splithappens.data.enum.HandOwner
-import io.github.doubleddoge.splithappens.data.enum.HandResult
-import io.github.doubleddoge.splithappens.data.enum.HandStatus
+import io.github.doubleddoge.splithappens.game.enum.HandResult
+import io.github.doubleddoge.splithappens.game.enum.HandStatus
 
 // Net profit can't be derived from bet x result
 @Entity(
@@ -36,8 +36,8 @@ data class HandEntity(
 	val betAmount: Long,
 	val isDoubled: Boolean = false,
 	val handStatus: HandStatus,
-	val result: HandResult?, // Could be null for dealer hands
-	val payout: Long = 0, // Deterministic based on HandResult
+	val result: HandResult?,
+	val payout: Long = 0,
 ) {
 	companion object {
 		// IDs intentionally kept as placeholders (0/null) where RoundDao.saveRound fills them in
@@ -47,6 +47,9 @@ data class HandEntity(
 			result: HandResult,
 			isDoubled: Boolean = false,
 		): HandEntity {
+			require(betAmount > 0) {
+				"A player hand needs a positive bet"
+			}
 			require(handStatus != HandStatus.BUSTED || result == HandResult.LOSS) {
 				"A busted hand always loses"
 			}

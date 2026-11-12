@@ -1,8 +1,8 @@
 package io.github.doubleddoge.splithappens.data
 
 import io.github.doubleddoge.splithappens.data.entity.SessionEntity
-import io.github.doubleddoge.splithappens.data.enum.GameMode
-import io.github.doubleddoge.splithappens.data.enum.HandResult
+import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.enum.HandResult
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 import org.junit.Assert
 import org.junit.Assert.assertEquals

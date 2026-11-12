@@ -58,8 +58,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.github.doubleddoge.splithappens.data.buildDatabase
-import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.data.getDatabase
+import io.github.doubleddoge.splithappens.game.enum.GameMode
 import io.github.doubleddoge.splithappens.game.evaluateHand
 import io.github.doubleddoge.splithappens.navigation.Screen
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
@@ -121,7 +121,7 @@ fun GameScreen(
 		if (settingsUiState.hapticVibration) triggerDeviceVibration(context, durationMs)
 	}
 
-	val db = remember(context) { buildDatabase(context) }
+	val db = remember(context) { getDatabase(context) }
 	val gameViewModel: GameViewModel =
 		viewModel(
 			key = "game_${userId}_${mode.name}",

@@ -1,7 +1,7 @@
 package io.github.doubleddoge.splithappens.data.view
 
 import androidx.room3.DatabaseView
-import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.game.enum.GameMode
 
 /*
 Made into a derived view rather than a stored table since

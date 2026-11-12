@@ -1,7 +1,7 @@
 package io.github.doubleddoge.splithappens.game
 
-import io.github.doubleddoge.splithappens.data.enum.GameMode
-import io.github.doubleddoge.splithappens.data.enum.HandResult
+import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.enum.HandResult
 
 object HandEvaluator {
 	private val naturalResults =

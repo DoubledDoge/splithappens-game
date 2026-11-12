@@ -3,10 +3,10 @@ package io.github.doubleddoge.splithappens.game
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
-import io.github.doubleddoge.splithappens.data.enum.GameMode
-import io.github.doubleddoge.splithappens.data.enum.HandResult
-import io.github.doubleddoge.splithappens.data.enum.Rank
-import io.github.doubleddoge.splithappens.data.enum.Suit
+import io.github.doubleddoge.splithappens.game.enum.GameMode
+import io.github.doubleddoge.splithappens.game.enum.HandResult
+import io.github.doubleddoge.splithappens.game.enum.Rank
+import io.github.doubleddoge.splithappens.game.enum.Suit
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

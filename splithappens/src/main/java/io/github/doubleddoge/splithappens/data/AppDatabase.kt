@@ -19,6 +19,8 @@ import io.github.doubleddoge.splithappens.data.entity.SessionEntity
 import io.github.doubleddoge.splithappens.data.entity.UserEntity
 import io.github.doubleddoge.splithappens.data.view.GameHistory
 
+private const val DATABASE_NAME = "splithappens.db"
+
 @Database(
 	entities =
 		[
@@ -33,36 +35,21 @@ import io.github.doubleddoge.splithappens.data.view.GameHistory
 	views = [GameHistory::class],
 	version = 1,
 )
-abstract class Database : RoomDatabase() {
+abstract class AppDatabase : RoomDatabase() {
 	abstract fun userDao(): UserDao
-
 	abstract fun sessionDao(): SessionDao
-
 	abstract fun cardDao(): CardDao
-
 	abstract fun roundDao(): RoundDao
-
 	abstract fun gameHistoryDao(): GameHistoryDao
 }
 
 @Volatile
-private var INSTANCE: io.github.doubleddoge.splithappens.data.Database? = null
+private var instance: AppDatabase? = null
 
-fun buildDatabase(context: Context): io.github.doubleddoge.splithappens.data.Database {
-	return INSTANCE
-		?: synchronized(Database::class.java) {
-			INSTANCE
-				?: run {
-					val db =
-						Room.databaseBuilder<io.github.doubleddoge.splithappens.data.Database>(
-							context.applicationContext,
-							"splithappens.db",
-						)
-							.setDriver(AndroidSQLiteDriver())
-							.build()
-
-					// Build the database instance
-					db.also { INSTANCE = it }
-				}
-		}
-}
+fun getDatabase(context: Context): AppDatabase =
+	instance ?: synchronized(AppDatabase::class.java) {
+		instance ?: Room.databaseBuilder<AppDatabase>(context.applicationContext, DATABASE_NAME)
+			.setDriver(AndroidSQLiteDriver())
+			.build()
+			.also { instance = it }
+	}

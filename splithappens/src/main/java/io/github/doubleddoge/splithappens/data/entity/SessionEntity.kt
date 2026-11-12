@@ -4,7 +4,7 @@ import androidx.room3.Entity
 import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
-import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.game.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
 
 @Entity(

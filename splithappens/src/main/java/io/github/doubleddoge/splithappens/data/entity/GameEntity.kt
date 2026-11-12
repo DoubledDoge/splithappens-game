@@ -25,12 +25,12 @@ data class GameEntity(
 	val gameNum: Int,
 	val dealerTotal: Int,
 	val insuranceBet: Long = 0,
-	val insurancePayout: Long = 0, // Deterministic based on dealerTotal
+	val insurancePayout: Long = 0, // insuranceBet * INSURANCE_RETURN_MULTIPLIER if the dealer blackjack, else 0
 ) {
 	companion object {
 		const val INSURANCE_RETURN_MULTIPLIER = 3 // Insurance pays 2:1 ratio so 1 + 2 = 3
 
-		// A finished game shenanigans
+		// [dealerHadBlackjack], not the total, decides the insurance payout
 		fun create(
 			sessionId: Long,
 			gameNum: Int,
