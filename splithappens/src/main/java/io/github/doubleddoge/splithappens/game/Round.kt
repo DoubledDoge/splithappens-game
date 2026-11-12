@@ -8,7 +8,6 @@ import io.github.doubleddoge.splithappens.data.entity.HandEntity
 import io.github.doubleddoge.splithappens.data.enum.Action
 import io.github.doubleddoge.splithappens.data.enum.GameMode
 import io.github.doubleddoge.splithappens.data.enum.HandResult
-import io.github.doubleddoge.splithappens.data.enum.HandStatus
 import io.github.doubleddoge.splithappens.data.enum.Phase
 
 // One Round. Bets do NOT deduct funds on placement, Bankroll is the balance at round start.
@@ -47,7 +46,7 @@ class Round(
 		get() = bankroll - hands.sumOf { it.bet } - insuranceBet
 
 	fun startBetting(amount: Long) {
-		check(phase == Phase.BETTING) { "Bet already placed" }
+		check(phase == Phase.BETTING && hands.isEmpty()) { "Bet already placed" }
 		require(amount in minBet..bankroll) { "Bet must be between $minBet and $bankroll" }
 		hands += PlayerHand(mutableListOf(), amount)
 	}

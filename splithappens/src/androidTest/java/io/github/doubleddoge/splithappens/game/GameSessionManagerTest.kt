@@ -5,7 +5,9 @@ import io.github.doubleddoge.splithappens.data.DatabaseTest
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
 import io.github.doubleddoge.splithappens.data.enum.Action
 import io.github.doubleddoge.splithappens.data.enum.GameMode
+import io.github.doubleddoge.splithappens.data.enum.Rank
 import io.github.doubleddoge.splithappens.data.enum.SessionStatus
+import io.github.doubleddoge.splithappens.data.enum.Suit
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -40,7 +42,13 @@ class GameSessionManagerTest : DatabaseTest() {
 		assertEquals(1, manager.gameNum)
 
 		// Play a round
-		val shoe = Shoe(deckCount = 1)
+		val shoe = Shoe(deckCount = 1).apply {
+			stackTop(listOf(
+				Card(Suit.SPADES, Rank.TEN), Card(Suit.CLUBS, Rank.SIX),      // player, dealer up
+				Card(Suit.HEARTS, Rank.EIGHT), Card(Suit.DIAMONDS, Rank.TEN), // player, dealer hole
+				Card(Suit.SPADES, Rank.NINE),                                 // dealer's draw
+			))
+		}
 		val round = Round(shoe = shoe, mode = GameMode.WILDCARD, bankroll = 1000, minBet = 100)
 		round.placeBet(100)
 		round.act(Action.STAND) // Dealer plays out
