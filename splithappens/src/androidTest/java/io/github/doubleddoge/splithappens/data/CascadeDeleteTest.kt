@@ -65,7 +65,7 @@ class CascadeDeleteTest : DatabaseTest() {
 					),
 				),
 			),
-			userId, 0,
+			userId
 		)
 
 	@Test

@@ -13,7 +13,14 @@ import io.github.doubleddoge.splithappens.data.enum.HandOwner
 data class RoundRecord(
 	val game: GameEntity,
 	val hands: List<HandRecord>,
-)
+) {
+	// Chips the player won or lost this round
+	val netChips: Long
+		get() = hands
+			.filter { it.hand.owner == HandOwner.PLAYER }
+			.sumOf { it.hand.payout - it.hand.betAmount } +
+				game.insurancePayout - game.insuranceBet
+}
 
 data class HandRecord(
 	val hand: HandEntity,
@@ -32,7 +39,7 @@ abstract class RoundDao {
 	@Insert
 	abstract suspend fun insertHandCards(cards: List<HandCardEntity>)
 
-	//new constraints mentioned, helper functions for unit tests.
+	// New constraints mentioned, helper functions for unit tests.
 	@Query("SELECT * FROM Hands WHERE gameId = :gameId ORDER BY handId")
 	abstract suspend fun getHands(gameId: Long): List<HandEntity>
 
@@ -61,16 +68,10 @@ abstract class RoundDao {
 		delta: Long,
 	)
 
-	/*
-	End-of-round operations done here
-
-	Room version 3.0.3 fixes a potential deadlock and an IllegalMonitorStateException here
-	 */
 	@Transaction
 	open suspend fun saveRound(
 		round: RoundRecord,
 		userId: String,
-		newChipsOwned: Long,
 	): Long {
 		val gameId = insertGame(round.game)
 		val handIds = ArrayList<Long>(round.hands.size)
@@ -87,13 +88,7 @@ abstract class RoundDao {
 			insertHandCards(record.cards.map { it.copy(handId = handId) })
 		}
 
-		// playerNet = sum(hand.payout - hand.betAmount)
-		val playerNet =
-			round.hands
-				.filter { it.hand.owner == HandOwner.PLAYER }
-				.sumOf { it.hand.payout - it.hand.betAmount }
-
-		addChips(userId, playerNet + round.game.insurancePayout - round.game.insuranceBet)
+		addChips(userId, round.netChips)
 
 		return gameId
 	}

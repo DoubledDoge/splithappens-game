@@ -35,12 +35,12 @@ class GameSessionManager(
 		return sessionId
 	}
 
-	suspend fun saveAndNextRound(round: Round, userChips: Long) {
+	suspend fun saveAndNextRound(round: Round) {
 		check(isSessionActive) { "Session is not active" }
 		check(round.phase == Phase.FINISHED) { "Round is not finished" }
 
 		val record = round.toRecord(sessionId, gameNum)
-		roundDao.saveRound(record, userId, userChips)
+		roundDao.saveRound(record, userId)
 		//next hand that player gets, gets another game started.
 		gameNum++
 	}

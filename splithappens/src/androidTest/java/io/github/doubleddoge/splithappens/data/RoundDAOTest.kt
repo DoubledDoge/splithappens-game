@@ -59,7 +59,7 @@ class RoundDaoTest : DatabaseTest() {
 	fun saveRound_updatesChipsAndHistory() = runBlocking {
 		val (userId, sessionId) = seed()
 
-		dao.saveRound(simpleRound(sessionId), userId, newChipsOwned = 0)
+		dao.saveRound(simpleRound(sessionId), userId)
 
 		assertEquals(1010L, db.userDao().getById(userId)!!.chipsOwned)
 		assertEquals(10L, db.gameHistoryDao().observeNetChips(userId).first())
@@ -100,7 +100,7 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		val gameId = dao.saveRound(round, userId, newChipsOwned = 0)
+		val gameId = dao.saveRound(round, userId)
 
 		val hands = dao.getHands(gameId)
 		assertEquals(3, hands.size)
@@ -133,7 +133,7 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		assertTrue(runCatching { dao.saveRound(round, userId, 0) }.isFailure)
+		assertTrue(runCatching { dao.saveRound(round, userId) }.isFailure)
 		assertNothingPersisted()
 		assertEquals(1000L, db.userDao().getById(userId)!!.chipsOwned)
 	}
@@ -160,7 +160,7 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		assertTrue(runCatching { dao.saveRound(round, userId, 0) }.isFailure)
+		assertTrue(runCatching { dao.saveRound(round, userId) }.isFailure)
 
 		assertNothingPersisted() // no orphaned parent hand, no game row
 		assertEquals(1000L, db.userDao().getById(userId)!!.chipsOwned)
@@ -190,7 +190,7 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		val (parent, child) = dao.getHands(dao.saveRound(round, userId, 0))
+		val (parent, child) = dao.getHands(dao.saveRound(round, userId))
 
 		assertEquals(
 			listOf(CardEntity.idOf(Suit.HEARTS, Rank.EIGHT), CardEntity.idOf(Suit.CLUBS, Rank.TEN)),
@@ -225,7 +225,7 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		val h = dao.getHands(dao.saveRound(round, userId, 0))
+		val h = dao.getHands(dao.saveRound(round, userId))
 
 		assertNull(h[0].parentHandId)
 		assertEquals(h[0].handId, h[1].parentHandId)
@@ -253,7 +253,7 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		val (_, child) = dao.getHands(dao.saveRound(round, userId, 0))
+		val (_, child) = dao.getHands(dao.saveRound(round, userId))
 
 		assertTrue(child.isDoubled)
 		assertEquals(20L, child.betAmount)
@@ -276,7 +276,7 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		assertTrue(runCatching { dao.saveRound(round, userId, 0) }.isFailure)
+		assertTrue(runCatching { dao.saveRound(round, userId) }.isFailure)
 		assertNothingPersisted()
 		assertEquals(1000L, db.userDao().getById(userId)!!.chipsOwned)
 	}
@@ -297,7 +297,7 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		assertTrue(runCatching { dao.saveRound(round, userId, 0) }.isFailure)
+		assertTrue(runCatching { dao.saveRound(round, userId) }.isFailure)
 		assertNothingPersisted()
 		assertEquals(1000L, db.userDao().getById(userId)!!.chipsOwned)
 	}
@@ -305,14 +305,13 @@ class RoundDaoTest : DatabaseTest() {
 	@Test
 	fun saveRound_duplicateGameNum_failsAtGameInsert_andKeepsEarlierRoundIntact() = runBlocking {
 		val (userId, sessionId) = seed()
-		dao.saveRound(simpleRound(sessionId, gameNum = 1), userId, 0)
+		dao.saveRound(simpleRound(sessionId, gameNum = 1), userId)
 
 		// Same (sessionId, gameNum) -> unique index violation on the very first write
 		assertTrue(runCatching {
 			dao.saveRound(
 				simpleRound(sessionId, gameNum = 1),
-				userId,
-				0
+				userId
 			)
 		}.isFailure)
 
@@ -341,9 +340,28 @@ class RoundDaoTest : DatabaseTest() {
 			),
 		)
 
-		dao.saveRound(round, userId, 0)
+		dao.saveRound(round, userId)
 
 		assertEquals(2, dao.countHandCards())
 		assertEquals(1010L, db.userDao().getById(userId)!!.chipsOwned)
+	}
+
+	@Test
+	fun saveRound_chipDelta_matchesGameHistoryNet() = runBlocking {
+		val user = newUser(chips = 1000)
+		val sessionId = db.sessionDao().insert(SessionEntity(userId = user.userId, stakes = 100))
+		val record = RoundRecord(
+			game = GameEntity.create(sessionId, 1, 21, insuranceBet = 20, dealerHadBlackjack = true),
+			hands = listOf(
+				HandRecord(HandEntity.player(100, HandStatus.STOOD, HandResult.LOSS), cards = emptyList()),
+				HandRecord(HandEntity.dealer(HandStatus.BLACKJACK), cards = emptyList()),
+			),
+		)
+
+		db.roundDao().saveRound(record, user.userId)
+
+		val net = db.gameHistoryDao().observeNetChips(user.userId).first()
+		assertEquals(-60L, net) // -100 lost, +60 insurance return, -20 insurance stake
+		assertEquals(940L, db.userDao().getById(user.userId)?.chipsOwned)
 	}
 }

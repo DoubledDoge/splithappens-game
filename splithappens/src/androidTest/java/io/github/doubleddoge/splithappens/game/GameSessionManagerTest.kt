@@ -54,7 +54,7 @@ class GameSessionManagerTest : DatabaseTest() {
 		round.act(Action.STAND) // Dealer plays out
 
 		// Save round
-		manager.saveAndNextRound(round, user.chipsOwned)
+		manager.saveAndNextRound(round)
 		assertEquals(2, manager.gameNum)
 		assertEquals(1, db.roundDao().countGames())
 
@@ -63,6 +63,10 @@ class GameSessionManagerTest : DatabaseTest() {
 		val session = db.sessionDao().getById(sessionId)
 		assertEquals(SessionStatus.COMPLETED, session?.status)
 		assertTrue(session?.endedAt != null)
+
+		val updatedUser = db.userDao().getById(user.userId)
+		val net = round.toRecord(sessionId, 1).netChips
+		assertEquals(user.chipsOwned + net, updatedUser?.chipsOwned)
 	}
 
 	/**

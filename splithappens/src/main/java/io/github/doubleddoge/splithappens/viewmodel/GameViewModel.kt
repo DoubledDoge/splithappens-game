@@ -419,7 +419,7 @@ class GameViewModel(
 				if (!sm.isSessionActive) {
 					sm.startSession()
 				}
-				sm.saveAndNextRound(round, _uiState.value.chipsOwned)
+				sm.saveAndNextRound(round)
 			}
 		}
 	}
