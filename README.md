@@ -1,6 +1,6 @@
 # Split Happens
 
-[![CI/CD](https://github.com/DoubledDoge/splithappens-game/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/DoubledDoge/splithappens-game/actions/workflows/ci-cd.yml)
+[![CI](https://github.com/DoubledDoge/splithappens-game/actions/workflows/ci.yml/badge.svg)](https://github.com/DoubledDoge/splithappens-game/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/DoubledDoge/splithappens-game/actions/workflows/codeql.yml/badge.svg)](https://github.com/DoubledDoge/splithappens-game/actions/workflows/codeql.yml)
 [![Min SDK](https://img.shields.io/badge/minSdk-24-brightgreen)](#requirements)
 [![License](https://img.shields.io/badge/license-PolyForm%20Strict%201.0.0-blue)](LICENSE)
