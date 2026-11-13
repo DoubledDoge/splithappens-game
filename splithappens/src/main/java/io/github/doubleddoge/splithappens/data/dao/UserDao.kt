@@ -40,4 +40,7 @@ interface UserDao {
 
 	@Query("SELECT image FROM ProfilePictures WHERE userId = :userId")
 	suspend fun getPicture(userId: String): ByteArray?
+
+	@Query("UPDATE ProfilePictures SET userId = :newUserId WHERE userId = :oldUserId")
+	suspend fun reassignProfilePictureUserId(oldUserId: String, newUserId: String)
 }

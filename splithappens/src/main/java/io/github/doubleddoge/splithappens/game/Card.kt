@@ -1,18 +1,18 @@
 package io.github.doubleddoge.splithappens.game
 
 import io.github.doubleddoge.splithappens.data.entity.CardEntity
-import io.github.doubleddoge.splithappens.data.enum.Suit
-import io.github.doubleddoge.splithappens.data.enum.Rank
+import io.github.doubleddoge.splithappens.game.model.Rank
+import io.github.doubleddoge.splithappens.game.model.Suit
 
-data class Card(val suit:Suit, val rank: Rank) {
-    val cardId: Int get() = CardEntity.idOf(suit, rank)
+data class Card(val suit: Suit, val rank: Rank) {
+	val cardId: Int get() = CardEntity.idOf(suit, rank)
 
-    val value : Int get () = when (rank) {
-        Rank.ACE -> 11
-        Rank.JACK, Rank.QUEEN, Rank.KING -> 10
-        else -> rank.ordinal + 1
-    }
-    val isAce get() = rank == Rank.ACE
+	val value: Int
+		get() = when (rank) {
+			Rank.ACE -> GameRules.ACE_HIGH_VALUE
+			Rank.JACK, Rank.QUEEN, Rank.KING -> GameRules.FACE_CARD_VALUE
+			else -> rank.ordinal + 1 // TWO to TEN follow ACE in declaration order
+		}
 
+	val isAce: Boolean get() = rank == Rank.ACE
 }
-fun CardEntity.toCard()= Card(suit, rank)
