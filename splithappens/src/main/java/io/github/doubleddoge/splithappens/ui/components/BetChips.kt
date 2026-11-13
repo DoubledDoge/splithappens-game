@@ -32,13 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.doubleddoge.splithappens.ui.theme.BlueChipColor
+import io.github.doubleddoge.splithappens.ui.theme.DefaultChipColor
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
+import io.github.doubleddoge.splithappens.ui.theme.GreenChipColor
+import io.github.doubleddoge.splithappens.ui.theme.RedChipColor
 import kotlin.math.PI
-
-private val RedChipColor = Color(0xFFB83A3A)
-private val GreenChipColor = Color(0xFF3A9A63)
-private val BlueChipColor = Color(0xFF4A62A0)
-private val DefaultChipColor = Color(0xFF8A6A1F)
 
 private const val FIVE_CHIP = 5
 private const val TWENTY_FIVE_CHIP = 25

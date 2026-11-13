@@ -57,6 +57,7 @@ import io.github.doubleddoge.splithappens.ui.theme.CardBackground
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
 import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
+import io.github.doubleddoge.splithappens.ui.theme.FeltLightGlowCenter
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
@@ -91,7 +92,7 @@ fun MenuScreen(
 	var showStatsDialog by remember { mutableStateOf(false) }
 
 	// Dynamic color palette based on theme
-	val bgGlowCenter = if (isDarkTheme) CardBackground else Color(0xFF1B634A)
+	val bgGlowCenter = if (isDarkTheme) CardBackground else FeltLightGlowCenter
 	val bgOuterDark = if (isDarkTheme) DarkBackground else LightBackground
 	val surfaceColor = if (isDarkTheme) FeltDarkCard else LightSurface
 	val surfaceBorder = if (isDarkTheme) Color.White.copy(alpha = 0.12f) else FeltLightBorder

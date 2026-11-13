@@ -37,11 +37,9 @@ import io.github.doubleddoge.splithappens.ui.theme.GoldBright
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
+import io.github.doubleddoge.splithappens.ui.theme.NavBottomBarDark
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
 import io.github.doubleddoge.splithappens.util.PlayerName
-
-// Dark Theme Colors
-private val CardBgDark = Color(0xFF072C1E)
 
 @Composable
 fun UserHeaderCard(
@@ -52,7 +50,7 @@ fun UserHeaderCard(
     isDarkTheme: Boolean = true,
     onProfileClick: () -> Unit = {}
 ) {
-    val cardBg = if (isDarkTheme) CardBgDark else LightSurface
+    val cardBg = if (isDarkTheme) NavBottomBarDark else LightSurface
     val avatarBg = if (isDarkTheme) FeltDarkRaised else FeltLightBorder
     val chipBadgeBg = if (isDarkTheme) DarkBackground else LightBackground
 

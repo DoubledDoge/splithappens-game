@@ -37,14 +37,12 @@ import io.github.doubleddoge.splithappens.ui.TableCard
 import io.github.doubleddoge.splithappens.ui.isRed
 import io.github.doubleddoge.splithappens.ui.label
 import io.github.doubleddoge.splithappens.ui.symbol
+import io.github.doubleddoge.splithappens.ui.theme.BlackSuitColor
+import io.github.doubleddoge.splithappens.ui.theme.CardBackPrimaryColor
+import io.github.doubleddoge.splithappens.ui.theme.CardBackSecondaryColor
+import io.github.doubleddoge.splithappens.ui.theme.CardFaceBackgroundColor
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
-
-// Colors
-private val RedSuitColor = Color(0xFFC62828)
-private val BlackSuitColor = Color(0xFF1A1A1A)
-private val CardFaceBackgroundColor = Color(0xFFFAF7F0)
-private val CardBackPrimaryColor = Color(0xFF7A1424)
-private val CardBackSecondaryColor = Color(0xFF4A0B16)
+import io.github.doubleddoge.splithappens.ui.theme.RedSuitColor
 
 // Animation parameters
 private const val CARD_FLY_DURATION_MS = 450

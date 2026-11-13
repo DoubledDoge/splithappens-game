@@ -58,8 +58,10 @@ import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkMuted
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
 import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
+import io.github.doubleddoge.splithappens.ui.theme.GoldBright
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
 import java.io.ByteArrayOutputStream
@@ -198,7 +200,7 @@ fun ProfileScreenContent(
               modifier =
                   Modifier.fillMaxSize()
                       .clip(CircleShape)
-                      .background(Color(0xFF0F4D35))
+                      .background(FeltDarkRaised)
                       .border(
                           width = 2.dp,
                           color = GoldFoil,
@@ -216,7 +218,7 @@ fun ProfileScreenContent(
             } else {
               Text(
                   text = uiState.displayName.take(1).uppercase(),
-                  color = Color(0xFFFFD700),
+                  color = GoldBright,
                   fontWeight = FontWeight.Bold,
                   fontSize = 42.sp,
               )
@@ -317,7 +319,7 @@ fun ProfileScreenContent(
         // Chip Balance
         Surface(
             shape = RoundedCornerShape(50.dp),
-            color = Color(0xFF132A21),
+            color = FeltDarkMuted,
             border = BorderStroke(1.dp, GoldFoil.copy(alpha = 0.6f)),
         ) {
           Row(

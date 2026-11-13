@@ -30,10 +30,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.game.model.Action
+import io.github.doubleddoge.splithappens.ui.theme.GoldDark
 import io.github.doubleddoge.splithappens.ui.theme.GoldMuted
 import io.github.doubleddoge.splithappens.ui.theme.OnGold
 
-private val GoldDark = Color(0xFF9C7425)
 private val DefaultTextColor = Color.White
 private const val PREVIEW_BACKGROUND_COLOR = 0xFF071B12
 

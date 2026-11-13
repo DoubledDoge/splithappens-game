@@ -22,37 +22,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.game.model.HandResult
 
-// --- Outcome Banner Color Palette ---
-
-// Blackjack (Gold Theme)
-private val GoldGradientTop = Color(0xFFD4AF37)
-private val GoldGradientBottom = Color(0xFF8B6508)
-private val GoldBorder = Color(0xFFFFF0A5)
-private val GoldText = Color(0xFF100C08)
-
-// Win (Green Theme)
-private val WinGradientTop = Color(0xFF1E703A)
-private val WinGradientBottom = Color(0xFF0D3D1E)
-private val WinBorder = Color(0xFF4ADE80)
-private val WinText = Color.White
-
-// Push (Gray Theme)
-private val PushGradientTop = Color(0xFF4A5568)
-private val PushGradientBottom = Color(0xFF2D3748)
-private val PushBorder = Color(0xFFA0AEC0)
-private val PushText = Color.White
-
-// Loss / Bust (Red Theme)
-private val LossGradientTop = Color(0xFF8C1D1D)
-private val LossGradientBottom = Color(0xFF4A0E0E)
-private val LossBorder = Color(0xFFFCA5A5)
-private val LossText = Color.White
-
-// Default / In-Progress (Slate Theme)
-private val DefaultGradientTop = Color(0xFF1E293B)
-private val DefaultGradientBottom = Color(0xFF0F172A)
-private val DefaultBorder = Color(0xFF64748B)
-private val DefaultText = Color(0xFFE2E8F0)
+import io.github.doubleddoge.splithappens.ui.theme.DefaultBorder
+import io.github.doubleddoge.splithappens.ui.theme.DefaultGradientBottom
+import io.github.doubleddoge.splithappens.ui.theme.DefaultGradientTop
+import io.github.doubleddoge.splithappens.ui.theme.DefaultText
+import io.github.doubleddoge.splithappens.ui.theme.GoldBorder
+import io.github.doubleddoge.splithappens.ui.theme.GoldGradientBottom
+import io.github.doubleddoge.splithappens.ui.theme.GoldGradientTop
+import io.github.doubleddoge.splithappens.ui.theme.GoldText
+import io.github.doubleddoge.splithappens.ui.theme.LossBorder
+import io.github.doubleddoge.splithappens.ui.theme.LossGradientBottom
+import io.github.doubleddoge.splithappens.ui.theme.LossGradientTop
+import io.github.doubleddoge.splithappens.ui.theme.PushBorder
+import io.github.doubleddoge.splithappens.ui.theme.PushGradientBottom
+import io.github.doubleddoge.splithappens.ui.theme.PushGradientTop
+import io.github.doubleddoge.splithappens.ui.theme.WinBorder
+import io.github.doubleddoge.splithappens.ui.theme.WinGradientBottom
+import io.github.doubleddoge.splithappens.ui.theme.WinGradientTop
 
 @Composable
 fun OutcomeBanner(
@@ -78,19 +64,19 @@ fun OutcomeBanner(
 		HandResult.SEVEN_CARD -> Triple(
 			listOf(WinGradientTop, WinGradientBottom),
 			WinBorder,
-			WinText
+			Color.White
 		)
 
 		HandResult.PUSH -> Triple(
 			listOf(PushGradientTop, PushGradientBottom),
 			PushBorder,
-			PushText
+			Color.White
 		)
 
 		HandResult.LOSS -> Triple(
 			listOf(LossGradientTop, LossGradientBottom),
 			LossBorder,
-			LossText
+			Color.White
 		)
 
 		else -> Triple(

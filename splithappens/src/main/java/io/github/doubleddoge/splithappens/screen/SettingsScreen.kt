@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import io.github.doubleddoge.splithappens.viewmodel.uistate.SettingsUiState
 import io.github.doubleddoge.splithappens.ui.components.AppBottomBar
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkCard
+import io.github.doubleddoge.splithappens.ui.theme.TrackInactiveDark
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
 import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
@@ -63,7 +64,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
 
-    val currentBackground = if (uiState.darkTheme) CardBackground else LightBackground
+    val currentBackground = if (uiState.darkTheme) DarkBackground else LightBackground
     val currentCardBg = if (uiState.darkTheme) FeltDarkCard else LightSurface
     val currentCardBorder = if (uiState.darkTheme) FeltDarkRaised else FeltLightBorder
     val currentSubtitle = if (uiState.darkTheme) TextMuted else TextMint
@@ -72,7 +73,7 @@ fun SettingsScreen(
 
     val activeTrackColor = GoldFoil
     val activeThumbColor = if (uiState.darkTheme) DarkBackground else Color.White
-    val inactiveTrackColor = if (uiState.darkTheme) Color(0xFF435A50) else LightBackground
+    val inactiveTrackColor = if (uiState.darkTheme) TrackInactiveDark else LightBackground
     val inactiveThumbColor = if (uiState.darkTheme) TextMuted else TextMint
 
     Scaffold(

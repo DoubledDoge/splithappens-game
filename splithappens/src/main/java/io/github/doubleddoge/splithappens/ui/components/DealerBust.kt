@@ -30,37 +30,35 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import io.github.doubleddoge.splithappens.ui.theme.BowTieDark
+import io.github.doubleddoge.splithappens.ui.theme.BowTieHighlight
+import io.github.doubleddoge.splithappens.ui.theme.BowTieKnotColor
+import io.github.doubleddoge.splithappens.ui.theme.CheekBlushColor
+import io.github.doubleddoge.splithappens.ui.theme.CollarCream
+import io.github.doubleddoge.splithappens.ui.theme.DealerGoldDark as GoldDark
+import io.github.doubleddoge.splithappens.ui.theme.DealerHair as Hair
+import io.github.doubleddoge.splithappens.ui.theme.DealerHairLight as HairLight
+import io.github.doubleddoge.splithappens.ui.theme.EyeWhite
+import io.github.doubleddoge.splithappens.ui.theme.ForeheadShadowColor
 import io.github.doubleddoge.splithappens.ui.theme.GoldMuted
-
-// ---------- Palette ----------
-private val SuitBlack = Color(0xFF101513)
-private val SuitHighlight = Color(0xFF343D38)
-private val SuitJacketDark = Color(0xFF070A09)
-private val ShirtWhite = Color(0xFFF5F1E8)
-private val ShirtShade = Color(0xFFD9D5CB)
-private val GoldDark = Color(0xFF8C6A2A)
-private val Skin = Color(0xFFE8BC9C)
-private val SkinLight = Color(0xFFF3CFB0)
-private val SkinMid = Color(0xFFCF9577)
-private val SkinShadow = Color(0xFFBF8468)
-private val SkinDeep = Color(0xFF9A6450)
-private val JawShadowColor = Color(0xFF5E3526)
-private val ForeheadShadowColor = Color(0xFF6B4332)
-private val CheekBlushColor = Color(0xFFD98F7A)
-private val EyeWhite = Color(0xFFF7F1E8)
-private val IrisColor = Color(0xFF4A3426)
-private val PupilColor = Color(0xFF1A110C)
-private val LowerLipColor = Color(0xFFC98270)
-private val UpperLipColor = Color(0xFFB5705E)
-private val LipLineColor = Color(0xFF8C5042)
-private val Hair = Color(0xFF2E1E16)
-private val HairLight = Color(0xFF5A3D2E)
-private val LapelGreenDark = Color(0xFF2E3832)
-private val LapelGreenDeep = Color(0xFF1A201C)
-private val CollarCream = Color(0xFFE6E2D8)
-private val BowTieDark = Color(0xFF0C0F0E)
-private val BowTieHighlight = Color(0xFF2A302D)
-private val BowTieKnotColor = Color(0xFF1F2522)
+import io.github.doubleddoge.splithappens.ui.theme.IrisColor
+import io.github.doubleddoge.splithappens.ui.theme.JawShadowColor
+import io.github.doubleddoge.splithappens.ui.theme.LapelGreenDark
+import io.github.doubleddoge.splithappens.ui.theme.LapelGreenDeep
+import io.github.doubleddoge.splithappens.ui.theme.LipLineColor
+import io.github.doubleddoge.splithappens.ui.theme.LowerLipColor
+import io.github.doubleddoge.splithappens.ui.theme.PupilColor
+import io.github.doubleddoge.splithappens.ui.theme.ShirtShade
+import io.github.doubleddoge.splithappens.ui.theme.ShirtWhite
+import io.github.doubleddoge.splithappens.ui.theme.Skin
+import io.github.doubleddoge.splithappens.ui.theme.SkinDeep
+import io.github.doubleddoge.splithappens.ui.theme.SkinLight
+import io.github.doubleddoge.splithappens.ui.theme.SkinMid
+import io.github.doubleddoge.splithappens.ui.theme.SkinShadow
+import io.github.doubleddoge.splithappens.ui.theme.SuitBlack
+import io.github.doubleddoge.splithappens.ui.theme.SuitHighlight
+import io.github.doubleddoge.splithappens.ui.theme.SuitJacketDark
+import io.github.doubleddoge.splithappens.ui.theme.UpperLipColor
 
 // Layout & Animation Constants
 private val DefaultDealerHeight = 110.dp

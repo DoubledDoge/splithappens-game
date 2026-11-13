@@ -55,6 +55,7 @@ import io.github.doubleddoge.splithappens.ui.theme.ButtonBackground
 import io.github.doubleddoge.splithappens.ui.theme.ButtonTextColor
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkBorder
 import io.github.doubleddoge.splithappens.ui.theme.FeltLightBorder
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
@@ -137,7 +138,7 @@ fun HomeScreenContent(
 	// Dynamic emerald colors based on isDarkTheme
 	val currentBackground = if (isDarkTheme) DarkBackground else LightBackground
 	val currentCardBg = if (isDarkTheme) CardBackground else LightSurface
-	val currentCardBorder = if (isDarkTheme) Color(0xFF1A5243) else FeltLightBorder
+	val currentCardBorder = if (isDarkTheme) FeltDarkBorder else FeltLightBorder
 
 	Scaffold(
 		modifier = modifier,

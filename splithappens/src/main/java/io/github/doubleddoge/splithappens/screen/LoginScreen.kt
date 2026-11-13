@@ -64,6 +64,7 @@ import io.github.doubleddoge.splithappens.ui.theme.FeltDarkRaised
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
+import io.github.doubleddoge.splithappens.ui.theme.LoginCardSurfaceLight
 import io.github.doubleddoge.splithappens.ui.theme.OnGold
 import io.github.doubleddoge.splithappens.ui.theme.PaperWhite
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
@@ -71,9 +72,6 @@ import io.github.doubleddoge.splithappens.util.PlayerName
 import io.github.doubleddoge.splithappens.viewmodel.LoginViewModel
 import io.github.doubleddoge.splithappens.viewmodel.uistate.LoginUiState
 import io.github.doubleddoge.splithappens.viewmodel.uistate.UserProfileItem
-
-// Light Theme Palette
-private val LoginCardSurfaceLight = Color(0xFF1D5A43)
 
 
 @Composable

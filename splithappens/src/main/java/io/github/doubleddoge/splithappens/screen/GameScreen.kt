@@ -72,10 +72,16 @@ import io.github.doubleddoge.splithappens.ui.components.UserHeaderCard
 import io.github.doubleddoge.splithappens.ui.theme.CardBackground
 import io.github.doubleddoge.splithappens.ui.theme.DangerRed
 import io.github.doubleddoge.splithappens.ui.theme.DarkBackground
+import io.github.doubleddoge.splithappens.ui.theme.DarkRedSurface
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkButton
+import io.github.doubleddoge.splithappens.ui.theme.FeltDarkSurface
 import io.github.doubleddoge.splithappens.ui.theme.GoldFoil
 import io.github.doubleddoge.splithappens.ui.theme.LightBackground
 import io.github.doubleddoge.splithappens.ui.theme.LightSurface
+import io.github.doubleddoge.splithappens.ui.theme.OnGold
 import io.github.doubleddoge.splithappens.ui.theme.SplitHappensTheme
+import io.github.doubleddoge.splithappens.ui.theme.WoodRailInner
+import io.github.doubleddoge.splithappens.ui.theme.WoodRailOuter
 import io.github.doubleddoge.splithappens.ui.toTableCard
 import io.github.doubleddoge.splithappens.ui.toTableCards
 import io.github.doubleddoge.splithappens.util.PlayerName
@@ -89,13 +95,6 @@ import kotlinx.coroutines.launch
 import android.graphics.Paint as AndroidPaint
 import android.graphics.Path as AndroidPath
 import android.graphics.PathMeasure as AndroidPathMeasure
-
-// Theme Palettes
-
-private val FeltDarkSurface = Color(0xFF0B2D21)
-
-private val WoodRailOuter = Color(0xFF332014)
-private val WoodRailInner = Color(0xFF5A3924)
 
 private const val ARC_SWEEP = 110f
 
@@ -411,7 +410,7 @@ fun GameScreen(
 										Text(
 											text = label,
 											color =
-												if (isSelected) Color(0xFF1A1208)
+												if (isSelected) OnGold
 												else GoldFoil.copy(alpha = if (canSwitchMode) 0.75f else 0.4f),
 											fontSize = 10.sp,
 											fontWeight = FontWeight.Bold,
@@ -531,7 +530,7 @@ fun GameScreen(
 								Spacer(modifier = Modifier.height(8.dp))
 								Surface(
 									shape = RoundedCornerShape(12.dp),
-									color = Color(0xFF3B1C1C),
+									color = DarkRedSurface,
 									border = BorderStroke(1.dp, DangerRed),
 									modifier = Modifier
                                         .fillMaxWidth()
@@ -615,7 +614,7 @@ fun GameScreen(
 									colors =
 										ButtonDefaults.buttonColors(
 											containerColor = GoldFoil,
-											contentColor = Color(0xFF1A1208),
+											contentColor = OnGold,
 										),
 								) {
 									Text(
@@ -696,7 +695,7 @@ fun GameScreen(
 											onClick = { gameViewModel.resolveInsurance(false) },
 											colors =
 												ButtonDefaults.buttonColors(
-													containerColor = Color(0xFF2A3B32),
+													containerColor = FeltDarkButton,
 													contentColor = Color.White,
 												),
 										) {
